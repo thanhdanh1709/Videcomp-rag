@@ -19,6 +19,12 @@ import type {
   RAGTriadResult,
   SampleEvaluationItem,
   SingleRagasRequest,
+  AuditLogItem,
+  AuditLogsResponse,
+  AuditStatsResponse,
+  PIIConfigResponse,
+  PIIConfigUpdate,
+  PIITestResponse,
 } from "./types";
 import type { ProjectFolder } from "../types/project";
 import type { CustomAgent } from "../types/agent";
@@ -776,6 +782,59 @@ export async function apiTestModels(sampleText?: string, candidateTexts?: string
     method: "POST",
     body: JSON.stringify({ sample_text: sampleText, candidate_texts: candidateTexts }),
   });
+}
+
+// ==========================================
+// 5. PII MASKING & AUDIT LOGS (NĐ 13/2023/NĐ-CP)
+// ==========================================
+
+export async function apiGetPIIConfig(): Promise<PIIConfigResponse> {
+  return request<PIIConfigResponse>("/api/v1/admin/pii-config");
+}
+
+export async function apiUpdatePIIConfig(payload: PIIConfigUpdate): Promise<PIIConfigResponse> {
+  return request<PIIConfigResponse>("/api/v1/admin/pii-config", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiTestPII(sampleText: string): Promise<PIITestResponse> {
+  return request<PIITestResponse>("/api/v1/admin/pii-test", {
+    method: "POST",
+    body: JSON.stringify({ text: sampleText }),
+  });
+}
+
+export async function apiGetAuditLogs(
+  limit: number = 50,
+  offset: number = 0,
+  username?: string,
+  action?: string,
+  search?: string
+): Promise<AuditLogsResponse> {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  if (username) params.set("username", username);
+  if (action) params.set("action", action);
+  if (search) params.set("search", search);
+
+  return request<AuditLogsResponse>(`/api/v1/admin/audit-logs?${params.toString()}`);
+}
+
+export async function apiGetAuditStats(): Promise<AuditStatsResponse> {
+  return request<AuditStatsResponse>("/api/v1/admin/audit-logs/stats");
+}
+
+export function getAuditExportUrl(username?: string, action?: string, search?: string): string {
+  const base = getApiBaseUrl();
+  const params = new URLSearchParams();
+  if (username) params.set("username", username);
+  if (action) params.set("action", action);
+  if (search) params.set("search", search);
+  return `${base}/api/v1/admin/audit-logs/export?${params.toString()}`;
 }
 
 export { ApiError };

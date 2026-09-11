@@ -174,3 +174,24 @@ class CustomAgentRecord(Base):
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
 
+class AuditLogRecord(Base):
+    """Nhật ký Kiểm toán (Audit Logs) bảo mật & truy vết tuân thủ Nghị định 13/2023/NĐ-CP."""
+
+    __tablename__ = "audit_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(64), index=True, default="anonymous")
+    ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    action: Mapped[str] = mapped_column(String(64), index=True)  # "query_qa", "document_upload", "export_dossier", "index_build", "pii_masked"
+    domain: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    resource: Mapped[str] = mapped_column(Text)  # Câu hỏi, tên file, hoặc resource identifier
+    details: Mapped[dict] = mapped_column(JSON, default=dict)  # Metadata, citations, pii_types_detected
+    tokens_prompt: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_completion: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_total: Mapped[int] = mapped_column(Integer, default=0)
+    latency_ms: Mapped[float] = mapped_column(Float, default=0.0)
+    status: Mapped[str] = mapped_column(String(32), default="success")  # "success" | "error" | "masked"
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+
+
+

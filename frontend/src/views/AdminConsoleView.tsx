@@ -10,9 +10,23 @@ import {
   apiGetModelsConfig,
   apiUpdateModelsConfig,
   apiTestModels,
+  apiGetPIIConfig,
+  apiUpdatePIIConfig,
+  apiTestPII,
+  apiGetAuditLogs,
+  apiGetAuditStats,
+  getAuditExportUrl,
   type AdminConfig,
 } from "../api/client";
-import type { ModelsConfigResponse, ModelsTestResponse, SemanticCacheStats } from "../api/types";
+import type {
+  ModelsConfigResponse,
+  ModelsTestResponse,
+  SemanticCacheStats,
+  PIIConfigResponse,
+  PIITestResponse,
+  AuditLogItem,
+  AuditStatsResponse,
+} from "../api/types";
 
 
 interface Member {
@@ -144,7 +158,33 @@ export function AdminConsoleView({
   const [modelsTestResult, setModelsTestResult] = useState<ModelsTestResponse | null>(null);
   const [customSampleText, setCustomSampleText] = useState("");
 
-  // Đọc cấu hình API Key, Local LLM, Semantic Cache và Models từ backend khi nạp view
+  // Cấu hình Lọc & Ẩn Dữ liệu Nhạy cảm (PII Masking - Nghị định 13/2023/NĐ-CP)
+  const [piiConfig, setPiiConfig] = useState<PIIConfigResponse | null>(null);
+  const [enablePiiMasking, setEnablePiiMasking] = useState(true);
+  const [piiMaskCccd, setPiiMaskCccd] = useState(true);
+  const [piiMaskPhone, setPiiMaskPhone] = useState(true);
+  const [piiMaskLicensePlate, setPiiMaskLicensePlate] = useState(true);
+  const [piiMaskTaxId, setPiiMaskTaxId] = useState(true);
+  const [piiMaskMedicalRecord, setPiiMaskMedicalRecord] = useState(true);
+  const [piiMaskEmail, setPiiMaskEmail] = useState(true);
+  const [isSavingPII, setIsSavingPII] = useState(false);
+  const [piiSampleText, setPiiSampleText] = useState(
+    "Bệnh nhân Trần Thị Lan (CCCD: 001098012345, SĐT: 0912345678, MST cá nhân: 0102030405) lái xe ô tô 29A-123.45 nhập viện theo hồ sơ BA-98765, vui lòng gửi kết quả về email lan.tran@hospital.vn."
+  );
+  const [piiTestResult, setPiiTestResult] = useState<PIITestResponse | null>(null);
+  const [isTestingPII, setIsTestingPII] = useState(false);
+
+  // Nhật ký Kiểm toán & Báo cáo Tuân thủ (Audit Logs)
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [auditTotal, setAuditTotal] = useState(0);
+  const [auditStats, setAuditStats] = useState<AuditStatsResponse | null>(null);
+  const [auditLimit] = useState(20);
+  const [auditOffset, setAuditOffset] = useState(0);
+  const [auditActionFilter, setAuditActionFilter] = useState("all");
+  const [auditSearch, setAuditSearch] = useState("");
+  const [isLoadingAudit, setIsLoadingAudit] = useState(false);
+
+  // Đọc cấu hình API Key, Local LLM, Semantic Cache, Models, PII và Audit từ backend khi nạp view
   useEffect(() => {
     getAdminConfig()
       .then((res) => {
@@ -175,7 +215,86 @@ export function AdminConsoleView({
         setVisionModel(m.vision_model || "claude-3-5-sonnet-20241022");
       })
       .catch(() => {});
+
+    apiGetPIIConfig()
+      .then((p) => {
+        setPiiConfig(p);
+        setEnablePiiMasking(p.enable_pii_masking);
+        setPiiMaskCccd(p.pii_mask_cccd);
+        setPiiMaskPhone(p.pii_mask_phone);
+        setPiiMaskLicensePlate(p.pii_mask_license_plate);
+        setPiiMaskTaxId(p.pii_mask_tax_id);
+        setPiiMaskMedicalRecord(p.pii_mask_medical_record);
+        setPiiMaskEmail(p.pii_mask_email);
+      })
+      .catch(() => {});
+
+    loadAuditLogs(0);
+    loadAuditStats();
   }, []);
+
+  const loadAuditLogs = async (offset = 0, action = auditActionFilter, search = auditSearch) => {
+    setIsLoadingAudit(true);
+    try {
+      const act = action === "all" ? undefined : action;
+      const res = await apiGetAuditLogs(auditLimit, offset, undefined, act, search.trim() || undefined);
+      setAuditLogs(res.logs);
+      setAuditTotal(res.total);
+      setAuditOffset(offset);
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingAudit(false);
+    }
+  };
+
+  const loadAuditStats = async () => {
+    try {
+      const st = await apiGetAuditStats();
+      setAuditStats(st);
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleSavePIIConfig = async () => {
+    setIsSavingPII(true);
+    try {
+      const res = await apiUpdatePIIConfig({
+        enable_pii_masking: enablePiiMasking,
+        pii_mask_cccd: piiMaskCccd,
+        pii_mask_phone: piiMaskPhone,
+        pii_mask_license_plate: piiMaskLicensePlate,
+        pii_mask_tax_id: piiMaskTaxId,
+        pii_mask_medical_record: piiMaskMedicalRecord,
+        pii_mask_email: piiMaskEmail,
+      });
+      setPiiConfig(res);
+      onShowToast?.("Cập nhật cấu hình bảo vệ dữ liệu PII thành công!");
+    } catch (err: any) {
+      onShowToast?.("Lỗi cập nhật cấu hình PII: " + (err.message || ""));
+    } finally {
+      setIsSavingPII(false);
+    }
+  };
+
+  const handleTestPII = async () => {
+    if (!piiSampleText.trim()) return;
+    setIsTestingPII(true);
+    try {
+      const res = await apiTestPII(piiSampleText.trim());
+      setPiiTestResult(res);
+      onShowToast?.(
+        res.has_pii
+          ? `Phát hiện ${res.detected_entities.length} thực thể PII!`
+          : "Không phát hiện dữ liệu nhạy cảm."
+      );
+    } catch (err: any) {
+      onShowToast?.("Lỗi kiểm tra PII: " + (err.message || ""));
+    } finally {
+      setIsTestingPII(false);
+    }
+  };
 
   const handleSaveModelsConfig = async () => {
     setIsSavingModelsConfig(true);
@@ -378,6 +497,28 @@ export function AdminConsoleView({
         </div>
 
         <div className="flex items-center flex-wrap gap-unit-xs">
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById("pii-masking-section");
+              el?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 text-label-md font-label-md font-semibold transition-colors border border-emerald-500/30"
+          >
+            <span className="material-symbols-outlined text-[18px]">verified_user</span>
+            <span>🛡️ Lọc PII (NĐ 13)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById("audit-logs-section");
+              el?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded-full bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-400 text-label-md font-label-md font-semibold transition-colors border border-indigo-500/30"
+          >
+            <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+            <span>📋 Nhật ký Kiểm toán</span>
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -1593,6 +1734,314 @@ export function AdminConsoleView({
           </div>
         </div>
 
+        {/* PHÂN HỆ LỌC VÀ ẨN DỮ LIỆU NHẠY CẢM (PII MASKING - NGHỊ ĐỊNH 13/2023/NĐ-CP) */}
+        <section
+          id="pii-masking-section"
+          className="p-unit-lg md:p-unit-xl rounded-DEFAULT bg-surface-container-low border-2 border-emerald-500/40 shadow-xl space-y-unit-md relative overflow-hidden"
+        >
+          <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl" />
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-outline-variant/20 gap-3">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="material-symbols-outlined text-emerald-400 text-[26px]">shield_lock</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
+                  Lọc và Ẩn Dữ liệu Nhạy cảm (PII Masking)
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold border border-emerald-500/30">
+                  Nghị định 13/2023/NĐ-CP
+                </span>
+                <span className="px-2.5 py-0.5 rounded-full bg-surface-container-high text-outline text-[11px] font-mono">
+                  Gateway An toàn
+                </span>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Tự động nhận diện và làm mờ các định danh cá nhân (Số CCCD, số điện thoại, biển số xe, mã số thuế, hồ sơ bệnh án cá nhân, email) trước khi gửi prompt tới các mô hình LLM, đảm bảo dữ liệu nhạy cảm không bao giờ rò rỉ ra ngoài ranh giới tổ chức.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 bg-surface-container px-3 py-1.5 rounded-full border border-outline-variant/30">
+                <span className="text-[12px] font-medium text-on-surface">
+                  {enablePiiMasking ? "Đang bảo vệ" : "Đã tạm dừng"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEnablePiiMasking(!enablePiiMasking)}
+                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors ${
+                    enablePiiMasking ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                  }`}
+                  title="Bật/Tắt bảo vệ dữ liệu cá nhân PII"
+                >
+                  <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSavePIIConfig}
+                disabled={isSavingPII}
+                className="flex items-center gap-2 px-unit-lg py-2 rounded-full bg-emerald-500 text-black font-label-md font-bold hover:opacity-90 transition-all shadow-md active:scale-95 disabled:opacity-40"
+              >
+                {isSavingPII ? (
+                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                )}
+                <span>Lưu cấu hình PII</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 6 Thẻ Cấu hình Các Loại Dữ liệu Nhạy cảm */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-unit-md">
+            {/* 1. CCCD / CMND */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">badge</span>
+                  <span className="text-[13px] font-bold text-on-surface">Số CCCD / CMND</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant">
+                  Căn cước công dân (12 số) hoặc CMND (9 số).
+                </p>
+                <div className="font-mono text-[10px] text-emerald-400/90 bg-surface-container-high px-2 py-0.5 rounded inline-block">
+                  → [CCCD: *******1234]
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPiiMaskCccd(!piiMaskCccd)}
+                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors shrink-0 ${
+                  piiMaskCccd ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                }`}
+              >
+                <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md" />
+              </button>
+            </div>
+
+            {/* 2. Số Điện Thoại */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">call</span>
+                  <span className="text-[13px] font-bold text-on-surface">Số Điện Thoại VN</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant">
+                  Các đầu số di động (03x, 05x, 07x, 08x, 09x, +84).
+                </p>
+                <div className="font-mono text-[10px] text-emerald-400/90 bg-surface-container-high px-2 py-0.5 rounded inline-block">
+                  → [SĐT: *******890]
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPiiMaskPhone(!piiMaskPhone)}
+                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors shrink-0 ${
+                  piiMaskPhone ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                }`}
+              >
+                <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md" />
+              </button>
+            </div>
+
+            {/* 3. Biển Số Xe */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">directions_car</span>
+                  <span className="text-[13px] font-bold text-on-surface">Biển Số Xe Cơ Giới</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant">
+                  Biển số ô tô, xe máy chuẩn (29A-123.45, 51F-1234...).
+                </p>
+                <div className="font-mono text-[10px] text-emerald-400/90 bg-surface-container-high px-2 py-0.5 rounded inline-block">
+                  → [BIỂN SỐ XE: 29A-*****]
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPiiMaskLicensePlate(!piiMaskLicensePlate)}
+                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors shrink-0 ${
+                  piiMaskLicensePlate ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                }`}
+              >
+                <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md" />
+              </button>
+            </div>
+
+            {/* 4. Mã Số Thuế */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">receipt_long</span>
+                  <span className="text-[13px] font-bold text-on-surface">Mã Số Thuế (MST)</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant">
+                  MST cá nhân hoặc doanh nghiệp (10 số hoặc 10-3 số).
+                </p>
+                <div className="font-mono text-[10px] text-emerald-400/90 bg-surface-container-high px-2 py-0.5 rounded inline-block">
+                  → [MST: ******0405]
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPiiMaskTaxId(!piiMaskTaxId)}
+                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors shrink-0 ${
+                  piiMaskTaxId ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                }`}
+              >
+                <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md" />
+              </button>
+            </div>
+
+            {/* 5. Mã Hồ Sơ Bệnh Án */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">medical_services</span>
+                  <span className="text-[13px] font-bold text-on-surface">Hồ Sơ Bệnh Án / BN</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant">
+                  Mã bệnh án (BA-xxxxx, HSBA-xxxxx, BN-xxxxx).
+                </p>
+                <div className="font-mono text-[10px] text-emerald-400/90 bg-surface-container-high px-2 py-0.5 rounded inline-block">
+                  → [MÃ BỆNH ÁN: BA-*****]
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPiiMaskMedicalRecord(!piiMaskMedicalRecord)}
+                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors shrink-0 ${
+                  piiMaskMedicalRecord ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                }`}
+              >
+                <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md" />
+              </button>
+            </div>
+
+            {/* 6. Email */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-400">mail</span>
+                  <span className="text-[13px] font-bold text-on-surface">Email Cá Nhân</span>
+                </div>
+                <p className="text-[11px] text-on-surface-variant">
+                  Địa chỉ email liên lạc cá nhân.
+                </p>
+                <div className="font-mono text-[10px] text-emerald-400/90 bg-surface-container-high px-2 py-0.5 rounded inline-block">
+                  → [EMAIL: a***@domain.com]
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPiiMaskEmail(!piiMaskEmail)}
+                className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-colors shrink-0 ${
+                  piiMaskEmail ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                }`}
+              >
+                <div className="bg-white w-3.5 h-3.5 rounded-full shadow-md" />
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Live Testing Playground */}
+          <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-emerald-500/30 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-400 text-[20px]">science</span>
+                <span className="text-[13px] font-bold text-on-surface uppercase tracking-wider">
+                  Trình Thử Nghiệm Lọc PII Trực Tiếp (Live Playground)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  setPiiSampleText(
+                    "Bệnh nhân Trần Thị Lan (CCCD: 001098012345, SĐT: 0912345678, MST cá nhân: 0102030405) lái xe ô tô 29A-123.45 nhập viện theo hồ sơ BA-98765, vui lòng gửi kết quả về email lan.tran@hospital.vn."
+                  )
+                }
+                className="text-[11px] text-emerald-400 hover:underline flex items-center gap-1 font-medium"
+              >
+                <span className="material-symbols-outlined text-[14px]">history_edu</span>
+                Nạp mẫu thử chuẩn NĐ 13
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {/* Cột 1: Nhập văn bản thử nghiệm */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-semibold text-outline uppercase tracking-wider">
+                  Văn bản đầu vào trước khi lọc (Input Prompt)
+                </label>
+                <textarea
+                  value={piiSampleText}
+                  onChange={(e) => setPiiSampleText(e.target.value)}
+                  rows={4}
+                  className="w-full bg-surface-container-high px-3 py-2 rounded-DEFAULT text-on-surface text-[12px] font-mono outline-none border border-outline-variant/30 focus:border-emerald-500 resize-none"
+                  placeholder="Nhập nội dung cần kiểm tra nhận diện PII..."
+                />
+                <button
+                  type="button"
+                  onClick={handleTestPII}
+                  disabled={isTestingPII || !piiSampleText.trim()}
+                  className="w-full py-2 rounded-full bg-emerald-500 hover:opacity-90 text-black font-label-md font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40"
+                >
+                  {isTestingPII ? (
+                    <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                  )}
+                  <span>Kiểm tra Lọc PII Tức Thì</span>
+                </button>
+              </div>
+
+              {/* Cột 2: Kết quả làm mờ và bóc tách thực thể */}
+              <div className="space-y-2">
+                <label className="block text-[11px] font-semibold text-outline uppercase tracking-wider flex items-center justify-between">
+                  <span>Kết quả sau lọc (Masked Output an toàn)</span>
+                  {piiTestResult && (
+                    <span className="text-emerald-400 font-bold">
+                      {piiTestResult.detected_entities.length} thực thể bảo vệ
+                    </span>
+                  )}
+                </label>
+
+                <div className="min-h-[96px] p-3 rounded-DEFAULT bg-surface-container-highest/80 border border-outline-variant/30 text-[12px] font-mono text-on-surface leading-relaxed break-words">
+                  {piiTestResult ? (
+                    piiTestResult.masked_text
+                  ) : (
+                    <span className="text-outline italic">
+                      Nhấn &quot;Kiểm tra Lọc PII Tức Thì&quot; để xem văn bản sau khi được làm mờ an toàn trước khi gửi đến LLM.
+                    </span>
+                  )}
+                </div>
+
+                {piiTestResult && piiTestResult.detected_entities.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] uppercase tracking-wider font-bold text-outline block">
+                      Chi tiết thực thể nhận diện:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                      {piiTestResult.detected_entities.map((ent, idx) => (
+                        <div
+                          key={idx}
+                          className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[11px] flex items-center gap-1"
+                        >
+                          <span className="font-bold text-emerald-400">[{ent.label}]</span>
+                          <span className="line-through text-outline text-[10px]">{ent.original_value}</span>
+                          <span className="text-on-surface font-mono">→ {ent.masked_value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Security & Enterprise Governance Toggle Card */}
         <div className="p-unit-xl rounded-DEFAULT bg-surface-container-low border border-outline-variant/20 flex flex-col gap-unit-lg">
           <div className="flex flex-col md:flex-row md:items-center justify-between pb-unit-sm border-b border-outline-variant/20 gap-unit-xs">
@@ -1894,6 +2343,325 @@ export function AdminConsoleView({
             </div>
           </div>
         </div>
+
+        {/* PHÂN HỆ NHẬT KÝ KIỂM TOÁN & GIÁM SÁT TUÂN THỦ (AUDIT LOGS) */}
+        <section
+          id="audit-logs-section"
+          className="p-unit-lg md:p-unit-xl rounded-DEFAULT bg-surface-container-low border-2 border-indigo-500/40 shadow-xl space-y-unit-md relative overflow-hidden"
+        >
+          <div className="pointer-events-none absolute -top-24 -left-24 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl" />
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-outline-variant/20 gap-3">
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="material-symbols-outlined text-indigo-400 text-[26px]">receipt_long</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
+                  Nhật ký Kiểm toán &amp; Giám sát Tuân thủ (Audit Logs)
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[11px] font-bold border border-indigo-500/30">
+                  IT &amp; Security Compliance
+                </span>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Lưu vết toàn bộ truy vấn tài liệu, ai đã gọi API nào, vào thời điểm nào, số lượng token tiêu thụ và trạng thái kiểm duyệt PII để phòng ngừa gian lận và thanh tra hệ thống.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={getAuditExportUrl(
+                  undefined,
+                  auditActionFilter === "all" ? undefined : auditActionFilter,
+                  auditSearch.trim() || undefined
+                )}
+                target="_blank"
+                rel="noreferrer"
+                download="audit_logs.csv"
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-label-sm font-semibold transition-all border border-outline-variant/30"
+              >
+                <span className="material-symbols-outlined text-[16px] text-indigo-400">download</span>
+                <span>Xuất CSV (Excel)</span>
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  loadAuditLogs(0);
+                  loadAuditStats();
+                  onShowToast?.("Đã làm mới danh sách nhật ký kiểm toán!");
+                }}
+                disabled={isLoadingAudit}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-label-sm font-semibold transition-all border border-indigo-500/40 disabled:opacity-40"
+              >
+                <span className={`material-symbols-outlined text-[16px] ${isLoadingAudit ? "animate-spin" : ""}`}>
+                  sync
+                </span>
+                <span>Làm mới</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Thẻ KPI Giám sát Kiểm toán */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-unit-md">
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Tổng truy vấn QA</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-on-surface font-bold">
+                  {auditStats?.total_queries ?? 0}
+                </span>
+                <span className="text-outline text-label-sm">lượt</span>
+              </div>
+              <span className="text-[11px] text-outline mt-1 font-mono">Bao gồm SSE &amp; Standard</span>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Tổng Token tiêu thụ</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-indigo-400 font-bold">
+                  {auditStats?.total_tokens ? auditStats.total_tokens.toLocaleString() : 0}
+                </span>
+                <span className="text-outline text-label-sm">tokens</span>
+              </div>
+              <span className="text-[11px] text-indigo-400/90 mt-1">Prompt &amp; Completion</span>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Người dùng hoạt động</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-primary font-bold">
+                  {auditStats?.active_users ?? 0}
+                </span>
+                <span className="text-outline text-label-sm">tài khoản</span>
+              </div>
+              <span className="text-[11px] text-on-surface-variant mt-1">Ghi nhận trong Audit</span>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Số lần Lọc PII An toàn</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-emerald-400 font-bold">
+                  {auditStats?.pii_masked_count ?? 0}
+                </span>
+                <span className="text-outline text-label-sm">lần</span>
+              </div>
+              <span className="text-[11px] text-emerald-400/90 mt-1">Đã che thông tin nhạy cảm</span>
+            </div>
+          </div>
+
+          {/* Bộ lọc & Tìm kiếm Audit Logs */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-unit-md pt-2">
+            <div className="flex items-center gap-unit-xs overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+              {[
+                { id: "all", label: "Tất cả hành vi" },
+                { id: "qa_answer", label: "Tra cứu QA" },
+                { id: "qa_answer_stream", label: "Dòng SSE" },
+                { id: "document_upload", label: "Tải tài liệu" },
+                { id: "export_dossier", label: "Xuất hồ sơ" },
+              ].map((act) => (
+                <button
+                  key={act.id}
+                  type="button"
+                  onClick={() => {
+                    setAuditActionFilter(act.id);
+                    loadAuditLogs(0, act.id, auditSearch);
+                  }}
+                  className={`px-unit-md py-1 rounded-full font-label-sm text-label-sm whitespace-nowrap transition-all border ${
+                    auditActionFilter === act.id
+                      ? "bg-indigo-500 text-white font-bold border-indigo-500 shadow-sm"
+                      : "bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-outline-variant/30"
+                  }`}
+                >
+                  {act.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Ô tìm kiếm Log */}
+            <div className="relative flex items-center min-w-[280px]">
+              <span className="material-symbols-outlined absolute left-unit-sm text-on-surface-variant text-[18px]">
+                search
+              </span>
+              <input
+                value={auditSearch}
+                onChange={(e) => {
+                  setAuditSearch(e.target.value);
+                  loadAuditLogs(0, auditActionFilter, e.target.value);
+                }}
+                className="w-full pl-9 pr-unit-md py-1.5 rounded-full bg-surface-container text-on-surface placeholder:text-outline text-label-sm font-label-sm border border-outline-variant/30 focus:border-indigo-500 focus:outline-none transition-colors"
+                placeholder="Tìm theo tài nguyên, câu hỏi, IP..."
+              />
+            </div>
+          </div>
+
+          {/* Bảng Nhật ký Kiểm toán chi tiết */}
+          <div className="rounded-DEFAULT border border-outline-variant/30 overflow-hidden bg-surface-container">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-body-sm">
+                <thead>
+                  <tr className="border-b border-outline-variant/30 bg-surface-container-high/50 text-[11px] font-semibold text-outline uppercase tracking-wider">
+                    <th className="py-2.5 px-3">Thời gian</th>
+                    <th className="py-2.5 px-3">Người dùng / IP</th>
+                    <th className="py-2.5 px-3">Hành vi</th>
+                    <th className="py-2.5 px-3">Tài nguyên / Nội dung câu hỏi</th>
+                    <th className="py-2.5 px-3 text-right">Tokens</th>
+                    <th className="py-2.5 px-3 text-right">Độ trễ</th>
+                    <th className="py-2.5 px-3 text-center">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/15 text-[12px]">
+                  {auditLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-outline">
+                        {isLoadingAudit ? "Đang nạp nhật ký kiểm toán..." : "Chưa có bản ghi nhật ký kiểm toán nào phù hợp."}
+                      </td>
+                    </tr>
+                  ) : (
+                    auditLogs.map((log) => {
+                      const dateStr = new Date(log.created_at).toLocaleString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                      });
+                      const isPII = log.details?.has_pii || log.status === "masked";
+
+                      return (
+                        <tr key={log.id} className="hover:bg-surface-container-high/40 transition-colors">
+                          {/* Thời gian */}
+                          <td className="py-2 px-3 font-mono text-[11px] text-outline whitespace-nowrap">
+                            {dateStr}
+                          </td>
+
+                          {/* Người dùng & IP */}
+                          <td className="py-2 px-3 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-300 font-bold text-[10px] flex items-center justify-center">
+                                {log.username.slice(0, 2).toUpperCase()}
+                              </span>
+                              <div>
+                                <span className="font-semibold text-on-surface block text-[12px]">
+                                  {log.username}
+                                </span>
+                                <span className="font-mono text-[10px] text-outline block">
+                                  {log.ip_address || "127.0.0.1"}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Hành vi */}
+                          <td className="py-2 px-3 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-0.5 rounded text-[11px] font-mono font-medium inline-flex items-center gap-1 ${
+                                log.action.includes("qa")
+                                  ? "bg-primary/15 text-primary border border-primary/20"
+                                  : log.action.includes("upload")
+                                  ? "bg-amber-500/15 text-amber-400 border border-amber-500/20"
+                                  : "bg-surface-container-highest text-on-surface border border-outline-variant/30"
+                              }`}
+                            >
+                              {log.action}
+                            </span>
+                          </td>
+
+                          {/* Tài nguyên / Câu hỏi */}
+                          <td className="py-2 px-3 max-w-[280px]">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {log.domain && (
+                                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-surface-container-highest text-outline">
+                                  {log.domain === "legal" ? "Pháp lý" : "Y tế"}
+                                </span>
+                              )}
+                              <span
+                                className="truncate text-on-surface"
+                                title={log.resource || JSON.stringify(log.details)}
+                              >
+                                {log.resource}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* Tokens */}
+                          <td className="py-2 px-3 text-right font-mono text-[11px] whitespace-nowrap">
+                            {log.tokens_total > 0 ? (
+                              <div>
+                                <span className="font-bold text-on-surface">{log.tokens_total}</span>
+                                <span className="text-[10px] text-outline block">
+                                  {log.tokens_prompt}p / {log.tokens_completion}c
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-outline">-</span>
+                            )}
+                          </td>
+
+                          {/* Độ trễ */}
+                          <td className="py-2 px-3 text-right font-mono text-[11px] text-outline whitespace-nowrap">
+                            {log.latency_ms > 0 ? `${log.latency_ms} ms` : "-"}
+                          </td>
+
+                          {/* Trạng thái & Huy hiệu PII */}
+                          <td className="py-2 px-3 text-center whitespace-nowrap">
+                            <div className="flex items-center justify-center gap-1">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                  log.status === "error"
+                                    ? "bg-error/20 text-error"
+                                    : "bg-emerald-500/20 text-emerald-400"
+                                }`}
+                              >
+                                {log.status === "error" ? "Lỗi" : "Thành công"}
+                              </span>
+                              {isPII && (
+                                <span
+                                  className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-0.5"
+                                  title="Đã kích hoạt lọc và làm mờ PII an toàn"
+                                >
+                                  <span className="material-symbols-outlined text-[12px]">shield</span>
+                                  PII
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Phân trang Audit Logs */}
+            <div className="p-unit-md bg-surface-container/50 border-t border-outline-variant/20 flex flex-col sm:flex-row items-center justify-between gap-unit-sm">
+              <span className="font-label-sm text-label-sm text-outline">
+                Hiển thị {auditTotal === 0 ? 0 : auditOffset + 1} - {Math.min(auditOffset + auditLimit, auditTotal)} trong tổng số {auditTotal} bản ghi kiểm toán
+              </span>
+              <div className="flex items-center gap-unit-xs">
+                <button
+                  type="button"
+                  onClick={() => loadAuditLogs(Math.max(0, auditOffset - auditLimit))}
+                  disabled={auditOffset === 0 || isLoadingAudit}
+                  className="px-unit-sm py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm disabled:opacity-40"
+                >
+                  Trước
+                </button>
+                <span className="px-unit-sm py-1 rounded bg-indigo-500 text-white font-label-sm text-label-sm font-bold">
+                  {Math.floor(auditOffset / auditLimit) + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => loadAuditLogs(auditOffset + auditLimit)}
+                  disabled={auditOffset + auditLimit >= auditTotal || isLoadingAudit}
+                  className="px-unit-sm py-1 rounded bg-surface-container text-on-surface hover:bg-surface-container-high font-label-sm text-label-sm disabled:opacity-40"
+                >
+                  Tiếp
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Quick Action Banner / Support & API Link */}
         <div className="p-unit-lg rounded-DEFAULT bg-gradient-to-r from-surface-container-high via-surface-container to-surface-container-high border border-outline-variant/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-unit-md mb-8">

@@ -69,7 +69,9 @@ class AnswerResult(BaseModel):
     citations: list[Citation] = Field(default_factory=list)
     verification: VerificationReport | None = None
     latency_ms: float
-    config_version: str
     is_cached: bool = False
     cache_similarity: float | None = None
     cached_question: str | None = None
+    has_pii: bool = False
+    pii_entities: list[dict] = Field(default_factory=list)
+

@@ -6,7 +6,14 @@ from sqlalchemy import select
 
 from ..schemas.answer import AnswerResult
 from ..schemas.documents import Document
-from .models import BenchmarkAnnotationRecord, DocumentRecord, ExperimentRecord, IndexVersionRecord, QATraceRecord
+from .models import (
+    AuditLogRecord,
+    BenchmarkAnnotationRecord,
+    DocumentRecord,
+    ExperimentRecord,
+    IndexVersionRecord,
+    QATraceRecord,
+)
 from .session import get_session
 
 
@@ -135,3 +142,115 @@ def list_benchmark_annotations(status: str | None = None) -> list[BenchmarkAnnot
         if status:
             stmt = stmt.where(BenchmarkAnnotationRecord.annotation_status == status)
         return list(session.execute(stmt).scalars().all())
+
+
+def save_audit_log(
+    *,
+    username: str = "anonymous",
+    ip_address: str | None = None,
+    action: str,
+    domain: str | None = None,
+    resource: str,
+    details: dict | None = None,
+    tokens_prompt: int = 0,
+    tokens_completion: int = 0,
+    tokens_total: int = 0,
+    latency_ms: float = 0.0,
+    status: str = "success",
+) -> AuditLogRecord:
+    with get_session() as session:
+        record = AuditLogRecord(
+            username=username,
+            ip_address=ip_address,
+            action=action,
+            domain=domain,
+            resource=resource,
+            details=details or {},
+            tokens_prompt=tokens_prompt,
+            tokens_completion=tokens_completion,
+            tokens_total=tokens_total or (tokens_prompt + tokens_completion),
+            latency_ms=latency_ms,
+            status=status,
+        )
+        session.add(record)
+        session.commit()
+        session.refresh(record)
+        return record
+
+
+def list_audit_logs(
+    *,
+    limit: int = 50,
+    offset: int = 0,
+    username: str | None = None,
+    action: str | None = None,
+    search: str | None = None,
+) -> tuple[list[AuditLogRecord], int]:
+    with get_session() as session:
+        from sqlalchemy import func
+        stmt = select(AuditLogRecord).order_by(AuditLogRecord.created_at.desc())
+        if username and username.strip():
+            stmt = stmt.where(AuditLogRecord.username == username.strip())
+        if action and action.strip() and action.strip() != "all":
+            stmt = stmt.where(AuditLogRecord.action == action.strip())
+        if search and search.strip():
+            kw = f"%{search.strip()}%"
+            stmt = stmt.where(
+                (AuditLogRecord.resource.ilike(kw))
+                | (AuditLogRecord.username.ilike(kw))
+                | (AuditLogRecord.action.ilike(kw))
+            )
+
+        count_stmt = select(func.count()).select_from(stmt.subquery())
+        total = session.execute(count_stmt).scalar() or 0
+
+        stmt = stmt.limit(limit).offset(offset)
+        rows = list(session.execute(stmt).scalars().all())
+        return rows, total
+
+
+def get_audit_stats() -> dict:
+    with get_session() as session:
+        from sqlalchemy import distinct, func
+        total_queries = (
+            session.query(func.count(AuditLogRecord.id))
+            .filter(AuditLogRecord.action.in_(["query_qa", "query_stream"]))
+            .scalar()
+            or 0
+        )
+        total_logs = session.query(func.count(AuditLogRecord.id)).scalar() or 0
+        total_tokens = session.query(func.sum(AuditLogRecord.tokens_total)).scalar() or 0
+        active_users = session.query(func.count(distinct(AuditLogRecord.username))).scalar() or 0
+        pii_masked_count = (
+            session.query(func.count(AuditLogRecord.id))
+            .filter((AuditLogRecord.action == "pii_masked") | (AuditLogRecord.status == "masked"))
+            .scalar()
+            or 0
+        )
+
+        action_rows = (
+            session.query(AuditLogRecord.action, func.count(AuditLogRecord.id))
+            .group_by(AuditLogRecord.action)
+            .all()
+        )
+        action_counts = {str(a): int(c) for a, c in action_rows}
+
+        user_rows = (
+            session.query(AuditLogRecord.username, func.sum(AuditLogRecord.tokens_total))
+            .group_by(AuditLogRecord.username)
+            .order_by(func.sum(AuditLogRecord.tokens_total).desc())
+            .limit(5)
+            .all()
+        )
+        tokens_by_user = [{"username": str(u), "tokens": int(t or 0)} for u, t in user_rows]
+
+        return {
+            "total_queries": int(total_queries),
+            "total_logs": int(total_logs),
+            "total_tokens": int(total_tokens),
+            "active_users": int(active_users),
+            "pii_masked_count": int(pii_masked_count),
+            "action_counts": action_counts,
+            "tokens_by_user": tokens_by_user,
+        }
+

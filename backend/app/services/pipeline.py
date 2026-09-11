@@ -175,22 +175,30 @@ def run_qa(
     if retriever is None:
         raise ValueError("retriever la bat buoc (xay index truoc, xem HuongDanThucHien Buoc 5)")
 
+    # 0. Lọc và Làm mờ Dữ liệu Nhạy cảm (PII Masking) theo Nghị định 13/2023/NĐ-CP
+    from .pii_masker import mask_pii
+    pii_res = mask_pii(question)
+    safe_question = pii_res.masked_text if pii_res.has_pii else question
+
     # 1. Kiểm tra Semantic Cache
     cache = get_semantic_cache()
-    cached_data, sim, cache_lat = cache.lookup(question, domain=domain, mode=mode)
+    cached_data, sim, cache_lat = cache.lookup(safe_question, domain=domain, mode=mode)
     if cached_data is not None:
-        return AnswerResult(**cached_data)
+        cached_result = AnswerResult(**cached_data)
+        cached_result.has_pii = pii_res.has_pii
+        cached_result.pii_entities = [e.model_dump() for e in pii_res.detected_entities] if pii_res.has_pii else []
+        return cached_result
 
     llm = llm or get_llm_provider()
     start = time.perf_counter()
 
     if mode in BASELINE_MODES:
         draft, memory, trace, extra = _run_baseline(
-            question, domain, mode, retriever, llm, top_k=top_k, extra_candidates=extra_candidates
+            safe_question, domain, mode, retriever, llm, top_k=top_k, extra_candidates=extra_candidates
         )
     elif mode in DECOMPOSITION_MODES:
         draft, memory, trace, extra = _run_decomposition(
-            question,
+            safe_question,
             domain,
             mode,
             retriever,
@@ -217,10 +225,12 @@ def run_qa(
         latency_ms=latency_ms,
         config_version=settings.config_version,
         is_cached=False,
+        has_pii=pii_res.has_pii,
+        pii_entities=[e.model_dump() for e in pii_res.detected_entities] if pii_res.has_pii else [],
     )
 
     # Lưu vào bộ đệm ngữ nghĩa
-    cache.store(question, domain, mode, result)
+    cache.store(safe_question, domain, mode, result)
     return result
 
 
@@ -255,15 +265,31 @@ async def run_qa_stream(
     req_id = request_id or str(uuid.uuid4())
     start_time = time.perf_counter()
 
-    # Bước 0: Kiểm tra Semantic Cache
+    # Bước 0: Bảo vệ Dữ liệu Cá nhân (PII Masking) theo Nghị định 13/2023/NĐ-CP
+    from .pii_masker import mask_pii
+    pii_res = mask_pii(question)
+    safe_question = pii_res.masked_text if pii_res.has_pii else question
+
+    if pii_res.has_pii:
+        yield {
+            "type": "pii_masked",
+            "detected": [e.model_dump() for e in pii_res.detected_entities],
+            "masked_question": safe_question,
+            "message": f"Đã tự động bảo vệ {len(pii_res.detected_entities)} thông tin cá nhân (CCCD/SĐT/Biển số) theo NĐ 13/2023/NĐ-CP.",
+        }
+        await asyncio.sleep(0.01)
+
+    # Bước 0.1: Kiểm tra Semantic Cache
     cache = get_semantic_cache()
-    cached_data, sim, cache_lat = cache.lookup(question, domain=domain, mode=mode)
+    cached_data, sim, cache_lat = cache.lookup(safe_question, domain=domain, mode=mode)
     if cached_data is not None:
         cached_data["request_id"] = req_id
+        cached_data["has_pii"] = pii_res.has_pii
+        cached_data["pii_entities"] = [e.model_dump() for e in pii_res.detected_entities] if pii_res.has_pii else []
         yield {
             "type": "cache_hit",
             "similarity": round(sim, 4),
-            "cached_question": cached_data.get("cached_question", question),
+            "cached_question": cached_data.get("cached_question", safe_question),
             "latency_ms": round(cache_lat, 2),
         }
         # Bắn chuỗi token siêu tốc để kích hoạt hiệu ứng Typewriter mượt mà
@@ -520,7 +546,7 @@ async def run_qa_stream(
             draft,
             memory,
             retriever,
-            question,
+            safe_question,
             domain,
             max_corrective_rounds=(
                 max_corrective_rounds if max_corrective_rounds is not None else settings.max_corrective_rounds
@@ -544,9 +570,11 @@ async def run_qa_stream(
         latency_ms=latency_ms,
         config_version=settings.config_version,
         is_cached=False,
+        has_pii=pii_res.has_pii,
+        pii_entities=[e.model_dump() for e in pii_res.detected_entities] if pii_res.has_pii else [],
     )
 
     # Lưu vào bộ đệm ngữ nghĩa cho các lần hỏi tương đương tiếp theo
-    cache.store(question, domain, mode, result)
+    cache.store(safe_question, domain, mode, result)
 
     yield {"type": "done", "result": result.model_dump()}

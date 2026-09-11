@@ -65,6 +65,15 @@ class Settings(BaseSettings):
     semantic_cache_threshold: float = 0.93
     semantic_cache_db: str = "./data/videcomp_semantic_cache.db"
 
+    # Bảo vệ Dữ liệu Cá nhân (PII Masking) tuân thủ Nghị định 13/2023/NĐ-CP
+    enable_pii_masking: bool = True
+    pii_mask_cccd: bool = True
+    pii_mask_phone: bool = True
+    pii_mask_license_plate: bool = True
+    pii_mask_tax_id: bool = True
+    pii_mask_medical_record: bool = True
+    pii_mask_email: bool = True
+
 
 settings = Settings()
 

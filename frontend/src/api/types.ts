@@ -136,6 +136,8 @@ export interface AnswerResult {
   is_cached?: boolean;
   cache_similarity?: number;
   cached_question?: string;
+  has_pii?: boolean;
+  pii_entities?: any[];
 }
 
 export interface TraceRecord {
@@ -422,5 +424,75 @@ export interface DossierExportOptions {
   title?: string;
   turnIndex?: number;
 }
+
+export interface AuditLogItem {
+  id: number;
+  username: string;
+  ip_address: string;
+  action: string;
+  domain?: string;
+  resource: string;
+  details: Record<string, any>;
+  tokens_prompt: number;
+  tokens_completion: number;
+  tokens_total: number;
+  latency_ms: number;
+  status: "success" | "error" | "masked";
+  created_at: string;
+}
+
+export interface AuditLogsResponse {
+  total: number;
+  limit: number;
+  offset: number;
+  logs: AuditLogItem[];
+}
+
+export interface AuditStatsResponse {
+  total_queries: number;
+  total_logs: number;
+  total_tokens: number;
+  active_users: number;
+  pii_masked_count: number;
+  action_counts: Record<string, number>;
+  tokens_by_user: { username: string; tokens: number }[];
+}
+
+export interface PIIConfigResponse {
+  status: string;
+  enable_pii_masking: boolean;
+  pii_mask_cccd: boolean;
+  pii_mask_phone: boolean;
+  pii_mask_license_plate: boolean;
+  pii_mask_tax_id: boolean;
+  pii_mask_medical_record: boolean;
+  pii_mask_email: boolean;
+  compliance_standard: string;
+}
+
+export interface PIIConfigUpdate {
+  enable_pii_masking?: boolean;
+  pii_mask_cccd?: boolean;
+  pii_mask_phone?: boolean;
+  pii_mask_license_plate?: boolean;
+  pii_mask_tax_id?: boolean;
+  pii_mask_medical_record?: boolean;
+  pii_mask_email?: boolean;
+}
+
+export interface PIITestResponse {
+  masked_text: string;
+  detected_entities: {
+    pii_type: string;
+    original_value: string;
+    masked_value: string;
+    start: number;
+    end: number;
+    label: string;
+  }[];
+  has_pii: boolean;
+  entity_counts: Record<string, number>;
+}
+
 
 

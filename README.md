@@ -164,6 +164,40 @@ Hệ thống đã hoàn thiện **end-to-end** ở cấp độ ứng dụng th�
   - `GET /api/v1/evaluation/{experiment_id}/samples`: Truy vấn dữ liệu chẩn đoán chi tiết từng câu hỏi.
   - `POST /api/v1/evaluation/ragas/single`: Đánh giá nhanh Ragas cho 1 cặp hỏi-đáp tùy ý.
 
+### 1.15. Lọc và Ẩn Dữ liệu Nhạy cảm (PII Masking — Nghị định 13/2023/NĐ-CP)
+- **Bảo vệ Dữ liệu Cá nhân Chuẩn Quốc gia**: Tự động nhận diện và làm mờ (anonymize/mask) các định danh nhạy cảm của công dân Việt Nam trước khi gửi câu hỏi tới các mô hình ngôn ngữ lớn (Anthropic Claude, Ollama, vLLM), đáp ứng nghiêm ngặt **Nghị định 13/2023/NĐ-CP**:
+  1. **Số CCCD / CMND**: Nhận diện số Căn cước công dân (12 chữ số) và Chứng minh nhân dân (9 chữ số) $\to$ `[CCCD: *******1234]`.
+  2. **Số điện thoại Việt Nam**: Nhận diện các đầu số di động phổ biến (03x, 05x, 07x, 08x, 09x, +84) $\to$ `[SĐT: *******890]`.
+  3. **Biển số xe cơ giới**: Nhận diện biển số ô tô và xe máy theo chuẩn pháp quy giao thông đường bộ Việt Nam (29A-123.45, 51F-1234, 43-B1...) $\to$ `[BIỂN SỐ XE: 29A-*****]`.
+  4. **Mã số thuế (MST)**: Nhận diện mã số thuế doanh nghiệp và cá nhân (10 số hoặc 10-3 số) $\to$ `[MST: ******0405]`.
+  5. **Mã hồ sơ bệnh án / Bệnh nhân**: Nhận diện định danh hồ sơ y tế theo chuẩn Bộ Y tế (BA-xxxxx, HSBA-xxxxx, BN-xxxxx) $\to$ `[MÃ BỆNH ÁN: BA-*****]`.
+  6. **Địa chỉ Email cá nhân**: Nhận diện và che mờ địa chỉ email liên hệ $\to$ `[EMAIL: a***@domain.com]`.
+- **Bảo mật Đa tầng**:
+  - Tự động làm mờ tại Gateway trước khi phân rã DAG, trước khi gọi LLM và trước khi lưu vào Semantic Cache.
+  - Phân hệ Admin Console cho phép bật/tắt linh hoạt từng loại thực thể nhạy cảm và kiểm thử trực quan với **Live Interactive Playground**.
+- **API Endpoints**:
+  - `GET /api/v1/admin/pii-config`: Đọc cấu hình bảo vệ PII hiện hành.
+  - `POST /api/v1/admin/pii-config`: Cập nhật bật/tắt toàn hệ thống hoặc từng loại thực thể.
+  - `POST /api/v1/admin/pii-test`: Kiểm thử nhận diện và làm mờ văn bản trực tiếp.
+
+### 1.16. Nhật ký Kiểm toán (Audit Logs) & Báo cáo Tuân thủ Doanh nghiệp
+- **Lưu vết Toàn diện (Comprehensive Audit Trail)**:
+  - Bảng cơ sở dữ liệu `audit_logs` (hỗ trợ cả PostgreSQL và SQLite) ghi nhận chi tiết:
+    - **Thời điểm**: Ngày giờ chính xác theo múi giờ địa phương `vi-VN`.
+    - **Người dùng & Địa chỉ IP**: Tên tài khoản định danh qua JWT Token và IP máy trạm thực hiện truy vấn.
+    - **Hành vi (Action)**: Tra cứu QA chuẩn (`qa_answer`), Stream thời gian thực SSE (`qa_answer_stream`), Tải tài liệu (`document_upload`), Xuất hồ sơ nghiệp vụ (`export_dossier`).
+    - **Tài nguyên & Ngữ cảnh**: Nội dung câu hỏi truy vấn, miền nghiệp vụ (`legal` / `medical`), chi tiết thông tin file.
+    - **Tokens & Tài nguyên**: Thống kê số lượng Prompt tokens, Completion tokens, Tổng tokens tiêu thụ và độ trễ phản hồi (latency ms).
+    - **Trạng thái Tuân thủ**: Ghi nhận `success`, `error` và huy hiệu `🛡️ PII Masked` khi câu hỏi có chứa dữ liệu nhạy cảm đã được làm mờ.
+- **Trực quan hóa tại Admin Console**:
+  - 4 Thẻ KPI: *Tổng lượt truy vấn*, *Tổng Token tiêu thụ*, *Số người dùng hoạt động*, *Số lần Lọc PII An toàn*.
+  - Bộ lọc thông minh theo hành vi, ô tìm kiếm toàn văn và phân trang dữ liệu.
+  - Nút **Xuất CSV (Excel)** tương thích định dạng UTF-8 BOM hiển thị chuẩn xác tiếng Việt có dấu phục vụ thanh tra và báo cáo lãnh đạo.
+- **API Endpoints**:
+  - `GET /api/v1/admin/audit-logs`: Truy vấn danh sách nhật ký kiểm toán (phân trang, lọc action, tìm kiếm).
+  - `GET /api/v1/admin/audit-logs/stats`: Thống kê tổng quan KPI kiểm toán.
+  - `GET /api/v1/admin/audit-logs/export`: Tải xuống tệp CSV báo cáo tuân thủ hoàn chỉnh.
+
 ---
 
 ## 2. Kết quả Thực nghiệm Ablation (B0 → Q3)

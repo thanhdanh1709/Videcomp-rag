@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, Header, HTTPException, Request, Response, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -44,6 +44,19 @@ from .state import AppState
 
 router = APIRouter(prefix="/api/v1")
 state = AppState()
+
+
+def _get_current_username(authorization: str | None = Header(None)) -> str:
+    """Xác định username từ Bearer JWT Token. Nếu không đăng nhập trả về 'guest'."""
+    from ..services import auth_service
+
+    if not authorization or not authorization.startswith("Bearer "):
+        return "guest"
+    token = authorization.split(" ", 1)[1]
+    payload = auth_service.decode_access_token(token)
+    if not payload or "sub" not in payload:
+        return "guest"
+    return payload["sub"]
 
 
 @router.get("/health")
@@ -114,7 +127,12 @@ def query_decompose(req: QueryDecomposeRequest):
 
 
 @router.post("/documents/upload")
-async def documents_upload(file: UploadFile = File(...), session_id: str = Form(...)):
+async def documents_upload(
+    file: UploadFile = File(...),
+    session_id: str = Form(...),
+    request: Request = None,
+    authorization: str | None = Header(None),
+):
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="Tệp tải lên rỗng")
@@ -136,6 +154,22 @@ async def documents_upload(file: UploadFile = File(...), session_id: str = Form(
     state.session_files[session_id] = [
         f for f in state.session_files[session_id] if f["filename"] != file.filename
     ] + [file_info]
+
+    # Ghi nhận Nhật ký Kiểm toán
+    try:
+        username = _get_current_username(authorization)
+        client_ip = request.client.host if request and request.client else "127.0.0.1"
+        repository.save_audit_log(
+            username=username,
+            ip_address=client_ip,
+            action="document_upload",
+            resource=f"Tải tệp: {file.filename} ({len(candidates)} chunks)",
+            details={"filename": file.filename, "size_bytes": len(content), "chunks": len(candidates), "session_id": session_id},
+            tokens_total=int(len(candidates) * 60),
+            status="success",
+        )
+    except Exception:
+        pass
 
     return {
         "status": "success",
@@ -251,10 +285,13 @@ def documents_delete_session_file(session_id: str, filename: str):
 
 
 @router.post("/qa/answer")
-def qa_answer(req: QARequest):
+def qa_answer(req: QARequest, request: Request, authorization: str | None = Header(None)):
     retriever = state.retrievers.get(req.domain)
     if retriever is None:
         raise HTTPException(status_code=400, detail="chua build index cho domain nay")
+
+    username = _get_current_username(authorization)
+    client_ip = request.client.host if request.client else "127.0.0.1"
 
     extra_candidates = []
 
@@ -281,15 +318,50 @@ def qa_answer(req: QARequest):
         extra_candidates=extra_candidates if extra_candidates else None,
     )
     repository.save_qa_trace(result, domain=req.domain, mode=req.mode)
+
+    # Ghi Nhật ký Kiểm toán (Audit Log)
+    try:
+        prompt_words = len(req.question.split())
+        for c in extra_candidates:
+            prompt_words += len(c.text.split())
+        tok_p = int(prompt_words * 1.3) + 120
+        tok_c = int(len(result.final_answer.split()) * 1.3)
+        repository.save_audit_log(
+            username=username,
+            ip_address=client_ip,
+            action="query_qa",
+            domain=req.domain,
+            resource=req.question[:250],
+            details={
+                "mode": req.mode,
+                "session_id": req.session_id,
+                "has_pii": getattr(result, "has_pii", False),
+                "pii_count": len(getattr(result, "pii_entities", [])),
+                "citations_count": len(result.citations),
+                "is_cached": result.is_cached,
+            },
+            tokens_prompt=tok_p,
+            tokens_completion=tok_c,
+            tokens_total=tok_p + tok_c,
+            latency_ms=result.latency_ms,
+            status="masked" if getattr(result, "has_pii", False) else "success",
+        )
+    except Exception as log_err:
+        import logging
+        logging.getLogger(__name__).warning("Lỗi ghi audit log trong qa_answer: %s", log_err)
+
     return result.model_dump()
 
 
 @router.post("/qa/answer-stream")
-async def qa_answer_stream(req: QARequest):
+async def qa_answer_stream(req: QARequest, request: Request, authorization: str | None = Header(None)):
     """Phản hồi dòng thời gian thực chuẩn SSE (Server-Sent Events) kết hợp Semantic Cache."""
     retriever = state.retrievers.get(req.domain)
     if retriever is None:
         raise HTTPException(status_code=400, detail="chua build index cho domain nay")
+
+    username = _get_current_username(authorization)
+    client_ip = request.client.host if request.client else "127.0.0.1"
 
     extra_candidates = []
 
@@ -317,15 +389,42 @@ async def qa_answer_stream(req: QARequest):
             max_corrective_rounds=req.max_corrective_rounds,
             extra_candidates=extra_candidates if extra_candidates else None,
         ):
-            # Nếu là event done, lưu QA trace vào DB repository
+            # Nếu là event done, lưu QA trace và Audit Log vào DB repository
             if event.get("type") == "done" and "result" in event:
                 try:
                     res_dict = event["result"]
                     ans_res = AnswerResult(**res_dict)
                     repository.save_qa_trace(ans_res, domain=req.domain, mode=req.mode)
+
+                    # Ghi Nhật ký Kiểm toán (Audit Log)
+                    prompt_words = len(req.question.split())
+                    for c in extra_candidates:
+                        prompt_words += len(c.text.split())
+                    tok_p = int(prompt_words * 1.3) + 120
+                    tok_c = int(len(ans_res.final_answer.split()) * 1.3)
+                    repository.save_audit_log(
+                        username=username,
+                        ip_address=client_ip,
+                        action="query_qa",
+                        domain=req.domain,
+                        resource=req.question[:250],
+                        details={
+                            "mode": req.mode,
+                            "session_id": req.session_id,
+                            "has_pii": getattr(ans_res, "has_pii", False),
+                            "pii_count": len(getattr(ans_res, "pii_entities", [])),
+                            "citations_count": len(ans_res.citations),
+                            "is_cached": ans_res.is_cached,
+                        },
+                        tokens_prompt=tok_p,
+                        tokens_completion=tok_c,
+                        tokens_total=tok_p + tok_c,
+                        latency_ms=ans_res.latency_ms,
+                        status="masked" if getattr(ans_res, "has_pii", False) else "success",
+                    )
                 except Exception as save_err:
                     import logging
-                    logging.getLogger(__name__).warning("Lỗi lưu QA trace từ stream: %s", save_err)
+                    logging.getLogger(__name__).warning("Lỗi lưu QA trace / audit log từ stream: %s", save_err)
 
             yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
@@ -886,10 +985,169 @@ def admin_test_models(req: ModelsTestRequest):
     }
 
 
+# ==============================================================================
+# BẢO VỆ DỮ LIỆU CÁ NHÂN (PII MASKING) & NHẬT KÝ KIỂM TOÁN (AUDIT LOGS)
+# ==============================================================================
 
-# ==============================================================================
-# XÁC THỰC JWT & PHÂN QUYỀN (AUTH ROUTES)
-# ==============================================================================
+class PIIConfigUpdate(BaseModel):
+    enable_pii_masking: bool | None = None
+    pii_mask_cccd: bool | None = None
+    pii_mask_phone: bool | None = None
+    pii_mask_license_plate: bool | None = None
+    pii_mask_tax_id: bool | None = None
+    pii_mask_medical_record: bool | None = None
+    pii_mask_email: bool | None = None
+
+
+class PIITestRequest(BaseModel):
+    sample_text: str
+
+
+@router.get("/admin/pii-config")
+def admin_get_pii_config():
+    """Lấy cấu hình hiện tại của hệ thống lọc và bảo vệ dữ liệu cá nhân theo NĐ 13/2023/NĐ-CP."""
+    return {
+        "status": "ok",
+        "enable_pii_masking": settings.enable_pii_masking,
+        "pii_mask_cccd": settings.pii_mask_cccd,
+        "pii_mask_phone": settings.pii_mask_phone,
+        "pii_mask_license_plate": settings.pii_mask_license_plate,
+        "pii_mask_tax_id": settings.pii_mask_tax_id,
+        "pii_mask_medical_record": settings.pii_mask_medical_record,
+        "pii_mask_email": settings.pii_mask_email,
+        "compliance_standard": "Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân",
+    }
+
+
+@router.post("/admin/pii-config")
+def admin_update_pii_config(req: PIIConfigUpdate):
+    """Cập nhật tùy chọn nhận diện và làm mờ các trường dữ liệu nhạy cảm."""
+    if req.enable_pii_masking is not None:
+        settings.enable_pii_masking = req.enable_pii_masking
+    if req.pii_mask_cccd is not None:
+        settings.pii_mask_cccd = req.pii_mask_cccd
+    if req.pii_mask_phone is not None:
+        settings.pii_mask_phone = req.pii_mask_phone
+    if req.pii_mask_license_plate is not None:
+        settings.pii_mask_license_plate = req.pii_mask_license_plate
+    if req.pii_mask_tax_id is not None:
+        settings.pii_mask_tax_id = req.pii_mask_tax_id
+    if req.pii_mask_medical_record is not None:
+        settings.pii_mask_medical_record = req.pii_mask_medical_record
+    if req.pii_mask_email is not None:
+        settings.pii_mask_email = req.pii_mask_email
+
+    return {
+        "status": "ok",
+        "message": "Đã cập nhật cấu hình bảo vệ dữ liệu cá nhân thành công",
+        "enable_pii_masking": settings.enable_pii_masking,
+    }
+
+
+@router.post("/admin/pii-test")
+def admin_test_pii(req: PIITestRequest):
+    """Thử nghiệm làm mờ PII trên văn bản mẫu thời gian thực."""
+    from ..services.pii_masker import mask_pii
+
+    res = mask_pii(req.sample_text)
+    return res.model_dump()
+
+
+@router.get("/admin/audit-logs")
+def admin_get_audit_logs(
+    limit: int = 50,
+    offset: int = 0,
+    username: str | None = None,
+    action: str | None = None,
+    search: str | None = None,
+):
+    """Truy vấn danh sách Nhật ký Kiểm toán (Audit Logs) có phân trang và bộ lọc."""
+    rows, total = repository.list_audit_logs(
+        limit=limit,
+        offset=offset,
+        username=username,
+        action=action,
+        search=search,
+    )
+    return {
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "logs": [
+            {
+                "id": r.id,
+                "username": r.username,
+                "ip_address": r.ip_address or "127.0.0.1",
+                "action": r.action,
+                "domain": r.domain or "",
+                "resource": r.resource,
+                "details": r.details,
+                "tokens_prompt": r.tokens_prompt,
+                "tokens_completion": r.tokens_completion,
+                "tokens_total": r.tokens_total,
+                "latency_ms": r.latency_ms,
+                "status": r.status,
+                "created_at": r.created_at.isoformat() if r.created_at else "",
+            }
+            for r in rows
+        ],
+    }
+
+
+@router.get("/admin/audit-logs/stats")
+def admin_get_audit_stats():
+    """Lấy số liệu KPI tổng hợp cho Nhật ký Kiểm toán."""
+    return repository.get_audit_stats()
+
+
+@router.get("/admin/audit-logs/export")
+def admin_export_audit_logs(
+    username: str | None = None,
+    action: str | None = None,
+    search: str | None = None,
+):
+    """Xuất danh sách Nhật ký Kiểm toán ra file CSV tải về phục vụ bộ phận IT/Bảo mật."""
+    import csv
+    import io
+
+    rows, _ = repository.list_audit_logs(
+        limit=2000,
+        offset=0,
+        username=username,
+        action=action,
+        search=search,
+    )
+    output = io.StringIO()
+    # Write UTF-8 BOM so Excel opens Vietnamese characters cleanly
+    output.write("\ufeff")
+    writer = csv.writer(output)
+    writer.writerow([
+        "ID", "Thời gian", "Người dùng", "Địa chỉ IP", "Hành động", "Chuyên ngành",
+        "Tài nguyên / Nội dung câu hỏi", "Prompt Tokens", "Completion Tokens", "Tổng Tokens", "Độ trễ (ms)", "Trạng thái"
+    ])
+    for r in rows:
+        writer.writerow([
+            r.id,
+            r.created_at.strftime("%Y-%m-%d %H:%M:%S") if r.created_at else "",
+            r.username,
+            r.ip_address or "",
+            r.action,
+            r.domain or "",
+            (r.resource or "").replace("\n", " ")[:300],
+            r.tokens_prompt,
+            r.tokens_completion,
+            r.tokens_total,
+            f"{r.latency_ms:.1f}",
+            r.status,
+        ])
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=videcomp_audit_logs.csv"},
+    )
+
+
+
 
 class RegisterRequest(BaseModel):
     username: str
@@ -1033,19 +1291,6 @@ def auth_me(authorization: str | None = Header(None)):
 # ==============================================================================
 # HỆ THỐNG LƯU TRỮ BỀN VỮNG POSTGRESQL: SESSIONS, PROJECTS & CUSTOM GPTS
 # ==============================================================================
-
-def _get_current_username(authorization: str | None = Header(None)) -> str:
-    """Xác định username từ Bearer JWT Token. Nếu không đăng nhập trả về 'guest'."""
-    from ..services import auth_service
-
-    if not authorization or not authorization.startswith("Bearer "):
-        return "guest"
-    token = authorization.split(" ", 1)[1]
-    payload = auth_service.decode_access_token(token)
-    if not payload or "sub" not in payload:
-        return "guest"
-    return payload["sub"]
-
 
 # --- 1. CHAT SESSIONS (Lịch sử đoạn chat đa bước) ---
 
