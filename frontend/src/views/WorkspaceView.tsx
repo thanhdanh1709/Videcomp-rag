@@ -27,6 +27,9 @@ export function WorkspaceView({
   onNewChat,
   onDeleteSession,
   onShowToast,
+  onShareProject,
+  onShareSession,
+  onExportSession,
 }: {
   history: HistoryEntry[];
   projects: ProjectFolder[];
@@ -38,6 +41,9 @@ export function WorkspaceView({
   onNewChat: () => void;
   onDeleteSession: (sessionId: string) => void;
   onShowToast?: (msg: string) => void;
+  onShareProject?: (project: ProjectFolder) => void;
+  onShareSession?: (session: SessionGroup) => void;
+  onExportSession?: (session: SessionGroup) => void;
 }) {
   const [activeTimeFilter, setActiveTimeFilter] = useState<"all" | "7d" | "30d">("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -310,6 +316,16 @@ export function WorkspaceView({
                     <div className="flex justify-between items-center text-[12px] text-outline pt-1">
                       <span className="text-primary font-medium">{stat.chats} đoạn chat</span>
                       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {onShareProject && (
+                          <button
+                            type="button"
+                            onClick={() => onShareProject(p)}
+                            className="opacity-0 group-hover:opacity-100 hover:text-primary transition-opacity p-0.5"
+                            title="Chia sẻ thư mục dự án"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">group_add</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => {
@@ -319,7 +335,7 @@ export function WorkspaceView({
                               onShowToast?.(`Đã xóa thư mục "${p.title}"`);
                             }
                           }}
-                          className="opacity-0 group-hover:opacity-100 hover:text-error transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 hover:text-error transition-opacity p-0.5"
                           title="Xóa thư mục"
                         >
                           <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -534,6 +550,26 @@ export function WorkspaceView({
                           onClick={(e) => e.stopPropagation()}
                         >
                           <div className="flex items-center justify-end gap-1">
+                            {onExportSession && (
+                              <button
+                                type="button"
+                                onClick={() => onExportSession(group)}
+                                className="p-1.5 rounded hover:bg-surface-container-highest text-outline hover:text-primary transition-colors"
+                                title="Xuất Báo cáo Thẩm định Chuyên nghiệp (.docx / .pdf)"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">description</span>
+                              </button>
+                            )}
+                            {onShareSession && (
+                              <button
+                                type="button"
+                                onClick={() => onShareSession(group)}
+                                className="p-1.5 rounded hover:bg-surface-container-highest text-outline hover:text-primary transition-colors"
+                                title="Chia sẻ phiên tra cứu"
+                              >
+                                <span className="material-symbols-outlined text-[18px]">group_add</span>
+                              </button>
+                            )}
                             <button
                               type="button"
                               onClick={() => {

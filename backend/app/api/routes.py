@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import uuid
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
@@ -955,7 +956,7 @@ class SessionFeedbackRequest(BaseModel):
 
 @router.get("/sessions")
 def list_user_sessions(authorization: str | None = Header(None)):
-    """Lấy danh sách tất cả các phiên chat của người dùng từ PostgreSQL."""
+    """Lấy danh sách tất cả các phiên chat của người dùng (bao gồm phiên sở hữu và phiên được chia sẻ)."""
     from ..db.session import get_session
     from ..db.models import ChatSessionRecord
     from sqlalchemy import select
@@ -964,10 +965,18 @@ def list_user_sessions(authorization: str | None = Header(None)):
     with get_session() as db:
         stmt = (
             select(ChatSessionRecord)
-            .where(ChatSessionRecord.username == username)
             .order_by(ChatSessionRecord.updated_at.desc())
         )
-        records = db.execute(stmt).scalars().all()
+        all_records = db.execute(stmt).scalars().all()
+        user_records = []
+        for r in all_records:
+            if r.username == username or r.username == "guest":
+                user_records.append(r)
+            else:
+                shared = r.shared_with or []
+                if any(m.get("username") == username for m in shared):
+                    user_records.append(r)
+
         return [
             {
                 "sessionId": r.id,
@@ -977,8 +986,13 @@ def list_user_sessions(authorization: str | None = Header(None)):
                 "folderId": r.folder_id,
                 "turns": r.turns,
                 "lastCreatedAt": (r.updated_at or r.created_at).isoformat(),
+                "isShared": r.username != username,
+                "isPublic": bool(r.is_public),
+                "shareToken": r.share_token,
+                "sharedWith": r.shared_with or [],
+                "owner": r.username,
             }
-            for r in records
+            for r in user_records
         ]
 
 
@@ -998,9 +1012,11 @@ def save_user_session(req: SaveSessionRequest, authorization: str | None = Heade
     with get_session() as db:
         record = db.get(ChatSessionRecord, req.session_id)
         if record:
-            # Kiểm tra quyền sở hữu
-            if record.username != username and record.username != "guest":
-                raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa phiên chat này.")
+            # Kiểm tra quyền sở hữu hoặc quyền Editor
+            is_owner = (record.username == username or record.username == "guest")
+            is_editor = any(m.get("username") == username and m.get("role") == "editor" for m in (record.shared_with or []))
+            if not is_owner and not is_editor:
+                raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa phiên chat này (chỉ xem hoặc chưa được cấp quyền).")
             record.turns = req.turns
             if title:
                 record.title = title
@@ -1109,6 +1125,224 @@ def set_session_feedback(session_id: str, req: SessionFeedbackRequest, authoriza
         return {"status": "success", "updated": updated}
 
 
+# --- SHARING & EXPORT MODELS ---
+class ShareMemberItem(BaseModel):
+    username: str
+    role: str = "viewer"  # "viewer" | "editor"
+    shared_at: str | None = None
+
+
+class UpdateShareRequest(BaseModel):
+    is_public: bool | None = None
+    shared_with: list[ShareMemberItem] | None = None
+    regenerate_token: bool = False
+
+
+class ExportStandaloneRequest(BaseModel):
+    format: str = "docx"  # "docx" | "pdf"
+    custom_title: str | None = None
+    turn_index: int = -1
+    session_data: dict[str, Any]
+
+
+@router.get("/sessions/{session_id}/share")
+def get_session_share_config(session_id: str, authorization: str | None = Header(None)):
+    """Lấy thông tin chia sẻ và danh sách thành viên cộng tác của phiên chat."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    import secrets
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, session_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Phiên chat không tồn tại.")
+        is_owner = (record.username == username or record.username == "guest")
+        is_member = any(m.get("username") == username for m in (record.shared_with or []))
+        if not is_owner and not is_member and not record.is_public:
+            raise HTTPException(status_code=403, detail="Bạn không có quyền xem thông tin chia sẻ của phiên này.")
+
+        # Tự động tạo share_token nếu chưa có
+        if not record.share_token:
+            record.share_token = secrets.token_urlsafe(16)
+            db.commit()
+            db.refresh(record)
+
+        return {
+            "sessionId": record.id,
+            "title": record.title,
+            "isPublic": bool(record.is_public),
+            "shareToken": record.share_token,
+            "sharedWith": record.shared_with or [],
+            "owner": record.username,
+            "isOwner": is_owner,
+        }
+
+
+@router.post("/sessions/{session_id}/share")
+def update_session_share_config(session_id: str, req: UpdateShareRequest, authorization: str | None = Header(None)):
+    """Cập nhật chế độ công khai và danh sách thành viên cộng tác của phiên chat."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    import datetime as dt
+    import secrets
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, session_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Phiên chat không tồn tại.")
+        if record.username != username and record.username != "guest":
+            raise HTTPException(status_code=403, detail="Chỉ chủ sở hữu phiên chat mới có quyền thay đổi chia sẻ.")
+
+        if req.is_public is not None:
+            record.is_public = req.is_public
+
+        if req.shared_with is not None:
+            now_str = dt.datetime.now(dt.timezone.utc).strftime("%d/%m/%Y %H:%M")
+            members = []
+            for m in req.shared_with:
+                members.append({
+                    "username": m.username.strip(),
+                    "role": m.role if m.role in ("viewer", "editor") else "viewer",
+                    "shared_at": m.shared_at or now_str,
+                })
+            record.shared_with = members
+
+        if req.regenerate_token or not record.share_token:
+            record.share_token = secrets.token_urlsafe(16)
+
+        record.updated_at = dt.datetime.now(dt.timezone.utc)
+        db.commit()
+        db.refresh(record)
+
+        return {
+            "status": "success",
+            "sessionId": record.id,
+            "isPublic": record.is_public,
+            "shareToken": record.share_token,
+            "sharedWith": record.shared_with or [],
+            "owner": record.username,
+        }
+
+
+@router.get("/share/session/{share_token}")
+def get_shared_session_by_token(share_token: str, authorization: str | None = Header(None)):
+    """Truy cập phiên chat chia sẻ qua đường link bảo mật bằng share_token."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    from sqlalchemy import select
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        stmt = select(ChatSessionRecord).where(ChatSessionRecord.share_token == share_token)
+        record = db.execute(stmt).scalars().first()
+        if not record:
+            raise HTTPException(status_code=404, detail="Đường dẫn chia sẻ không tồn tại hoặc đã bị thu hồi.")
+
+        is_owner = (record.username == username or record.username == "guest")
+        member_match = next((m for m in (record.shared_with or []) if m.get("username") == username), None)
+        user_role = "owner" if is_owner else (member_match.get("role", "viewer") if member_match else ("viewer" if record.is_public else None))
+
+        if not record.is_public and not is_owner and not member_match:
+            raise HTTPException(status_code=403, detail="Phiên này đang ở chế độ riêng tư và bạn chưa được cấp quyền truy cập.")
+
+        return {
+            "sessionId": record.id,
+            "title": record.title,
+            "domain": record.domain,
+            "mode": record.mode,
+            "folderId": record.folder_id,
+            "turns": record.turns,
+            "lastCreatedAt": (record.updated_at or record.created_at).isoformat(),
+            "owner": record.username,
+            "isPublic": bool(record.is_public),
+            "shareToken": record.share_token,
+            "userRole": user_role or "viewer",
+            "canEdit": user_role in ("owner", "editor"),
+        }
+
+
+@router.get("/sessions/{session_id}/export")
+def export_session_dossier(
+    session_id: str,
+    format: str = "docx",
+    turn_index: int = -1,
+    title: str | None = None,
+    authorization: str | None = Header(None),
+):
+    """Xuất báo cáo thẩm định chuyên nghiệp (.docx hoặc .pdf) cho phiên chat."""
+    import re
+    import urllib.parse
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    from ..services.dossier_exporter import build_dossier_data, generate_docx_dossier, generate_pdf_dossier
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, session_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Phiên chat không tồn tại.")
+        is_owner = (record.username == username or record.username == "guest")
+        is_member = any(m.get("username") == username for m in (record.shared_with or []))
+        if not is_owner and not is_member and not record.is_public:
+            raise HTTPException(status_code=403, detail="Bạn không có quyền truy cập phiên chat này để xuất báo cáo.")
+
+        dossier_data = build_dossier_data(record, turn_index=turn_index, custom_title=title)
+
+    safe_title = re.sub(r'[^a-zA-Z0-9_\-]', '_', dossier_data.get("session_id", "dossier")[:20])
+    if format.lower() == "pdf":
+        buf = generate_pdf_dossier(dossier_data)
+        media_type = "application/pdf"
+        filename = f"Bao_cao_Tham_dinh_{safe_title}.pdf"
+    else:
+        buf = generate_docx_dossier(dossier_data)
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        filename = f"Bao_cao_Tham_dinh_{safe_title}.docx"
+
+    import io
+    encoded_filename = urllib.parse.quote(filename)
+    return StreamingResponse(
+        io.BytesIO(buf),
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"; filename*=UTF-8\'\'{encoded_filename}',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
+@router.post("/export/dossier")
+def export_standalone_dossier(req: ExportStandaloneRequest):
+    """Xuất báo cáo trực tiếp từ dữ liệu truyền lên (không yêu cầu lưu trước vào DB)."""
+    import io
+    import re
+    import urllib.parse
+    from ..services.dossier_exporter import build_dossier_data, generate_docx_dossier, generate_pdf_dossier
+
+    dossier_data = build_dossier_data(req.session_data, turn_index=req.turn_index, custom_title=req.custom_title)
+    safe_title = re.sub(r'[^a-zA-Z0-9_\-]', '_', dossier_data.get("session_id", "dossier")[:20])
+
+    if req.format.lower() == "pdf":
+        buf = generate_pdf_dossier(dossier_data)
+        media_type = "application/pdf"
+        filename = f"Bao_cao_Tham_dinh_{safe_title}.pdf"
+    else:
+        buf = generate_docx_dossier(dossier_data)
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        filename = f"Bao_cao_Tham_dinh_{safe_title}.docx"
+
+    encoded_filename = urllib.parse.quote(filename)
+    return StreamingResponse(
+        io.BytesIO(buf),
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"; filename*=UTF-8\'\'{encoded_filename}',
+            "Access-Control-Expose-Headers": "Content-Disposition",
+        },
+    )
+
+
 # --- 2. PROJECTS (Thư mục dự án / Vụ việc pháp lý) ---
 
 class CreateProjectRequest(BaseModel):
@@ -1160,19 +1394,29 @@ DEFAULT_PROJECTS = [
 
 @router.get("/projects")
 def list_user_projects(authorization: str | None = Header(None)):
-    """Lấy danh sách thư mục dự án của người dùng. Tự động nạp mẫu nếu chưa có."""
+    """Lấy danh sách thư mục dự án của người dùng (bao gồm dự án sở hữu và dự án được chia sẻ)."""
     from ..db.session import get_session
     from ..db.models import ProjectFolderRecord
     from sqlalchemy import select
+    import datetime as dt
     import uuid
 
     username = _get_current_username(authorization)
     with get_session() as db:
-        stmt = select(ProjectFolderRecord).where(ProjectFolderRecord.username == username).order_by(ProjectFolderRecord.created_at.asc())
-        records = db.execute(stmt).scalars().all()
+        stmt = select(ProjectFolderRecord).order_by(ProjectFolderRecord.created_at.asc())
+        all_records = db.execute(stmt).scalars().all()
+
+        user_records = []
+        for r in all_records:
+            if r.username == username or r.username == "guest":
+                user_records.append(r)
+            else:
+                shared = r.shared_with or []
+                if any(m.get("username") == username for m in shared):
+                    user_records.append(r)
 
         # Nếu chưa có thư mục nào, nạp 4 thư mục mẫu
-        if not records and username != "guest":
+        if not user_records and username != "guest":
             new_records = []
             for item in DEFAULT_PROJECTS:
                 rec = ProjectFolderRecord(
@@ -1186,8 +1430,9 @@ def list_user_projects(authorization: str | None = Header(None)):
                 db.add(rec)
                 new_records.append(rec)
             db.commit()
-            records = new_records
+            user_records = new_records
 
+        now_iso = dt.datetime.now(dt.timezone.utc).isoformat()
         return [
             {
                 "id": r.id,
@@ -1195,9 +1440,14 @@ def list_user_projects(authorization: str | None = Header(None)):
                 "desc": r.desc,
                 "icon": r.icon,
                 "color": r.color,
-                "createdAt": r.created_at.isoformat(),
+                "createdAt": r.created_at.isoformat() if getattr(r, "created_at", None) else now_iso,
+                "isShared": r.username != username,
+                "isPublic": bool(r.is_public),
+                "shareToken": r.share_token,
+                "sharedWith": r.shared_with or [],
+                "owner": r.username,
             }
-            for r in (records or [ProjectFolderRecord(username="guest", **p) for p in DEFAULT_PROJECTS])
+            for r in (user_records or [ProjectFolderRecord(username="guest", **p) for p in DEFAULT_PROJECTS])
         ]
 
 
@@ -1245,7 +1495,9 @@ def update_user_project(project_id: str, req: UpdateProjectRequest, authorizatio
         rec = db.get(ProjectFolderRecord, project_id)
         if not rec:
             raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
-        if rec.username != username and rec.username != "guest":
+        is_owner = (rec.username == username or rec.username == "guest")
+        is_editor = any(m.get("username") == username and m.get("role") == "editor" for m in (rec.shared_with or []))
+        if not is_owner and not is_editor:
             raise HTTPException(status_code=403, detail="Không có quyền sửa dự án này.")
 
         if req.title is not None:
@@ -1287,7 +1539,6 @@ def delete_user_project(project_id: str, authorization: str | None = Header(None
         # Gỡ folder_id khỏi các sessions liên kết
         sessions = db.execute(
             select(ChatSessionRecord).where(
-                ChatSessionRecord.username == username,
                 ChatSessionRecord.folder_id == project_id,
             )
         ).scalars().all()
@@ -1297,6 +1548,140 @@ def delete_user_project(project_id: str, authorization: str | None = Header(None
         db.delete(rec)
         db.commit()
         return {"status": "success", "message": "Đã xóa thư mục dự án thành công."}
+
+
+@router.get("/projects/{project_id}/share")
+def get_project_share_config(project_id: str, authorization: str | None = Header(None)):
+    """Lấy thông tin chia sẻ và danh sách thành viên của thư mục dự án."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord
+    import secrets
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ProjectFolderRecord, project_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
+        is_owner = (record.username == username or record.username == "guest")
+        is_member = any(m.get("username") == username for m in (record.shared_with or []))
+        if not is_owner and not is_member and not record.is_public:
+            raise HTTPException(status_code=403, detail="Bạn không có quyền xem thông tin chia sẻ của dự án này.")
+
+        if not record.share_token:
+            record.share_token = secrets.token_urlsafe(16)
+            db.commit()
+            db.refresh(record)
+
+        return {
+            "projectId": record.id,
+            "title": record.title,
+            "isPublic": bool(record.is_public),
+            "shareToken": record.share_token,
+            "sharedWith": record.shared_with or [],
+            "owner": record.username,
+            "isOwner": is_owner,
+        }
+
+
+@router.post("/projects/{project_id}/share")
+def update_project_share_config(project_id: str, req: UpdateShareRequest, authorization: str | None = Header(None)):
+    """Cập nhật quyền chia sẻ và thành viên của thư mục dự án."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord
+    import datetime as dt
+    import secrets
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ProjectFolderRecord, project_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
+        if record.username != username and record.username != "guest":
+            raise HTTPException(status_code=403, detail="Chỉ chủ sở hữu dự án mới có quyền thay đổi chia sẻ.")
+
+        if req.is_public is not None:
+            record.is_public = req.is_public
+
+        if req.shared_with is not None:
+            now_str = dt.datetime.now(dt.timezone.utc).strftime("%d/%m/%Y %H:%M")
+            members = []
+            for m in req.shared_with:
+                members.append({
+                    "username": m.username.strip(),
+                    "role": m.role if m.role in ("viewer", "editor") else "viewer",
+                    "shared_at": m.shared_at or now_str,
+                })
+            record.shared_with = members
+
+        if req.regenerate_token or not record.share_token:
+            record.share_token = secrets.token_urlsafe(16)
+
+        record.updated_at = dt.datetime.now(dt.timezone.utc)
+        db.commit()
+        db.refresh(record)
+
+        return {
+            "status": "success",
+            "projectId": record.id,
+            "isPublic": record.is_public,
+            "shareToken": record.share_token,
+            "sharedWith": record.shared_with or [],
+            "owner": record.username,
+        }
+
+
+@router.get("/share/project/{share_token}")
+def get_shared_project_by_token(share_token: str, authorization: str | None = Header(None)):
+    """Xem danh mục tài liệu & phiên chat trong dự án được chia sẻ qua liên kết."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord, ChatSessionRecord
+    from sqlalchemy import select
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        stmt = select(ProjectFolderRecord).where(ProjectFolderRecord.share_token == share_token)
+        proj = db.execute(stmt).scalars().first()
+        if not proj:
+            raise HTTPException(status_code=404, detail="Liên kết dự án không tồn tại hoặc đã bị thu hồi.")
+
+        is_owner = (proj.username == username or proj.username == "guest")
+        member_match = next((m for m in (proj.shared_with or []) if m.get("username") == username), None)
+        user_role = "owner" if is_owner else (member_match.get("role", "viewer") if member_match else ("viewer" if proj.is_public else None))
+
+        if not proj.is_public and not is_owner and not member_match:
+            raise HTTPException(status_code=403, detail="Dự án này ở chế độ riêng tư và bạn chưa được cấp quyền truy cập.")
+
+        # Lấy các sessions thuộc dự án này
+        s_stmt = select(ChatSessionRecord).where(ChatSessionRecord.folder_id == proj.id).order_by(ChatSessionRecord.updated_at.desc())
+        sessions = db.execute(s_stmt).scalars().all()
+
+        return {
+            "project": {
+                "id": proj.id,
+                "title": proj.title,
+                "desc": proj.desc,
+                "icon": proj.icon,
+                "color": proj.color,
+                "createdAt": proj.created_at.isoformat(),
+                "owner": proj.username,
+                "isPublic": bool(proj.is_public),
+                "shareToken": proj.share_token,
+                "userRole": user_role or "viewer",
+                "canEdit": user_role in ("owner", "editor"),
+            },
+            "sessions": [
+                {
+                    "sessionId": s.id,
+                    "title": s.title,
+                    "domain": s.domain,
+                    "mode": s.mode,
+                    "folderId": s.folder_id,
+                    "turnsCount": len(s.turns or []),
+                    "lastCreatedAt": (s.updated_at or s.created_at).isoformat(),
+                }
+                for s in sessions
+            ],
+        }
 
 
 # --- 3. CUSTOM AGENTS (Chuyên gia tùy chỉnh / Custom GPTs) ---

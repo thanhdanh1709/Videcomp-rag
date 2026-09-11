@@ -26,6 +26,9 @@ import { SettingsModal } from "./components/SettingsModal";
 import { PricingModal } from "./components/PricingModal";
 import { AdminLoginModal } from "./components/AdminLoginModal";
 import { VoiceModeOverlay } from "./components/VoiceModeOverlay";
+import { ExportDossierModal } from "./components/ExportDossierModal";
+import { ShareModal } from "./components/ShareModal";
+import { apiGetSharedSession } from "./api/client";
 import { useHistory } from "./hooks/useHistory";
 import type { HistoryEntry } from "./hooks/useHistory";
 import { useCustomAgents } from "./hooks/useCustomAgents";
@@ -69,6 +72,24 @@ export default function App() {
   const [authInitialTab, setAuthInitialTab] = useState<"login" | "register">("login");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<string>("");
+
+  // Modals Xuất báo cáo & Chia sẻ cộng tác
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportTarget, setExportTarget] = useState<{
+    sessionId: string;
+    turns?: any[];
+    currentTurnIndex?: number;
+    domain?: Domain;
+    title?: string;
+    sessionData?: any;
+  } | null>(null);
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareTarget, setShareTarget] = useState<{
+    type: "session" | "project";
+    id: string;
+    title?: string;
+  } | null>(null);
 
   // Quản lý Chuyên gia (Item 3) và Thư mục dự án (Item 4)
   const { agents, saveAgent, deleteAgent } = useCustomAgents(currentUser?.username);
@@ -130,6 +151,68 @@ export default function App() {
       showToast("Bạn không có quyền truy cập trang quản trị. Chỉ Quản trị viên (Admin) mới có quyền này.");
     }
   }, [view, isAdmin]);
+
+  // Xử lý nạp liên kết chia sẻ từ URL parameters (?share=TOKEN hoặc ?share_project=TOKEN)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sToken = params.get("share");
+    if (sToken) {
+      apiGetSharedSession(sToken)
+        .then((shared) => {
+          setSessionId(shared.sessionId);
+          if (shared.domain) setDomain(shared.domain);
+          if (shared.mode) setMode(shared.mode);
+          if (shared.turns && shared.turns.length > 0) {
+            setStream(shared.turns.map((entry) => ({ kind: "done", entry })));
+          }
+          setView("chat");
+          showToast(`Đã mở phiên chia sẻ từ ${shared.owner}: "${shared.title}"`);
+        })
+        .catch((err) => {
+          showToast(`Không thể nạp phiên chia sẻ: ${err.message}`);
+        });
+    }
+  }, []);
+
+  const handleOpenExport = (target?: {
+    sessionId?: string;
+    turns?: any[];
+    currentTurnIndex?: number;
+    domain?: Domain;
+    title?: string;
+    sessionData?: any;
+  }) => {
+    if (target?.sessionId) {
+      setExportTarget({
+        sessionId: target.sessionId,
+        turns: target.turns || [],
+        currentTurnIndex: target.currentTurnIndex ?? -1,
+        domain: target.domain || domain,
+        title: target.title || "",
+        sessionData: target.sessionData,
+      });
+    } else {
+      const currentTurns = stream.filter((s) => s.kind === "done").map((s) => (s as any).entry);
+      setExportTarget({
+        sessionId,
+        turns: currentTurns,
+        currentTurnIndex: currentTurns.length > 0 ? currentTurns.length - 1 : -1,
+        domain,
+        title: currentTurns[0]?.question ? `Thẩm định: ${currentTurns[0].question.slice(0, 60)}` : "",
+      });
+    }
+    setIsExportModalOpen(true);
+  };
+
+  const handleOpenShare = (type: "session" | "project", id?: string, title?: string) => {
+    const targetId = id || sessionId;
+    setShareTarget({
+      type,
+      id: targetId,
+      title: title || (type === "session" ? `Phiên #${targetId.slice(0, 8)}` : "Thư mục dự án"),
+    });
+    setIsShareModalOpen(true);
+  };
 
   // Hỗ trợ liên kết trực tiếp #login hoặc #register khi mở ứng dụng
   useEffect(() => {
@@ -379,6 +462,8 @@ export default function App() {
           onOpenVoiceMode={() => setIsVoiceModeOpen(true)}
           onOpenLanding={() => setView("landing")}
           isAdmin={isAdmin}
+          onOpenExport={() => handleOpenExport()}
+          onOpenShare={() => handleOpenShare("session", sessionId)}
         />
 
         {/* Khu vực nội dung View chính */}
@@ -402,6 +487,20 @@ export default function App() {
               onClearActiveAgent={() => {
                 setActiveAgent(null);
                 showToast("Đã chuyển về Trợ lý mặc định");
+              }}
+              onExportTurn={(item) => {
+                if (item.kind === "done") {
+                  handleOpenExport({
+                    sessionId,
+                    turns: [item.entry],
+                    currentTurnIndex: 0,
+                    domain: item.entry.domain,
+                    title: `Thẩm định: ${item.entry.question.slice(0, 60)}`,
+                  });
+                }
+              }}
+              onShareTurn={() => {
+                handleOpenShare("session", sessionId);
               }}
             />
           )}
@@ -450,6 +549,21 @@ export default function App() {
                 showToast("Đã xóa cuộc hội thoại");
               }}
               onShowToast={showToast}
+              onShareProject={(proj) => {
+                handleOpenShare("project", proj.id, proj.title);
+              }}
+              onShareSession={(group) => {
+                handleOpenShare("session", group.sessionId, group.turns[0]?.question || "Phiên tra cứu");
+              }}
+              onExportSession={(group) => {
+                handleOpenExport({
+                  sessionId: group.sessionId,
+                  turns: group.turns,
+                  currentTurnIndex: -1,
+                  domain: group.turns[0]?.domain || domain,
+                  title: group.turns[0]?.question ? `Thẩm định: ${group.turns[0].question.slice(0, 60)}` : "",
+                });
+              }}
             />
           )}
 
@@ -542,6 +656,34 @@ export default function App() {
           <IconCheck width={15} height={15} style={{ color: "var(--primary)" }} />
           <span className="font-label-md text-label-md font-medium">{toastMessage}</span>
         </div>
+      )}
+
+      {/* Modal Xuất Báo cáo Chuyên nghiệp (.docx / .pdf) */}
+      <ExportDossierModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        sessionId={exportTarget?.sessionId || sessionId}
+        turns={exportTarget?.turns}
+        currentTurnIndex={exportTarget?.currentTurnIndex}
+        domain={exportTarget?.domain || domain}
+        title={exportTarget?.title}
+        sessionData={exportTarget?.sessionData}
+        onShowToast={showToast}
+      />
+
+      {/* Modal Chia sẻ & Phân quyền Cộng tác */}
+      {shareTarget && (
+        <ShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => {
+            setIsShareModalOpen(false);
+            setShareTarget(null);
+          }}
+          targetType={shareTarget.type}
+          targetId={shareTarget.id}
+          targetTitle={shareTarget.title}
+          onShowToast={showToast}
+        />
       )}
     </div>
   );

@@ -16,6 +16,8 @@ export function TopBar({
   onOpenVoiceMode,
   onOpenLanding,
   isAdmin = false,
+  onOpenExport,
+  onOpenShare,
 }: {
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
@@ -29,6 +31,8 @@ export function TopBar({
   onOpenVoiceMode?: () => void;
   onOpenLanding?: () => void;
   isAdmin?: boolean;
+  onOpenExport?: () => void;
+  onOpenShare?: () => void;
 }) {
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
 
@@ -234,13 +238,25 @@ export function TopBar({
           </button>
         )}
 
+        {onOpenExport && (
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 transition-colors shadow-sm"
+            type="button"
+            onClick={onOpenExport}
+            title="Xuất Báo cáo Thẩm định Chuyên nghiệp (.docx / .pdf)"
+          >
+            <span className="material-symbols-outlined text-[17px]">description</span>
+            <span className="font-label-md text-[13px] font-bold hidden sm:inline">Xuất báo cáo</span>
+          </button>
+        )}
+
         <button
           className="flex items-center gap-unit-xs px-unit-sm py-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors"
           type="button"
-          onClick={handleShare}
-          title="Chia sẻ liên kết"
+          onClick={onOpenShare || handleShare}
+          title="Chia sẻ liên kết & Phân quyền cộng tác"
         >
-          <span className="material-symbols-outlined text-[18px]">ios_share</span>
+          <span className="material-symbols-outlined text-[18px]">group_add</span>
           <span className="font-label-md text-label-md hidden sm:inline">Chia sẻ</span>
         </button>
 

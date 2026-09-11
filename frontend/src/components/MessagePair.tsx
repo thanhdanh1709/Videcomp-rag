@@ -44,12 +44,16 @@ export function MessagePair({
   onFeedback,
   onPickFollowup,
   onShowToast,
+  onExport,
+  onShare,
 }: {
   item: ChatItem;
   onRegenerate: (question: string, domain: Domain, mode: Mode) => void;
   onFeedback: (requestId: string, v: "up" | "down") => void;
   onPickFollowup?: (text: string) => void;
   onShowToast?: (msg: string) => void;
+  onExport?: (item: ChatItem) => void;
+  onShare?: (item: ChatItem) => void;
 }) {
   const [jsonOpen, setJsonOpen] = useState(false);
   const [copiedQuestion, setCopiedQuestion] = useState(false);
@@ -221,7 +225,8 @@ export function MessagePair({
                 onToggleJson={() => setJsonOpen((o) => !o)}
                 jsonOpen={jsonOpen}
                 regenerating={false}
-                onShare={handleShareAnswer}
+                onShare={onShare ? () => onShare(item) : handleShareAnswer}
+                onExport={onExport ? () => onExport(item) : undefined}
               />
 
               {/* Gợi ý câu hỏi đào sâu tiếp theo (Follow-up Suggestion Chips) */}

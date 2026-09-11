@@ -26,6 +26,7 @@ pdfplumber
 beautifulsoup4
 lxml
 python-docx
+reportlab
 underthesea
 
 httpx

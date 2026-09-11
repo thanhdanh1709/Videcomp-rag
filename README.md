@@ -286,5 +286,32 @@ pytest -q
 
 ---
 
-## 7. Giấy phép & Bản quyền
+## 7. Xuất Báo cáo Chuyên nghiệp & Cộng tác Nhóm (Dossier & Collaboration)
+
+### 7.1. Xuất Hồ sơ Thẩm định Chuyên nghiệp (Export Legal/Medical Dossier)
+Hệ thống cung cấp tính năng **Xuất báo cáo** trực tiếp trên thanh công cụ phản hồi và thanh điều hướng:
+- **Định dạng Microsoft Word (.docx)**: Tạo lập qua `python-docx` với viền trang hành chính (lề 2.0 cm), tiêu đề tổ chức, bảng ma trận căn cứ pháp lý, bảng kiểm chứng luận điểm đổi màu trạng thái (Xanh lá / Đỏ) và khung chữ ký xác nhận của chuyên viên và lãnh đạo.
+- **Định dạng Adobe PDF (.pdf)**: Tạo lập qua `reportlab` nhúng font Unicode tiếng Việt (Arial TTF), bố cục bảo mật khóa cố định, tỷ lệ màu sắc chuẩn mực dùng gửi ngay cho khách hàng hoặc cơ quan quản lý.
+- **Cấu trúc 6 phần chuẩn mực**:
+  1. *Header & Thông tin vụ việc*: Mã phiên, ngày giờ thẩm định, chuyên ngành pháp luật / y khoa, chế độ phân rã.
+  2. *Tóm tắt kết luận cốt lõi (Executive Summary)*: Định dạng khung viền nổi bật.
+  3. *Cây suy luận từng bước (Multi-hop DAG)*: Câu hỏi con, kết luận trung gian, văn bản luật truy xuất.
+  4. *Bảng trích dẫn căn cứ điều luật & phác đồ*: Mã điều, tên văn bản luật, trích đoạn nội dung.
+  5. *Bảng đối chiếu mâu thuẫn & kiểm chứng luận điểm*: Trạng thái Hợp lệ (Supported) / Mâu thuẫn (Unsupported) / Thiếu căn cứ (Insufficient), tỷ lệ bảo đảm căn cứ (Faithfulness Rate).
+  6. *Khung chữ ký xác nhận thẩm định*: Dành cho Chuyên viên thụ lý hồ sơ và Lãnh đạo phê duyệt có đóng dấu hoặc ký số PKI.
+
+### 7.2. Cộng tác Nhóm & Phân quyền Chia sẻ (Multi-user Sharing & Shared Workspace)
+- **Chia sẻ qua đường liên kết bảo mật (`share_token`)**: Bất kỳ phiên hỏi đáp hoặc thư mục dự án nào cũng có thể tạo liên kết truy cập nhanh. Người nhận chỉ cần mở link `/?share=TOKEN` để tự động nạp phiên làm việc.
+- **Chế độ chia sẻ linh hoạt**:
+  - *Công khai*: Bất kỳ ai có liên kết đều có thể truy cập với quyền **Chỉ xem (Viewer)**.
+  - *Riêng tư & Mời thành viên*: Giới hạn truy cập cho danh sách đồng nghiệp được phân quyền qua username / email.
+- **Phân quyền 2 cấp độ**:
+  - **Chỉ xem (Viewer)**: Đọc nội dung trao đổi, xem chi tiết cây suy luận, bảng trích dẫn và tải báo cáo Word/PDF.
+  - **Cùng thảo luận (Editor)**: Gửi thêm câu hỏi đào sâu, tiếp nối mạch suy luận, cập nhật ghi chú và lưu trữ phiên.
+- **Quản lý liên kết**: Chủ sở hữu có thể thu hồi liên kết cũ bằng tính năng **Đổi mã liên kết (Regenerate Token)** bất kỳ lúc nào.
+
+---
+
+## 8. Giấy phép & Bản quyền
 Dự án được nghiên cứu và phát triển phục vụ đề tài Luận văn Thạc sĩ Khoa học Máy tính / Công nghệ Thông tin về xử lý ngôn ngữ tự nhiên tiếng Việt chuyên ngành. Mọi quyền sở hữu trí tuệ và bản quyền mã nguồn được bảo lưu.
+

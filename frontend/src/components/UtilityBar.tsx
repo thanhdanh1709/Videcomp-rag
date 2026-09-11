@@ -9,6 +9,7 @@ export function UtilityBar({
   onFeedback,
   regenerating,
   onShare,
+  onExport,
 }: {
   onCopyAnswer: () => void;
   onRegenerate: () => void;
@@ -18,6 +19,7 @@ export function UtilityBar({
   onFeedback: (v: "up" | "down") => void;
   regenerating: boolean;
   onShare?: () => void;
+  onExport?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -99,6 +101,17 @@ export function UtilityBar({
             onClick={onShare}
           >
             <span className="material-symbols-outlined text-[18px]">share</span>
+          </button>
+        )}
+
+        {onExport && (
+          <button
+            className="p-2 rounded-full hover:bg-surface-container-high text-outline hover:text-primary transition-colors flex items-center justify-center"
+            title="Xuất Báo cáo Thẩm định Chuyên nghiệp (.docx / .pdf)"
+            type="button"
+            onClick={onExport}
+          >
+            <span className="material-symbols-outlined text-[18px]">description</span>
           </button>
         )}
 

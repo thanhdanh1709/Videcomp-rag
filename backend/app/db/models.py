@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from sqlalchemy import JSON, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, JSON, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -127,6 +127,9 @@ class ChatSessionRecord(Base):
     mode: Mapped[str] = mapped_column(String(32), default="videcomp_full")
     folder_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     turns: Mapped[list] = mapped_column(JSON, default=list)  # Danh sách các lượt hỏi đáp đầy đủ
+    share_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    shared_with: Mapped[list] = mapped_column(JSON, default=list)  # list[{"username": str, "role": "viewer" | "editor", "shared_at": str}]
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
 
@@ -142,8 +145,12 @@ class ProjectFolderRecord(Base):
     desc: Mapped[str] = mapped_column(Text, default="")
     icon: Mapped[str] = mapped_column(String(64), default="folder")
     color: Mapped[str] = mapped_column(String(32), default="emerald")
+    share_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    shared_with: Mapped[list] = mapped_column(JSON, default=list)  # list[{"username": str, "role": "viewer" | "editor", "shared_at": str}]
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
 
 
 class CustomAgentRecord(Base):

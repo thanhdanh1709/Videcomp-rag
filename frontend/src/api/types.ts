@@ -282,3 +282,71 @@ export interface ModelsTestResponse {
   };
 }
 
+// ==========================================
+// COLLABORATION & SHARING TYPES
+// ==========================================
+
+export interface SharedMember {
+  username: string;
+  role: "viewer" | "editor";
+  shared_at?: string;
+}
+
+export interface ShareConfig {
+  sessionId?: string;
+  projectId?: string;
+  title: string;
+  isPublic: boolean;
+  shareToken?: string;
+  sharedWith: SharedMember[];
+  owner: string;
+  isOwner?: boolean;
+}
+
+export interface SharedSessionDetail {
+  sessionId: string;
+  title: string;
+  domain: Domain;
+  mode: Mode;
+  folderId?: string | null;
+  turns: any[];
+  lastCreatedAt: string;
+  owner: string;
+  isPublic: boolean;
+  shareToken?: string;
+  userRole: "owner" | "editor" | "viewer";
+  canEdit: boolean;
+}
+
+export interface SharedProjectDetail {
+  project: {
+    id: string;
+    title: string;
+    desc: string;
+    icon: string;
+    color: string;
+    createdAt: string;
+    owner: string;
+    isPublic: boolean;
+    shareToken?: string;
+    userRole: "owner" | "editor" | "viewer";
+    canEdit: boolean;
+  };
+  sessions: {
+    sessionId: string;
+    title: string;
+    domain: Domain;
+    mode: Mode;
+    folderId?: string;
+    turnsCount: number;
+    lastCreatedAt: string;
+  }[];
+}
+
+export interface DossierExportOptions {
+  format: "docx" | "pdf";
+  title?: string;
+  turnIndex?: number;
+}
+
+

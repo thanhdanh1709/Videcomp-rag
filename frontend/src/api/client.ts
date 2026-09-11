@@ -12,6 +12,10 @@ import type {
   ModelsConfigResponse,
   ModelsConfigUpdate,
   ModelsTestResponse,
+  ShareConfig,
+  SharedMember,
+  SharedSessionDetail,
+  SharedProjectDetail,
 } from "./types";
 import type { ProjectFolder } from "../types/project";
 import type { CustomAgent } from "../types/agent";
@@ -492,6 +496,11 @@ export interface BackendSession {
   folderId?: string | null;
   turns: any[];
   lastCreatedAt: string;
+  isShared?: boolean;
+  isPublic?: boolean;
+  shareToken?: string;
+  sharedWith?: SharedMember[];
+  owner?: string;
 }
 
 export async function apiGetSessions(): Promise<BackendSession[]> {
@@ -539,6 +548,94 @@ export async function apiSetSessionFeedback(
   });
 }
 
+export async function apiGetSessionShare(sessionId: string): Promise<ShareConfig> {
+  return request<ShareConfig>(`/api/v1/sessions/${encodeURIComponent(sessionId)}/share`);
+}
+
+export async function apiUpdateSessionShare(
+  sessionId: string,
+  payload: { is_public?: boolean; shared_with?: SharedMember[]; regenerate_token?: boolean }
+): Promise<ShareConfig> {
+  return request<ShareConfig>(`/api/v1/sessions/${encodeURIComponent(sessionId)}/share`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiGetSharedSession(shareToken: string): Promise<SharedSessionDetail> {
+  return request<SharedSessionDetail>(`/api/v1/share/session/${encodeURIComponent(shareToken)}`);
+}
+
+export async function apiDownloadSessionDossier(
+  sessionId: string,
+  format: "docx" | "pdf",
+  turnIndex: number = -1,
+  customTitle?: string
+): Promise<void> {
+  const base = getApiBaseUrl();
+  const token = localStorage.getItem("videcomp.token");
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  const query = new URLSearchParams({
+    format,
+    turn_index: String(turnIndex),
+  });
+  if (customTitle) query.set("title", customTitle);
+
+  const res = await fetch(`${base}/api/v1/sessions/${encodeURIComponent(sessionId)}/export?${query.toString()}`, {
+    headers,
+  });
+  if (!res.ok) throw new Error("Không thể xuất báo cáo thẩm định.");
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") || "";
+  let filename = `Bao_cao_Tham_dinh_${sessionId.slice(0, 8)}.${format}`;
+  const match = disposition.match(/filename="?([^";]+)"?/);
+  if (match) filename = decodeURIComponent(match[1]);
+
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
+}
+
+export async function apiDownloadStandaloneDossier(payload: {
+  format: "docx" | "pdf";
+  session_data: any;
+  turn_index?: number;
+  custom_title?: string;
+}): Promise<void> {
+  const base = getApiBaseUrl();
+  const token = localStorage.getItem("videcomp.token");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const res = await fetch(`${base}/api/v1/export/dossier`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Không thể xuất báo cáo thẩm định.");
+  const blob = await res.blob();
+  const disposition = res.headers.get("Content-Disposition") || "";
+  let filename = `Bao_cao_Tham_dinh.${payload.format}`;
+  const match = disposition.match(/filename="?([^";]+)"?/);
+  if (match) filename = decodeURIComponent(match[1]);
+
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
+}
+
 // ==========================================
 // 2. PROJECTS API (Thư mục dự án PostgreSQL)
 // ==========================================
@@ -574,6 +671,24 @@ export async function apiDeleteProject(projectId: string): Promise<{ status: str
   return request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
     method: "DELETE",
   });
+}
+
+export async function apiGetProjectShare(projectId: string): Promise<ShareConfig> {
+  return request<ShareConfig>(`/api/v1/projects/${encodeURIComponent(projectId)}/share`);
+}
+
+export async function apiUpdateProjectShare(
+  projectId: string,
+  payload: { is_public?: boolean; shared_with?: SharedMember[]; regenerate_token?: boolean }
+): Promise<ShareConfig> {
+  return request<ShareConfig>(`/api/v1/projects/${encodeURIComponent(projectId)}/share`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiGetSharedProject(shareToken: string): Promise<SharedProjectDetail> {
+  return request<SharedProjectDetail>(`/api/v1/share/project/${encodeURIComponent(shareToken)}`);
 }
 
 // ==========================================

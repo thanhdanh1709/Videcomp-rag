@@ -61,6 +61,8 @@ export function ChatView({
   onClearInitialQuestion,
   activeAgent,
   onClearActiveAgent,
+  onExportTurn,
+  onShareTurn,
 }: {
   stream: ChatItem[];
   setStream: (updater: (prev: ChatItem[]) => ChatItem[]) => void;
@@ -77,6 +79,8 @@ export function ChatView({
   onClearInitialQuestion?: () => void;
   activeAgent?: CustomAgent | null;
   onClearActiveAgent?: () => void;
+  onExportTurn?: (item: ChatItem) => void;
+  onShareTurn?: (item: ChatItem) => void;
 }) {
   const [question, setQuestion] = useState(initialQuestion || "");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -322,6 +326,8 @@ export function ChatView({
                   onFeedback={onFeedback}
                   onPickFollowup={(followupQ) => send(followupQ, domain, mode)}
                   onShowToast={onShowToast}
+                  onExport={onExportTurn}
+                  onShare={onShareTurn}
                 />
               );
             })}
