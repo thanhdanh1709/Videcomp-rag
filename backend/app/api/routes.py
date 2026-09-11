@@ -1359,28 +1359,38 @@ def list_user_agents(authorization: str | None = Header(None)):
         records = db.execute(stmt).scalars().all()
 
         if not records:
-            # Tự động nạp mẫu ban đầu
+            # Tự động nạp mẫu ban đầu cho agent hệ thống
             for a in DEFAULT_AGENTS:
-                rec = CustomAgentRecord(
-                    id=a["id"],
-                    username=username if username != "guest" else "system",
-                    name=a["name"],
-                    desc=a["desc"],
-                    author=a["author"],
-                    domain=a["domain"],
-                    category=a["category"],
-                    instructions=a["instructions"],
-                    starters=a["starters"],
-                    icon=a["icon"],
-                    session_id=a["session_id"],
-                    knowledge_files=a["knowledge_files"],
-                )
-                db.add(rec)
-            db.commit()
+                existing = db.get(CustomAgentRecord, a["id"])
+                if not existing:
+                    rec = CustomAgentRecord(
+                        id=a["id"],
+                        username="system",  # Đặt là "system" để tất cả người dùng đều truy cập được
+                        name=a["name"],
+                        desc=a["desc"],
+                        author=a["author"],
+                        domain=a["domain"],
+                        category=a["category"],
+                        instructions=a["instructions"],
+                        starters=a["starters"],
+                        icon=a["icon"],
+                        session_id=a["session_id"],
+                        knowledge_files=a["knowledge_files"],
+                    )
+                    db.add(rec)
+                elif existing.username != "system" and existing.author == "Hệ thống":
+                    # Chuyển quyền sở hữu agent mặc định sang "system" dùng chung
+                    existing.username = "system"
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+
             stmt = select(CustomAgentRecord).where(
                 or_(CustomAgentRecord.username == username, CustomAgentRecord.username == "system")
-            )
+            ).order_by(CustomAgentRecord.updated_at.desc())
             records = db.execute(stmt).scalars().all()
+
 
         return [
             {
