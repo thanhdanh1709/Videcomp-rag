@@ -1,0 +1,43 @@
+# ViDecomp-RAG — core dependencies
+# See HuongDanThucHien_QueryDecomposition_MultiHop_Vietnamese.docx, Buoc 1.2
+
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+anthropic
+
+sentence-transformers
+transformers
+torch
+
+qdrant-client
+faiss-cpu
+rank-bm25
+
+pandas
+numpy
+scikit-learn
+scipy
+datasets
+
+pypdf
+beautifulsoup4
+lxml
+python-docx
+underthesea
+
+httpx
+tenacity
+orjson
+tqdm
+pyyaml
+
+pytest
+pytest-asyncio
+
+sqlalchemy
+psycopg[binary]
+
+# optional experiment tracking / background jobs
+mlflow

@@ -1,0 +1,6 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+BLDS_91_2015_P1,legal,https://congbao.chinhphu.vn/van-ban/luat-so-91-2015-qh13-18397.htm,data/raw/legal/BLDS_91_2015_P1.pdf,2026-09-08,official-public-gazette-pdf
+BLDS_91_2015_P2,legal,https://congbao.chinhphu.vn/van-ban/luat-so-91-2015-qh13-18397.htm,data/raw/legal/BLDS_91_2015_P2.pdf,2026-09-08,official-public-gazette-pdf
+BLHS_100_2015_HOPNHAT,legal,https://datafiles.chinhphu.vn/cpp/files/vbpq/2025/9/135-vbhn-vpqh.pdf,data/raw/legal/BLHS_100_2015_HOPNHAT.pdf,2026-09-08,official-public-consolidated-text
+LUAT_52_2014_HNGD,legal,https://congbao.chinhphu.vn/van-ban/luat-so-52-2014-qh13-6127.htm,data/raw/legal/LUAT_52_2014_HNGD.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_23_2008_GTDB,legal,https://caodangcsnd2.bocongan.gov.vn/Content/ImagesUpload/10/28/2015/20151027_Luat_23_QH12-201510283146_46_28102015.pdf,data/raw/legal/LUAT_23_2008_GTDB.pdf,2026-09-08,official-public-pdf

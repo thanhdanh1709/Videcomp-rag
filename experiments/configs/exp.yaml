@@ -1,0 +1,6 @@
+retrieval:
+  sparse_k: 30
+  dense_k: 30
+  rrf_k: 60
+  rerank_pool: 20
+  top_k_context: 5

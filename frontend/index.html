@@ -1,0 +1,121 @@
+<!doctype html>
+<html class="dark" lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22 fill=%22none%22><rect width=%2240%22 height=%2240%22 rx=%2210%22 fill=%22%23131313%22/><circle cx=%2220%22 cy=%2220%22 r=%2216%22 stroke=%22%2361dbb4%22 stroke-width=%221.5%22 stroke-opacity=%220.3%22/><path d=%22M11 14L20 30L29 14%22 stroke=%22url(%23g)%22 stroke-width=%223.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><path d=%22M15 14L20 23L25 14%22 stroke=%22%2361dbb4%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/><circle cx=%2220%22 cy=%2214%22 r=%222.5%22 fill=%22%237ff8cf%22/><circle cx=%2211%22 cy=%2214%22 r=%222%22 fill=%22%2361dbb4%22/><circle cx=%2229%22 cy=%2214%22 r=%222%22 fill=%22%2361dbb4%22/><circle cx=%2220%22 cy=%2230%22 r=%222.5%22 fill=%22%2312a480%22/><defs><linearGradient id=%22g%22 x1=%2211%22 y1=%2214%22 x2=%2229%22 y2=%2230%22 gradientUnits=%22userSpaceOnUse%22><stop stop-color=%22%237ff8cf%22/><stop offset=%220.5%22 stop-color=%22%2361dbb4%22/><stop offset=%221%22 stop-color=%22%2312a480%22/></linearGradient></defs></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <title>Videcomp-rag — Hệ thống Hỏi đáp Đa bước Pháp luật &amp; Y tế</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              surface: "#131313",
+              "surface-dim": "#131313",
+              "surface-bright": "#393939",
+              "surface-container-lowest": "#0e0e0e",
+              "surface-container-low": "#1b1c1c",
+              "surface-container": "#202020",
+              "surface-container-high": "#2a2a2a",
+              "surface-container-highest": "#353535",
+              "on-surface": "#e5e2e1",
+              "on-surface-variant": "#bccac2",
+              "inverse-surface": "#e5e2e1",
+              "inverse-on-surface": "#303030",
+              outline: "#86948d",
+              "outline-variant": "#3d4a44",
+              "surface-tint": "#61dbb4",
+              primary: "#61dbb4",
+              "on-primary": "#00382a",
+              "primary-container": "#12a480",
+              "on-primary-container": "#003024",
+              "inverse-primary": "#006c52",
+              secondary: "#c6c6c6",
+              "on-secondary": "#2f3131",
+              "secondary-container": "#454747",
+              "on-secondary-container": "#b4b5b5",
+              tertiary: "#ffb4aa",
+              "on-tertiary": "#5f140f",
+              "tertiary-container": "#dc7265",
+              "on-tertiary-container": "#560d09",
+              error: "#ffb4ab",
+              "on-error": "#690005",
+              "error-container": "#93000a",
+              "on-error-container": "#ffdad6",
+              "primary-fixed": "#7ff8cf",
+              "primary-fixed-dim": "#61dbb4",
+              "on-primary-fixed": "#002117",
+              "on-primary-fixed-variant": "#00513d",
+              "secondary-fixed": "#e2e2e2",
+              "secondary-fixed-dim": "#c6c6c6",
+              "on-secondary-fixed": "#1a1c1c",
+              "on-secondary-fixed-variant": "#454747",
+              background: "#131313",
+              "on-background": "#e5e2e1",
+              "surface-variant": "#353535"
+            },
+            borderRadius: {
+              DEFAULT: "1rem",
+              sm: "0.5rem",
+              md: "1.5rem",
+              lg: "2rem",
+              xl: "3rem",
+              full: "9999px"
+            },
+            spacing: {
+              "unit-2xs": "0.25rem",
+              "unit-xs": "0.5rem",
+              "unit-sm": "0.75rem",
+              "unit-md": "1rem",
+              "unit-lg": "1.25rem",
+              "unit-xl": "1.5rem",
+              "unit-2xl": "2rem",
+              "gutter-screen": "1rem",
+              "composer-height": "3.5rem"
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              mono: ["JetBrains Mono", "monospace"],
+              "display-lg": ["Inter", "sans-serif"],
+              "headline-md": ["Inter", "sans-serif"],
+              "headline-sm": ["Inter", "sans-serif"],
+              "body-lg": ["Inter", "sans-serif"],
+              "body-md": ["Inter", "sans-serif"],
+              "body-sm": ["Inter", "sans-serif"],
+              "label-md": ["Inter", "sans-serif"],
+              "label-sm": ["Inter", "sans-serif"],
+              "code-md": ["JetBrains Mono", "monospace"]
+            },
+            fontSize: {
+              "display-lg": ["30px", { lineHeight: "36px", letterSpacing: "-0.02em", fontWeight: "600" }],
+              "headline-md": ["22px", { lineHeight: "28px", letterSpacing: "-0.015em", fontWeight: "600" }],
+              "headline-sm": ["18px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "600" }],
+              "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "400" }],
+              "body-md": ["15px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "400" }],
+              "body-sm": ["13px", { lineHeight: "18px", letterSpacing: "0.005em", fontWeight: "400" }],
+              "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "500" }],
+              "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "500" }],
+              "code-md": ["13px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "400" }]
+            }
+          }
+        }
+      };
+    </script>
+  </head>
+  <body class="bg-background font-body-md text-body-md text-on-surface antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

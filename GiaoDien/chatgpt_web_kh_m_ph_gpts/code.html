@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-container-high":"#2a2a2a","on-surface":"#e5e2e1","on-error-container":"#ffdad6","secondary-fixed-dim":"#c6c6c6","surface-container":"#202020","on-surface-variant":"#bccac2","surface":"#131313","secondary":"#c6c6c6","primary":"#61dbb4","on-background":"#e5e2e1","on-secondary-container":"#b4b5b5","primary-fixed":"#7ff8cf","inverse-on-surface":"#303030","on-primary-container":"#003024","surface-container-low":"#1b1c1c","on-tertiary-fixed-variant":"#7e2b22","surface-tint":"#61dbb4","surface-variant":"#353535","secondary-fixed":"#e2e2e2","error-container":"#93000a","tertiary-container":"#dc7265","primary-container":"#12a480","tertiary-fixed-dim":"#ffb4aa","tertiary-fixed":"#ffdad5","surface-container-lowest":"#0e0e0e","on-secondary-fixed":"#1a1c1c","on-primary-fixed-variant":"#00513d","outline-variant":"#3d4a44","secondary-container":"#454747","tertiary":"#ffb4aa","inverse-surface":"#e5e2e1","surface-bright":"#393939","on-primary-fixed":"#002117","on-secondary-fixed-variant":"#454747","error":"#ffb4ab","on-secondary":"#2f3131","on-primary":"#00382a","primary-fixed-dim":"#61dbb4","surface-container-highest":"#353535","background":"#131313","on-tertiary-fixed":"#410001","on-tertiary-container":"#560d09","on-tertiary":"#5f140f","on-error":"#690005","surface-dim":"#131313","inverse-primary":"#006c52","outline":"#86948d"},"borderRadius":{"DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px"},"spacing":{"unit-xs":"0.5rem","composer-height":"3.5rem","unit-2xs":"0.25rem","unit-md":"1rem","unit-2xl":"2rem","unit-xl":"1.5rem","unit-sm":"0.75rem","gutter-screen":"1rem","unit-lg":"1.25rem"},"fontFamily":{"code-md":["JetBrains Mono"],"display-lg":["Inter"],"headline-sm":["Inter"],"label-sm":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"body-sm":["Inter"]},"fontSize":{"code-md":["13px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"400"}],"display-lg":["30px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"label-md":["14px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"500"}],"body-md":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-md":["22px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"400"}],"body-sm":["13px",{"lineHeight":"18px","letterSpacing":"0.005em","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-low z-50 flex flex-col justify-between p-unit-sm select-none"><div class="flex flex-col gap-unit-xs min-h-0"><div class="flex items-center justify-between px-unit-xs py-unit-2xs"><a class="flex items-center gap-unit-xs" data-path="chat-phan-tich-du-lieu-uiux" href="#"><img alt="ChatGPT Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V5mlH8cP4cFjeIJNHj96i0ABLZwPwRUB1CipwUF3B1NpOqFJhIUd68qfAcCBP3k8xwkYoKKF-qiFI1s4A4qdnMXXLBd6ogq7IZsD2oaD6HAjTODnvWUBThrCqVBhxGvXGc0bYmNQaOJp1dWRz1gJbg6n9oYQfrsVPGvVPpw869trjIjtQKtv9ephDDbkQjlLyIIK4b90nhMUnWELZIgaaBX4SWeiV0seFGYd5jWKVlL45FLhDG2V5ttSc"/><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">ChatGPT</span></a><div class="flex items-center gap-unit-2xs"><button class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" title="Đóng thanh bên" type="button"><span class="material-symbols-outlined text-[20px]">dock_to_left</span></button><a class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors flex items-center justify-center" data-path="chat-phan-tich-du-lieu-uiux" href="#" title="Cuộc trò chuyện mới"><span class="material-symbols-outlined text-[20px]">edit_square</span></a></div></div><div class="mt-unit-xs px-unit-2xs"><button class="w-full flex items-center justify-between px-unit-sm py-unit-xs rounded-DEFAULT bg-surface-container hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors text-left" type="button"><div class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-label-md text-label-md">Tìm kiếm đoạn chat</span></div><span class="font-label-sm text-label-sm text-outline px-unit-2xs py-[2px] bg-surface-container-lowest rounded-full">Ctrl K</span></button></div><div class="px-unit-2xs pt-unit-xs"><nav class="flex flex-col gap-1" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><a aria-current="page" class="flex items-center px-unit-sm py-unit-xs rounded-DEFAULT transition-colors bg-surface-container-highest text-on-surface font-semibold" data-path="kham-pha-gpts" href="#">Khám phá GPTs</a><a class="flex items-center px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-colors" data-path="lich-su-va-du-an" href="#">Lịch sử &amp; Dự án</a><a class="flex items-center px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-colors" data-path="cai-dat" href="#">Cài đặt</a></nav></div><div class="overflow-y-auto mt-unit-xs flex-1 pr-unit-2xs space-y-unit-md"><nav class="space-y-unit-2xs" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><div class="px-unit-xs py-unit-2xs font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Hôm nay</div><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-phan-tich-du-lieu-uiux" href="#">Phân tích dữ liệu UI/UX</a><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-toi-uu-hoa-truy-van-sql" href="#">Tối ưu hoá truy vấn SQL</a></nav><nav class="space-y-unit-2xs" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><div class="px-unit-xs py-unit-2xs font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">7 ngày qua</div><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-y-tuong-kich-ban-video" href="#">Ý tưởng kịch bản video</a></nav><nav class="space-y-unit-2xs" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><div class="px-unit-xs py-unit-2xs font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">30 ngày trước</div><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-lap-ke-hoach-du-lich-da-lat" href="#">Lập kế hoạch du lịch Đà Lạt</a><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-cau-truc-du-an-react-native" href="#">Cấu trúc dự án React Native</a></nav></div></div><div class="flex flex-col gap-unit-xs pt-unit-xs"><a class="flex items-center gap-unit-xs px-unit-sm py-unit-xs rounded-DEFAULT bg-surface-container hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" data-path="pricing-upgrade" href="#"><div class="p-unit-2xs rounded-full bg-primary-container text-on-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">auto_awesome</span></div><div class="flex flex-col min-w-0"><span class="font-label-md text-label-md font-semibold truncate">Nâng cấp gói</span><span class="font-label-sm text-label-sm text-outline truncate">Mở khóa các mô hình tân tiến</span></div></a><a class="w-full flex items-center justify-between px-unit-xs py-unit-xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" data-path="cai-dat" href="#"><div class="flex items-center gap-unit-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col text-left"><span class="font-label-md text-label-md font-semibold text-on-surface truncate max-w-[130px]">Người dùng</span><span class="font-label-sm text-label-sm text-outline truncate">Gói miễn phí</span></div></div><span class="material-symbols-outlined text-outline text-[18px]">settings</span></a></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-14 bg-surface/90 backdrop-blur-xl z-40 flex items-center justify-between px-unit-lg"><div class="flex items-center gap-unit-sm"><button class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" title="Thu gọn thanh bên" type="button"><span class="material-symbols-outlined text-[22px]">menu_open</span></button><button class="flex items-center gap-unit-2xs px-unit-sm py-unit-xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" type="button"><span class="font-headline-sm text-headline-sm font-semibold">ChatGPT</span><span class="font-label-sm text-label-sm text-primary px-unit-2xs py-[2px] bg-primary-container/20 rounded-full font-semibold">4o</span><span class="material-symbols-outlined text-outline text-[18px]">expand_more</span></button></div><div class="flex items-center gap-unit-xs"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">ios_share</span><span class="font-label-md text-label-md hidden sm:inline">Chia sẻ</span></button><button class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" title="Đoạn chat tạm thời" type="button"><span class="material-symbols-outlined text-[20px]">history_toggle_off</span></button><a class="w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:opacity-90 transition-opacity" data-path="cai-dat" href="#" title="Cài đặt &amp; Tài khoản"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></a></div></header><main class="relative pt-14 bg-surface min-h-screen w-full"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Glow -->
+<div class="relative w-full overflow-hidden">
+<div class="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[820px] h-[360px] bg-primary/10 rounded-full blur-[120px] -z-10"></div>
+<div class="pointer-events-none absolute top-48 right-12 w-[340px] h-[240px] bg-primary-container/15 rounded-full blur-[90px] -z-10"></div>
+<!-- Main Container -->
+<div class="w-full max-w-7xl mx-auto px-unit-lg lg:px-unit-2xl pt-unit-xl pb-24 flex flex-col gap-unit-2xl">
+<!-- Header & Hero Area -->
+<section class="flex flex-col gap-unit-lg">
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-unit-md">
+<div class="flex flex-col gap-unit-2xs">
+<div class="flex items-center gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest font-semibold px-unit-xs py-0.5 rounded-full bg-surface-container-high">GPT Store</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Cập nhật hàng ngày</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface font-bold tracking-tight">Khám phá GPTs</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+              Tìm kiếm và sử dụng các phiên bản ChatGPT tùy chỉnh kết hợp hướng dẫn, kiến thức bổ sung và kỹ năng đa dạng do OpenAI và cộng đồng xây dựng.
+            </p>
+</div>
+<!-- Create GPT CTA -->
+<div class="flex items-center gap-unit-sm self-start md:self-auto shrink-0">
+<button class="group flex items-center gap-unit-xs px-unit-lg py-unit-sm rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-all duration-200 hover:scale-[1.02] shadow-sm" type="button">
+<span class="material-symbols-outlined text-[20px] text-primary transition-transform group-hover:rotate-90 duration-300">add</span>
+<span class="font-label-md text-label-md font-semibold">Tạo GPT mới</span>
+</button>
+</div>
+</div>
+<!-- Search Bar with Pill Aesthetics -->
+<div class="relative w-full max-w-3xl mt-unit-xs">
+<div class="flex items-center w-full px-unit-lg py-unit-sm rounded-full bg-surface-container-high focus-within:bg-surface-container-highest shadow-md transition-colors">
+<span class="material-symbols-outlined text-outline text-[22px] mr-unit-sm">search</span>
+<input class="w-full bg-transparent border-0 outline-none text-on-surface placeholder:text-outline font-body-md text-body-md" placeholder="Tìm kiếm GPT công khai, kỹ năng hoặc tác giả..." type="text"/>
+<div class="flex items-center gap-unit-xs ml-unit-sm">
+<span class="hidden sm:inline-flex items-center font-label-sm text-label-sm text-outline px-unit-xs py-0.5 rounded-full bg-surface-container-lowest">⌘K</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Carousel Section: Nổi bật tuần này -->
+<section class="flex flex-col gap-unit-md">
+<div class="flex items-center justify-between">
+<div class="flex items-baseline gap-unit-xs">
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">Nổi bật tuần này</h2>
+<span class="font-label-sm text-label-sm text-outline">Tuyển chọn bởi OpenAI</span>
+</div>
+<div class="flex items-center gap-unit-xs">
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Trước" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Tiếp" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Prominent Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-unit-md">
+<!-- Card 1: Canva -->
+<div class="group relative flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 overflow-hidden cursor-pointer">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+<div class="flex flex-col gap-unit-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Modern geometric vector logo for Canva design tool in vibrant cyan and violet colors on dark gradient background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4OvoaadekVEemaCAiLUd3sa8TvM4FQiShGcU5k6N9abHK42yD7u98L_QOm8ddFiUPvaPm5FNmNsgT0WwljDZ8qi-cw3M6dh8L7sQw5xn5eHdVs0HiNwCqOKGQyGGjQWs3zWFF69r_RSN18iQiyzyThDazSX0gyQeAMcajdKq8Z0zcyFjz00vzbsq-boLzmsNJgyVgHSysu5_3CpDeZAL6Mo14oCqGXDAvhozon0WSFRAX4EnWaaWW"/>
+</div>
+<span class="px-unit-xs py-0.5 rounded-full bg-primary-container/20 text-primary font-label-sm text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.9
+                </span>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Canva</h3>
+<p class="font-label-sm text-label-sm text-outline">Bởi canva.com</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Thiết kế bài thuyết trình, logo, mạng xã hội trực tiếp từ các prompt hội thoại.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-md text-outline font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> 2M+ lượt dùng
+              </span>
+<span class="material-symbols-outlined text-[18px] text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2: DALL-E Image Creator -->
+<div class="group relative flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 overflow-hidden cursor-pointer">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary-container/15 rounded-full blur-2xl group-hover:bg-primary/25 transition-all"></div>
+<div class="flex flex-col gap-unit-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Vibrant generative artwork icon displaying glowing rainbow neon fractal geometries for DALL-E image AI studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC61_lOwI6YsyzaHiXc12TM5iIupMncL-rONBBjlVa3bbVkUPsdOLZhPGVt0yUBZzKs-J52L27GzTkH5O7L8rp1pJVyHROmq9INnr-I3CVR9ncAQooOfQ-aKoctIx0i6-RuJR5ihgKGySUP7kGbD7mooQMRRtKCXkIsml9DMUi2u35FMXeVGgz4xzCaGmiDaxj4roRhyId9GF-tYlQrnxIf9JdsdMqyK7fkV3VItxmsrTtAvQXn6Esk"/>
+</div>
+<span class="px-unit-xs py-0.5 rounded-full bg-primary-container/20 text-primary font-label-sm text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.9
+                </span>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">DALL·E</h3>
+<p class="font-label-sm text-label-sm text-outline">Bởi ChatGPT</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Biến trí tưởng tượng thành hình ảnh siêu thực, phong cách nghệ thuật đa tầng.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-md text-outline font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">verified</span> Chính thức
+              </span>
+<span class="material-symbols-outlined text-[18px] text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+<!-- Card 3: Code Tutor -->
+<div class="group relative flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 overflow-hidden cursor-pointer">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+<div class="flex flex-col gap-unit-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center shadow-inner">
+<div class="w-full h-full bg-surface-container-highest flex items-center justify-center text-primary font-mono text-lg font-bold">&lt;/&gt;</div>
+</div>
+<span class="px-unit-xs py-0.5 rounded-full bg-primary-container/20 text-primary font-label-sm text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.8
+                </span>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Code Tutor</h3>
+<p class="font-label-sm text-label-sm text-outline">Bởi Khan Academy</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Gia sư lập trình cá nhân hóa không đưa đáp án có sẵn, hướng dẫn bạn từng bước tự giải quyết.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-md text-outline font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">school</span> Giáo dục
+              </span>
+<span class="material-symbols-outlined text-[18px] text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+<!-- Card 4: Scholar AI -->
+<div class="group relative flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 overflow-hidden cursor-pointer">
+<div class="absolute -right-8 -top-8 w-24 h-24 bg-primary/10 rounded-full blur-2xl group-hover:bg-primary/20 transition-all"></div>
+<div class="flex flex-col gap-unit-md">
+<div class="flex items-start justify-between">
+<div class="w-12 h-12 rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Minimal academic crest insignia featuring stylized open scroll and scientific atomic rings in emerald and dark slate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChZWkflY5QzUg_Yf8EUmCvLjpfmfelKGVcnfusCKyuY_eYOB7EoOzf6A2RXGpCTqdf0iapWepUBSXxFmPCn2LudOhnnYCM5bAqks21kWlkpX916Y4_X2JfP1w7BPkrgHUpy3RZM2dFB3__QXOsWH_8swlSUdgdvSImaBdVfsy-wi9m4YTpLa_NclDQOOea3zE-jaBSBz5nrEu1VfgS1kMsnkdhcQa9PdPbb0PPK1cZjDs9MzQ6SZHI"/>
+</div>
+<span class="px-unit-xs py-0.5 rounded-full bg-primary-container/20 text-primary font-label-sm text-label-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span> 4.7
+                </span>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors">Scholar AI</h3>
+<p class="font-label-sm text-label-sm text-outline">Bởi scholarai.io</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Truy cập hơn 200M+ bài báo khoa học đã qua bình duyệt, tóm tắt và trích dẫn chuẩn APA.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-md text-outline font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">menu_book</span> 800K+ dùng
+              </span>
+<span class="material-symbols-outlined text-[18px] text-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Category Filter Pills Bar -->
+<section class="flex flex-col gap-unit-sm">
+<div class="flex items-center gap-unit-xs overflow-x-auto pb-unit-2xs scrollbar-none">
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-on-surface text-surface font-label-md text-label-md font-semibold shadow-sm" type="button">
+            Hàng đầu
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            DALL·E
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Viết lách
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Năng suất
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Nghiên cứu &amp; Phân tích
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Lập trình
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Giáo dục
+          </button>
+<button class="shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors" type="button">
+            Lối sống
+          </button>
+</div>
+</section>
+<!-- Main GPTs Grid: Phổ biến & Được đề xuất -->
+<section class="flex flex-col gap-unit-lg">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface font-semibold tracking-tight">Thịnh hành nhất</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Các công cụ được cộng đồng người dùng tin chọn nhiều nhất tuần qua</p>
+</div>
+<a class="font-label-md text-label-md text-primary hover:underline flex items-center gap-1" href="#">
+            Xem tất cả
+            <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</a>
+</div>
+<!-- 6 Core GPT Cards Requested -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-unit-md">
+<!-- 1. DALL·E -->
+<div class="group flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container hover:bg-surface-container-high transition-all duration-200 shadow-sm cursor-pointer">
+<div class="flex gap-unit-md">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+<div class="w-full h-full bg-gradient-to-br from-primary-container via-surface-container to-surface flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">palette</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate group-hover:text-primary transition-colors">DALL·E</h3>
+<span class="material-symbols-outlined text-[16px] text-primary shrink-0" title="Được xác minh">check_circle</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline truncate">Bởi OpenAI</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Biến ý tưởng của bạn thành hình ảnh sống động thông qua hội thoại.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-sm text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center text-primary font-medium">★ 4.9</span>
+<span>•</span>
+<span>10M+ lượt dùng</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant">Sáng tạo</span>
+</div>
+</div>
+<!-- 2. Data Analyst -->
+<div class="group flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container hover:bg-surface-container-high transition-all duration-200 shadow-sm cursor-pointer">
+<div class="flex gap-unit-md">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+<div class="w-full h-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">query_stats</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate group-hover:text-primary transition-colors">Data Analyst</h3>
+<span class="material-symbols-outlined text-[16px] text-primary shrink-0" title="Được xác minh">check_circle</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline truncate">Bởi OpenAI</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Tải lên tệp dữ liệu CSV, Excel để phân tích, trực quan hoá và tạo biểu đồ tự động.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-sm text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center text-primary font-medium">★ 4.8</span>
+<span>•</span>
+<span>5M+ lượt dùng</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant">Dữ liệu</span>
+</div>
+</div>
+<!-- 3. Writing Coach -->
+<div class="group flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container hover:bg-surface-container-high transition-all duration-200 shadow-sm cursor-pointer">
+<div class="flex gap-unit-md">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+<div class="w-full h-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">edit_note</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate group-hover:text-primary transition-colors">Writing Coach</h3>
+<span class="material-symbols-outlined text-[16px] text-primary shrink-0" title="Được xác minh">check_circle</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline truncate">Bởi OpenAI</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Đọc duyệt văn bản, sửa lỗi ngữ pháp và cải thiện văn phong chuyên nghiệp.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-sm text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center text-primary font-medium">★ 4.8</span>
+<span>•</span>
+<span>3M+ lượt dùng</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant">Viết lách</span>
+</div>
+</div>
+<!-- 4. Python Assistant -->
+<div class="group flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container hover:bg-surface-container-high transition-all duration-200 shadow-sm cursor-pointer">
+<div class="flex gap-unit-md">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+<div class="w-full h-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">terminal</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate group-hover:text-primary transition-colors">Python Assistant</h3>
+</div>
+<span class="font-label-sm text-label-sm text-outline truncate">Bởi cộng đồng</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Trợ lý viết mã Python, tối ưu thuật toán và gỡ lỗi code phức tạp.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-sm text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center text-primary font-medium">★ 4.7</span>
+<span>•</span>
+<span>1.8M+ lượt dùng</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant">Lập trình</span>
+</div>
+</div>
+<!-- 5. Tech Docs Specialist -->
+<div class="group flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container hover:bg-surface-container-high transition-all duration-200 shadow-sm cursor-pointer">
+<div class="flex gap-unit-md">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+<div class="w-full h-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">library_books</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate group-hover:text-primary transition-colors">Tech Docs Specialist</h3>
+</div>
+<span class="font-label-sm text-label-sm text-outline truncate">Bởi cộng đồng</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Trợ lý tra cứu và phân tích tài liệu kỹ thuật nhanh chóng.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-sm text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center text-primary font-medium">★ 4.6</span>
+<span>•</span>
+<span>950K+ lượt dùng</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant">Kỹ thuật</span>
+</div>
+</div>
+<!-- 6. Creative Storyteller -->
+<div class="group flex flex-col justify-between p-unit-lg rounded-DEFAULT bg-surface-container hover:bg-surface-container-high transition-all duration-200 shadow-sm cursor-pointer">
+<div class="flex gap-unit-md">
+<div class="w-14 h-14 rounded-full bg-surface-container-lowest shrink-0 overflow-hidden flex items-center justify-center shadow-md">
+<div class="w-full h-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[28px]">auto_stories</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-unit-xs">
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold truncate group-hover:text-primary transition-colors">Creative Storyteller</h3>
+</div>
+<span class="font-label-sm text-label-sm text-outline truncate">Bởi cộng đồng</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2 mt-unit-2xs">
+                  Sáng tác kịch bản, cốt truyện và ý tưởng nội dung viral.
+                </p>
+</div>
+</div>
+<div class="flex items-center justify-between pt-unit-md mt-unit-sm text-outline font-label-sm text-label-sm">
+<div class="flex items-center gap-unit-xs">
+<span class="flex items-center text-primary font-medium">★ 4.7</span>
+<span>•</span>
+<span>1.2M+ lượt dùng</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-surface-container-lowest text-on-surface-variant">Nội dung</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Productivity Bento Highlight: Trợ lý nâng cao -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-unit-md">
+<!-- Left Banner (2 cols wide) -->
+<div class="lg:col-span-2 relative p-unit-xl rounded-DEFAULT bg-gradient-to-r from-surface-container to-surface-container-high overflow-hidden flex flex-col justify-between min-h-[220px]">
+<div class="absolute right-0 bottom-0 w-80 h-80 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="flex flex-col gap-unit-xs max-w-lg z-10">
+<span class="font-label-sm text-label-sm text-primary font-semibold uppercase tracking-wider">Dành cho Nhà sáng tạo</span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-semibold">Tự tạo GPT cho riêng bạn hoặc tổ chức</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Không cần viết code. Chỉ cần trò chuyện với GPT Builder để tích hợp hướng dẫn, chia sẻ kiến thức chuyên sâu và triển khai công việc của bạn.
+            </p>
+</div>
+<div class="flex items-center gap-unit-sm mt-unit-lg z-10">
+<button class="px-unit-lg py-unit-sm rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold hover:opacity-90 transition-opacity" type="button">
+              Bắt đầu thiết kế
+            </button>
+<a class="px-unit-md py-unit-sm rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1" href="#">
+              Xem tài liệu hướng dẫn
+              <span class="material-symbols-outlined text-[16px]">north_east</span>
+</a>
+</div>
+</div>
+<!-- Right Quick Stat Panel -->
+<div class="p-unit-xl rounded-DEFAULT bg-surface-container-low flex flex-col justify-between">
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Cộng đồng GPTs</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Hệ sinh thái mở rộng</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-unit-2xs">
+              Hơn 3 triệu GPTs đã được xây dựng và chia sẻ công khai bởi các nhà phát triển trên toàn cầu.
+            </p>
+</div>
+<div class="flex flex-col gap-unit-sm mt-unit-md pt-unit-md border-t-0 bg-surface-container/60 p-unit-sm rounded-DEFAULT">
+<div class="flex items-center justify-between text-on-surface">
+<span class="font-label-md text-label-md">Tác giả hoạt động</span>
+<span class="font-mono font-semibold text-primary">120K+</span>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 78%;"></div>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Chỉ số độ tin cậy được kiểm duyệt bởi hệ thống</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+<script>
+  // Simple category pill toggle interaction
+  document.querySelectorAll('section:nth-of-type(3) button').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('section:nth-of-type(3) button').forEach(b => {
+        b.className = 'shrink-0 px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors';
+      });
+      button.className = 'shrink-0 px-unit-md py-unit-xs rounded-full bg-on-surface text-surface font-label-md text-label-md font-semibold shadow-sm';
+    });
+  });
+</script></main></div></body></html>

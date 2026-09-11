@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "tertiary-container": "#dc7265",
+          "tertiary-fixed-dim": "#ffb4aa",
+          "error": "#ffb4ab",
+          "on-tertiary": "#5f140f",
+          "surface-container-low": "#1b1c1c",
+          "surface-container-highest": "#353535",
+          "primary": "#61dbb4",
+          "on-error-container": "#ffdad6",
+          "tertiary": "#ffb4aa",
+          "surface-container-high": "#2a2a2a",
+          "primary-fixed": "#7ff8cf",
+          "background": "#131313",
+          "on-tertiary-fixed-variant": "#7e2b22",
+          "surface-variant": "#353535",
+          "outline-variant": "#3d4a44",
+          "on-surface-variant": "#bccac2",
+          "surface-tint": "#61dbb4",
+          "on-primary-fixed": "#002117",
+          "secondary-fixed-dim": "#c6c6c6",
+          "on-background": "#e5e2e1",
+          "secondary": "#c6c6c6",
+          "inverse-on-surface": "#303030",
+          "surface": "#131313",
+          "tertiary-fixed": "#ffdad5",
+          "secondary-fixed": "#e2e2e2",
+          "on-secondary-fixed-variant": "#454747",
+          "on-secondary-fixed": "#1a1c1c",
+          "outline": "#86948d",
+          "on-secondary-container": "#b4b5b5",
+          "inverse-surface": "#e5e2e1",
+          "error-container": "#93000a",
+          "on-error": "#690005",
+          "primary-fixed-dim": "#61dbb4",
+          "inverse-primary": "#006c52",
+          "on-secondary": "#2f3131",
+          "on-tertiary-fixed": "#410001",
+          "on-primary-container": "#003024",
+          "surface-bright": "#393939",
+          "secondary-container": "#454747",
+          "on-primary-fixed-variant": "#00513d",
+          "surface-container": "#202020",
+          "primary-container": "#12a480",
+          "on-tertiary-container": "#560d09",
+          "surface-dim": "#131313",
+          "surface-container-lowest": "#0e0e0e",
+          "on-surface": "#e5e2e1",
+          "on-primary": "#00382a"
+        },
+        "borderRadius": {
+          "DEFAULT": "1rem",
+          "lg": "2rem",
+          "xl": "3rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "unit-lg": "1.25rem",
+          "unit-2xs": "0.25rem",
+          "unit-md": "1rem",
+          "unit-xl": "1.5rem",
+          "unit-xs": "0.5rem",
+          "gutter-screen": "1rem",
+          "unit-2xl": "2rem",
+          "composer-height": "3.5rem",
+          "unit-sm": "0.75rem"
+        },
+        "fontFamily": {
+          "display-lg": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "headline-sm": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "code-md": [
+            "JetBrains Mono"
+          ]
+        },
+        "fontSize": {
+          "display-lg": [
+            "30px",
+            {
+              "lineHeight": "36px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "code-md": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between p-unit-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-unit-md"><div class="flex items-center justify-between px-unit-xs"><div class="flex items-center gap-unit-xs"><img alt="Brand logo. - Primary color: #10a37f
+- Font: inter
+- Mode: dark
+- Roundness: rounded-full
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V5mlH8cP4cFjeIJNHj96i0ABLZwPwRUB1CipwUF3B1NpOqFJhIUd68qfAcCBP3k8xwkYoKKF-qiFI1s4A4qdnMXXLBd6ogq7IZsD2oaD6HAjTODnvWUBThrCqVBhxGvXGc0bYmNQaOJp1dWRz1gJbg6n9oYQfrsVPGvVPpw869trjIjtQKtv9ephDDbkQjlLyIIK4b90nhMUnWELZIgaaBX4SWeiV0seFGYd5jWKVlL45FLhDG2V5ttSc"/><span class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">ChatGPT</span></div><button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">dock_to_left</span></button></div><div class="flex flex-col gap-unit-xs"><a class="flex items-center justify-between w-full px-unit-md py-unit-xs rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-colors" data-path="cuoc-tro-chuyen-moi" href="#"><span class="flex items-center gap-unit-xs font-label-md text-label-md"><span class="material-symbols-outlined text-[18px] text-primary">edit_square</span>Cuộc trò chuyện mới</span><span class="font-label-sm text-label-sm text-on-surface-variant">Ctrl K</span></a><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-unit-sm text-on-surface-variant text-[18px]">search</span><input class="w-full pl-9 pr-unit-md py-unit-xs rounded-full bg-surface-container text-on-surface placeholder:text-on-surface-variant text-label-sm font-label-sm outline-none focus:bg-surface-container-high transition-colors" placeholder="Tìm kiếm cuộc trò chuyện..." type="text"/></div></div><nav class="flex flex-col gap-unit-2xs" data-active-classes="bg-surface-container-high text-on-surface font-medium rounded-DEFAULT"><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="kham-pha-gpts" href="#"><span class="material-symbols-outlined text-[20px]">explore</span>Khám phá GPTs</a><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="lich-su-va-du-an" href="#"><span class="material-symbols-outlined text-[20px]">folder_open</span>Lịch sử &amp; Dự án</a><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="cai-dat" href="#"><span class="material-symbols-outlined text-[20px]">settings</span>Cài đặt</a></nav><div class="flex flex-col gap-unit-md pt-unit-xs overflow-y-auto max-h-[calc(100vh-420px)]"><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">Hôm nay</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Tối ưu kiến trúc Frontend Scaffolding</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Giải thuật Dynamic Programming Node.js</a></div><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">7 ngày qua</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Prompt Engineering cho Agent Design</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Chiến lược di chuyển CSDL Vector</a></div><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">30 ngày trước</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Kế hoạch triển khai Microservices</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Setup Tailwind CSS Design Tokens</a></div></div></div><div class="flex flex-col gap-unit-xs pt-unit-sm"><div class="flex items-center justify-between p-unit-sm rounded-DEFAULT bg-surface-container-high"><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-medium">Nâng cấp gói</span><span class="font-label-sm text-label-sm text-on-surface-variant">Mở khóa các mô hình mới nhất</span></div><a class="px-unit-sm py-unit-2xs rounded-full bg-primary-container text-on-primary-container hover:bg-primary font-label-sm text-label-sm font-medium transition-colors" data-path="cai-dat" href="#">Nâng cấp</a></div><div class="flex items-center justify-between p-unit-xs rounded-DEFAULT hover:bg-surface-container-high transition-colors cursor-pointer"><div class="flex items-center gap-unit-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-medium leading-none">Tài khoản Pro</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1">user@openai.com</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_horiz</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-14 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-unit-lg"><div class="flex items-center gap-unit-sm"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" type="button"><span class="font-headline-sm text-headline-sm font-semibold">ChatGPT</span><span class="font-label-md text-label-md text-on-surface-variant">4o</span><span class="material-symbols-outlined text-on-surface-variant text-[18px]">keyboard_arrow_down</span></button></div><div class="flex items-center gap-unit-sm"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-colors font-label-md text-label-md" type="button"><span class="material-symbols-outlined text-[18px]">ios_share</span>Chia sẻ</button><button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-14 w-full bg-background min-h-screen"><div class="flex flex-col w-full">
+<div class="relative w-full h-[calc(100vh-3.5rem)] flex flex-col justify-between overflow-hidden bg-surface-container-lowest select-none">
+<div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+<div class="w-[580px] h-[580px] rounded-full bg-primary/10 blur-[130px] animate-pulse"></div>
+<div class="w-[380px] h-[380px] rounded-full bg-primary-container/15 blur-[100px] -mt-10 ml-20"></div>
+</div>
+<!-- Top Status & Actions Header -->
+<div class="relative z-20 flex items-center justify-between px-unit-xl pt-unit-lg w-full">
+<div class="flex items-center gap-unit-sm bg-surface-container-low/80 backdrop-blur-md px-unit-md py-unit-xs rounded-full">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<div class="flex items-center gap-unit-2xs text-on-surface">
+<span class="font-label-md text-label-md font-medium">GPT-4o Voice</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">• Độ trễ siêu thấp (&lt;240ms)</span>
+</div>
+</div>
+<div class="flex items-center gap-unit-sm">
+<div class="relative">
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-xs rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest text-on-surface transition-colors" id="voice-selector-btn" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+<span class="font-label-md text-label-md font-medium" id="selected-voice">Sol</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">expand_more</span>
+</button>
+<div class="hidden absolute right-0 mt-unit-xs w-48 bg-surface-container-high rounded-xl p-unit-2xs shadow-xl backdrop-blur-2xl z-50" id="voice-menu">
+<button class="w-full text-left px-unit-sm py-unit-xs rounded-lg hover:bg-surface-container-highest flex items-center justify-between text-on-surface font-label-md text-label-md" onclick="selectVoice('Sol')" type="button">
+<span>Sol <span class="text-on-surface-variant text-label-sm">(Tự nhiên, ấm áp)</span></span>
+<span class="material-symbols-outlined text-primary text-[18px]">check</span>
+</button>
+<button class="w-full text-left px-unit-sm py-unit-xs rounded-lg hover:bg-surface-container-highest flex items-center justify-between text-on-surface-variant hover:text-on-surface font-label-md text-label-md" onclick="selectVoice('Breeze')" type="button">
+<span>Breeze <span class="text-on-surface-variant text-label-sm">(Điềm tĩnh)</span></span>
+</button>
+<button class="w-full text-left px-unit-sm py-unit-xs rounded-lg hover:bg-surface-container-highest flex items-center justify-between text-on-surface-variant hover:text-on-surface font-label-md text-label-md" onclick="selectVoice('Ember')" type="button">
+<span>Ember <span class="text-on-surface-variant text-label-sm">(Tự tin, vang)</span></span>
+</button>
+<button class="w-full text-left px-unit-sm py-unit-xs rounded-lg hover:bg-surface-container-highest flex items-center justify-between text-on-surface-variant hover:text-on-surface font-label-md text-label-md" onclick="selectVoice('Cove')" type="button">
+<span>Cove <span class="text-on-surface-variant text-label-sm">(Trầm lắng)</span></span>
+</button>
+<button class="w-full text-left px-unit-sm py-unit-xs rounded-lg hover:bg-surface-container-highest flex items-center justify-between text-on-surface-variant hover:text-on-surface font-label-md text-label-md" onclick="selectVoice('Juniper')" type="button">
+<span>Juniper <span class="text-on-surface-variant text-label-sm">(Năng động)</span></span>
+</button>
+</div>
+</div>
+<button class="w-9 h-9 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Thu nhỏ" type="button">
+<span class="material-symbols-outlined text-[18px]">minimize</span>
+</button>
+<button class="w-9 h-9 rounded-full bg-surface-container-high/80 hover:bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors" title="Đóng chế độ thoại" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Center Stage: The Organic Living Orb & Subtitles -->
+<div class="relative z-10 flex flex-col items-center justify-center my-auto px-unit-md">
+<div class="relative flex items-center justify-center cursor-pointer group" id="orb-trigger" onclick="togglePulseState()">
+<div class="absolute w-72 h-72 rounded-full bg-primary/20 blur-2xl transition-all duration-700 ease-out group-hover:scale-110" id="orb-glow-outer"></div>
+<div class="absolute w-56 h-56 rounded-full bg-primary-fixed-dim/30 blur-xl transition-all duration-500" id="orb-glow-inner"></div>
+<!-- Canvas Based Morphing Voice Orb -->
+<div class="relative w-60 h-60 md:w-72 md:h-72 rounded-full overflow-hidden flex items-center justify-center shadow-2xl bg-gradient-to-tr from-surface-container-lowest via-surface-container-low to-surface-container-high">
+<canvas class="w-full h-full object-cover" height="288" id="voice-orb-canvas" width="288"></canvas>
+<div class="absolute inset-0 bg-radial from-transparent via-transparent to-surface-container-lowest/60 pointer-events-none"></div>
+</div>
+</div>
+<!-- State & Live Transcriptions -->
+<div class="flex flex-col items-center text-center mt-unit-2xl max-w-2xl px-unit-md gap-unit-xs">
+<div class="flex items-center gap-unit-xs">
+<span class="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" id="voice-state-indicator"></span>
+<span class="font-label-md text-label-md font-medium text-primary tracking-wide uppercase" id="voice-state-text">Đang lắng nghe...</span>
+</div>
+<p class="font-headline-md text-headline-md font-medium text-on-surface tracking-tight leading-relaxed transition-opacity duration-300" id="live-transcript">
+          "Tôi đang lắng nghe bạn nói, hãy đặt bất kỳ câu hỏi hoặc chia sẻ ý tưởng nào..."
+        </p>
+<span class="font-body-sm text-body-sm text-on-surface-variant/80">Nói tự nhiên • Có thể ngắt lời bất kỳ lúc nào</span>
+</div>
+</div>
+<!-- Bottom Audio Spectrum Indicator (Subtle) -->
+<div class="relative z-10 flex items-center justify-center gap-1 h-6 mb-unit-sm opacity-60">
+<span class="w-1 bg-primary rounded-full animate-[pulse_0.8s_infinite] h-2"></span>
+<span class="w-1 bg-primary rounded-full animate-[pulse_0.6s_infinite] h-4"></span>
+<span class="w-1 bg-primary rounded-full animate-[pulse_1.1s_infinite] h-6"></span>
+<span class="w-1 bg-primary rounded-full animate-[pulse_0.9s_infinite] h-3"></span>
+<span class="w-1 bg-primary rounded-full animate-[pulse_0.7s_infinite] h-5"></span>
+<span class="w-1 bg-primary rounded-full animate-[pulse_1.2s_infinite] h-3"></span>
+<span class="w-1 bg-primary rounded-full animate-[pulse_0.8s_infinite] h-2"></span>
+</div>
+<!-- Bottom Docked Voice Toolbar -->
+<div class="relative z-20 flex items-center justify-center pb-unit-xl px-unit-md">
+<div class="flex items-center gap-unit-md bg-surface-container/90 backdrop-blur-2xl px-unit-lg py-unit-sm rounded-full shadow-2xl">
+<!-- Camera Share Toggle -->
+<button class="w-12 h-12 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center transition-transform active:scale-95" id="btn-camera" onclick="toggleControl(this, 'videocam', 'videocam_off')" title="Mở máy ảnh" type="button">
+<span class="material-symbols-outlined text-[22px]">videocam_off</span>
+</button>
+<!-- Screen Share Toggle -->
+<button class="w-12 h-12 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center transition-transform active:scale-95" id="btn-screen" onclick="toggleControl(this, 'present_to_all', 'cancel_presentation')" title="Chia sẻ màn hình" type="button">
+<span class="material-symbols-outlined text-[22px]">present_to_all</span>
+</button>
+<!-- Main Mic Toggle (Prominent Center) -->
+<button class="w-16 h-16 rounded-full bg-on-surface text-surface flex items-center justify-center shadow-lg transition-transform active:scale-90 hover:opacity-95" id="btn-mic" onclick="toggleMute()" title="Bật/Tắt Micro" type="button">
+<span class="material-symbols-outlined text-[30px]" id="mic-icon" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+<!-- Switch to Text Mode -->
+<button class="w-12 h-12 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface flex items-center justify-center transition-transform active:scale-95" title="Chuyển sang chế độ gõ văn bản" type="button">
+<span class="material-symbols-outlined text-[22px]">keyboard</span>
+</button>
+<!-- End Call Action -->
+<button class="w-12 h-12 rounded-full bg-error-container text-on-error-container hover:opacity-90 flex items-center justify-center transition-transform active:scale-95" title="Kết thúc cuộc trò chuyện" type="button">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">call_end</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Voice selection toggle
+  const voiceBtn = document.getElementById('voice-selector-btn');
+  const voiceMenu = document.getElementById('voice-menu');
+
+  if (voiceBtn && voiceMenu) {
+    voiceBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      voiceMenu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('click', () => {
+      voiceMenu.classList.add('hidden');
+    });
+  }
+
+  function selectVoice(name) {
+    const selectedVoiceText = document.getElementById('selected-voice');
+    if (selectedVoiceText) {
+      selectedVoiceText.textContent = name;
+    }
+  }
+
+  // Toggle Generic Auxiliary Controls
+  function toggleControl(btn, onIcon, offIcon) {
+    const iconSpan = btn.querySelector('.material-symbols-outlined');
+    const isActive = btn.classList.contains('bg-primary');
+
+    if (isActive) {
+      btn.classList.remove('bg-primary', 'text-on-primary');
+      btn.classList.add('bg-surface-container-high', 'text-on-surface');
+      iconSpan.textContent = offIcon;
+    } else {
+      btn.classList.remove('bg-surface-container-high', 'text-on-surface');
+      btn.classList.add('bg-primary', 'text-on-primary');
+      iconSpan.textContent = onIcon;
+    }
+  }
+
+  // Toggle Mute State
+  let isMuted = false;
+  function toggleMute() {
+    isMuted = !isMuted;
+    const micBtn = document.getElementById('btn-mic');
+    const micIcon = document.getElementById('mic-icon');
+    const statusText = document.getElementById('voice-state-text');
+    const statusIndicator = document.getElementById('voice-state-indicator');
+
+    if (isMuted) {
+      micBtn.classList.remove('bg-on-surface', 'text-surface');
+      micBtn.classList.add('bg-error', 'text-on-error');
+      micIcon.textContent = 'mic_off';
+      statusText.textContent = 'Đã tắt micro';
+      statusText.classList.remove('text-primary');
+      statusText.classList.add('text-error');
+      statusIndicator.classList.remove('bg-primary');
+      statusIndicator.classList.add('bg-error');
+    } else {
+      micBtn.classList.remove('bg-error', 'text-on-error');
+      micBtn.classList.add('bg-on-surface', 'text-surface');
+      micIcon.textContent = 'mic';
+      statusText.textContent = 'Đang lắng nghe...';
+      statusText.classList.remove('text-error');
+      statusText.classList.add('text-primary');
+      statusIndicator.classList.remove('bg-error');
+      statusIndicator.classList.add('bg-primary');
+    }
+  }
+
+  // Interactive Orb Canvas Rendering
+  const canvas = document.getElementById('voice-orb-canvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let t = 0;
+    let isSpeaking = false;
+
+    function renderOrb() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const baseRadius = 85;
+
+      // Dynamic wave distortion
+      ctx.save();
+      ctx.beginPath();
+
+      const points = 36;
+      for (let i = 0; i <= points; i++) {
+        const angle = (i / points) * Math.PI * 2;
+        const wave = Math.sin(angle * 3 + t) * Math.cos(angle * 2 - t * 0.8);
+        const amp = isMuted ? 2 : (isSpeaking ? 16 : 8);
+        const r = baseRadius + wave * amp;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+      ctx.closePath();
+
+      // Fluid radial gradient
+      const grad = ctx.createRadialGradient(cx - 20, cy - 20, 10, cx, cy, baseRadius + 20);
+      if (isMuted) {
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.4, '#ffb4aa');
+        grad.addColorStop(1, '#93000a');
+      } else {
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.2, '#7ff8cf');
+        grad.addColorStop(0.6, '#10a37f');
+        grad.addColorStop(0.9, '#00382a');
+        grad.addColorStop(1, '#0e0e0e');
+      }
+
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+
+      t += isMuted ? 0.015 : 0.045;
+      requestAnimationFrame(renderOrb);
+    }
+    renderOrb();
+
+    // Clicking orb simulates conversational exchange
+    window.togglePulseState = function() {
+      isSpeaking = !isSpeaking;
+      const liveTranscript = document.getElementById('live-transcript');
+      const statusText = document.getElementById('voice-state-text');
+      
+      if (isSpeaking && !isMuted) {
+        statusText.textContent = 'ChatGPT đang trả lời...';
+        liveTranscript.textContent = '"Tôi có thể giúp bạn tối ưu thuật toán hệ thống hoặc xử lý các vấn đề kỹ thuật ngay lúc này."';
+      } else if (!isMuted) {
+        statusText.textContent = 'Đang lắng nghe...';
+        liveTranscript.textContent = '"Tôi đang lắng nghe bạn nói, hãy đặt bất kỳ câu hỏi nào..."';
+      }
+    };
+  }
+</script></main></div></body></html>

@@ -1,0 +1,8 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+BLLD_45_2019,legal,https://congbao.chinhphu.vn/van-ban/nghi-quyet-so-45-2019-qh14-30232/29070.htm,data/raw/legal/BLLD_45_2019.pdf,2026-09-08,official-public-gazette-pdf
+BLTTDS_92_2015_HOPNHAT,legal,https://xaydungchinhsach.chinhphu.vn/toan-van-van-ban-hop-nhat-so-24-vbhn-vpqh-bo-luat-to-tung-dan-su-119230213081059503.htm,data/raw/legal/BLTTDS_92_2015_HOPNHAT.txt,2026-09-08,official-public-consolidated-text
+BLTTHS_101_2015_P1,legal,https://congbao.chinhphu.vn/van-ban/luat-so-101-2015-qh13-18457.htm,data/raw/legal/BLTTHS_101_2015_P1.pdf,2026-09-08,official-public-gazette-pdf
+BLTTHS_101_2015_P2,legal,https://congbao.chinhphu.vn/van-ban/luat-so-101-2015-qh13-18457.htm,data/raw/legal/BLTTHS_101_2015_P2.pdf,2026-09-08,official-public-gazette-pdf
+BLTTHS_101_2015_P3,legal,https://congbao.chinhphu.vn/van-ban/luat-so-101-2015-qh13-18457.htm,data/raw/legal/BLTTHS_101_2015_P3.pdf,2026-09-08,official-public-gazette-pdf
+BLHH_95_2015_P1,legal,https://congbao.chinhphu.vn/van-ban/luat-so-95-2015-qh13-18438.htm,data/raw/legal/BLHH_95_2015_P1.pdf,2026-09-08,official-public-gazette-pdf
+BLHH_95_2015_P2,legal,https://congbao.chinhphu.vn/van-ban/luat-so-95-2015-qh13-18438.htm,data/raw/legal/BLHH_95_2015_P2.pdf,2026-09-08,official-public-gazette-pdf

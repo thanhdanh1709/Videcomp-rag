@@ -1,0 +1,4 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+LUAT_04_2017_QH14,legal,https://vanban.vcci.com.vn/luat-ho-tro-doanh-nghiep-nho-va-vua-cua-quoc-hoi-so-042017qh14,data/raw/legal/LUAT_04_2017_QH14.txt,2026-09-08,official-public-law-text
+ND_80_2021_NDCP,legal,https://vanban.vcci.com.vn/nghi-dinh-802021nd-cp-huong-dan-luat-ho-tro-doanh-nghiep-nho-va-vua,data/raw/legal/ND_80_2021_NDCP.txt,2026-09-08,official-public-decree-text
+TT_06_2022_TTBKHDT,legal,https://vanban.vcci.com.vn/thong-tu-062022tt-bkhdt-huong-dan-nghi-dinh-802021nd-cp-huong-dan-luat-ho-tro-doanh-nghiep-nho-va-vua,data/raw/legal/TT_06_2022_TTBKHDT.txt,2026-09-08,official-public-circular-text

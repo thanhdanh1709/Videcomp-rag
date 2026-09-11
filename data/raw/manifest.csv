@@ -1,0 +1,4 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+LAW_DEMO_001,legal,,data/raw/legal/LAW_DEMO_001.txt,2026-09-08,demo-synthetic-not-real-law
+LAW_DEMO_002,legal,,data/raw/legal/LAW_DEMO_002.txt,2026-09-08,demo-synthetic-not-real-law
+LAW_DEMO_003,legal,,data/raw/legal/LAW_DEMO_003.txt,2026-09-08,demo-synthetic-not-real-law

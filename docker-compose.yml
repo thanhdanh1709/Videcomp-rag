@@ -1,0 +1,45 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: videcomp
+      POSTGRES_PASSWORD: videcomp
+      POSTGRES_DB: videcomp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      DB_DSN: postgresql+psycopg://videcomp:videcomp@postgres:5432/videcomp
+      QDRANT_URL: http://qdrant:6333
+    ports:
+      - "8000:8000"
+    depends_on:
+      - qdrant
+      - postgres
+      - redis
+    volumes:
+      - ./data:/app/data
+      - ./experiments:/app/experiments
+
+volumes:
+  qdrant_data:
+  postgres_data:

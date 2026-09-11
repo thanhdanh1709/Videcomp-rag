@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html class="dark" lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Videcomp-rag · Trí tuệ Nhân tạo Suy luận Đa bước & Kiểm chứng Tri thức</title>
+  <meta name="description" content="Nền tảng RAG đột phá phân rã câu hỏi đa bước, đối chiếu đa nguồn và loại bỏ 94% ảo giác thông tin cho Pháp luật và Y tế Việt Nam." />
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+      main > :first-child { margin-top: 0 !important; }
+      main > :last-child { margin-bottom: 0 !important; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'on-surface': '#e5e2e1',
+            'tertiary': '#ffb4aa',
+            'background': '#131313',
+            'on-surface-variant': '#bccac2',
+            'on-secondary-container': '#b4b5b5',
+            'secondary-fixed': '#e2e2e2',
+            'on-tertiary': '#5f140f',
+            'primary-fixed': '#7ff8cf',
+            'inverse-surface': '#e5e2e1',
+            'tertiary-container': '#dc7265',
+            'surface-container-low': '#1b1c1c',
+            'on-tertiary-fixed-variant': '#7e2b22',
+            'primary-fixed-dim': '#61dbb4',
+            'surface': '#131313',
+            'error': '#ffb4ab',
+            'surface-container-lowest': '#0e0e0e',
+            'tertiary-fixed': '#ffdad5',
+            'inverse-on-surface': '#303030',
+            'surface-container-highest': '#353535',
+            'secondary-fixed-dim': '#c6c6c6',
+            'on-tertiary-fixed': '#410001',
+            'surface-dim': '#131313',
+            'secondary': '#c6c6c6',
+            'primary-container': '#12a480',
+            'on-error-container': '#ffdad6',
+            'tertiary-fixed-dim': '#ffb4aa',
+            'on-secondary': '#2f3131',
+            'surface-tint': '#61dbb4',
+            'on-secondary-fixed-variant': '#454747',
+            'on-primary-container': '#003024',
+            'on-tertiary-container': '#560d09',
+            'surface-container-high': '#2a2a2a',
+            'surface-container': '#202020',
+            'on-background': '#e5e2e1',
+            'outline': '#86948d',
+            'surface-variant': '#353535',
+            'on-primary-fixed': '#002117',
+            'error-container': '#93000a',
+            'outline-variant': '#3d4a44',
+            'on-primary-fixed-variant': '#00513d',
+            'surface-bright': '#393939',
+            'primary': '#61dbb4',
+            'inverse-primary': '#006c52',
+            'on-secondary-fixed': '#1a1c1c',
+            'on-error': '#690005',
+            'on-primary': '#00382a',
+            'secondary-container': '#454747'
+          },
+          borderRadius: {
+            'DEFAULT': '1rem',
+            'lg': '2rem',
+            'xl': '3rem',
+            'full': '9999px'
+          },
+          spacing: {
+            'unit-2xs': '0.25rem',
+            'unit-xs': '0.5rem',
+            'unit-sm': '0.75rem',
+            'unit-md': '1rem',
+            'unit-lg': '1.25rem',
+            'unit-xl': '1.5rem',
+            'unit-2xl': '2rem'
+          },
+          fontFamily: {
+            'sans': ['Inter', 'sans-serif'],
+            'mono': ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface font-sans text-on-surface antialiased">
+  <!-- HEADER -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/85 backdrop-blur-xl border-b border-outline-variant/20 shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <div class="h-16 max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between gap-unit-md">
+      <div class="flex items-center gap-unit-xl">
+        <a class="flex items-center gap-unit-xs group" href="#">
+          <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="vdLogoGrad" x1="6" y1="6" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#7ff8cf" />
+                <stop offset="50%" stop-color="#61dbb4" />
+                <stop offset="100%" stop-color="#12a480" />
+              </linearGradient>
+            </defs>
+            <path d="M20 4L33.856 12V28L20 36L6.144 28V12L20 4Z" stroke="url(#vdLogoGrad)" stroke-width="1.6" stroke-opacity="0.35" stroke-linejoin="round"/>
+            <path d="M10 13L20 29L30 13" stroke="url(#vdLogoGrad)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 13L20 21L25 13" stroke="#7ff8cf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="20" cy="21" r="2" fill="#7ff8cf"/>
+          </svg>
+          <div class="flex flex-col">
+            <span class="text-[18px] font-bold text-on-surface tracking-tight group-hover:text-primary transition-colors">Videcomp-rag</span>
+            <span class="text-[10px] text-primary -mt-1 font-semibold tracking-wider uppercase">Reasoning AI</span>
+          </div>
+        </a>
+        <nav class="hidden lg:flex items-center gap-unit-lg text-sm font-medium text-on-surface-variant">
+          <a class="hover:text-on-surface transition-colors" href="#tinh-nang">Tính năng</a>
+          <a class="hover:text-on-surface transition-colors" href="#mo-hinh">Thuật toán Q3</a>
+          <a class="hover:text-on-surface transition-colors" href="#linh-vuc">Pháp luật &amp; Y tế</a>
+          <a class="hover:text-on-surface transition-colors" href="#bang-gia">Bảng giá</a>
+          <a class="hover:text-on-surface transition-colors" href="http://127.0.0.1:5173/" target="_blank">Khám phá GPTs ↗</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-unit-sm">
+        <a class="px-unit-md py-unit-xs text-sm font-medium text-on-surface hover:text-primary transition-colors flex items-center gap-1" href="http://127.0.0.1:5173/" target="_blank">
+          <span class="material-symbols-outlined text-[18px]">shield_person</span>
+          <span>Quản trị</span>
+        </a>
+        <a class="inline-flex items-center justify-center px-unit-lg py-unit-xs bg-primary text-on-primary text-sm font-bold rounded-full hover:bg-primary-fixed transition-all shadow-[0_0_20px_rgba(97,219,180,0.35)]" href="http://127.0.0.1:5173/" target="_blank">
+          Vào ứng dụng miễn phí
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="w-full pt-16 bg-surface min-h-screen">
+    <div class="flex flex-col w-full relative overflow-hidden text-on-surface">
+      <!-- Glow Ambient Accents -->
+      <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary-container/15 blur-[150px] pointer-events-none rounded-full"></div>
+      <div class="absolute top-[1800px] -right-48 w-[650px] h-[650px] bg-primary-container/10 blur-[170px] pointer-events-none rounded-full"></div>
+      <div class="absolute top-[3400px] -left-48 w-[750px] h-[550px] bg-primary/10 blur-[160px] pointer-events-none rounded-full"></div>
+
+      <!-- SECTION 1: HERO & LIVE CHAT SIMULATION -->
+      <section class="relative w-full max-w-7xl mx-auto px-6 lg:px-12 pt-14 pb-24 flex flex-col items-center text-center">
+        <!-- Announcement Pill -->
+        <a class="inline-flex items-center gap-unit-xs px-unit-md py-unit-2xs rounded-full bg-surface-container-high/80 border border-primary/20 backdrop-blur-md shadow-sm mb-unit-xl hover:bg-surface-container-highest transition-colors group" href="http://127.0.0.1:5173/" target="_blank">
+          <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+          <span class="text-xs font-semibold text-primary-fixed-dim">Mô hình thế hệ mới</span>
+          <span class="text-xs text-on-surface-variant">• Q3 ViDecomp Phân rã Đa bước &amp; Kiểm chứng đã sẵn sàng</span>
+          <span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+        </a>
+
+        <!-- Main Heading -->
+        <h1 class="text-3xl sm:text-[54px] sm:leading-[60px] lg:text-[68px] lg:leading-[74px] tracking-tight max-w-5xl font-bold text-on-surface mb-unit-lg">
+          Trí tuệ nhân tạo suy luận đa bước &amp; <br class="hidden sm:inline"/>
+          <span class="bg-gradient-to-r from-on-surface via-primary-fixed to-primary-container bg-clip-text text-transparent">kiểm chứng tri thức chuyên sâu</span>
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="text-base sm:text-lg text-on-surface-variant max-w-3xl mb-unit-2xl leading-relaxed">
+          Đột phá công nghệ RAG giải quyết triệt để bài toán bắc cầu qua nhiều văn bản quy phạm pháp luật và phác đồ y khoa Việt Nam. Phân rã câu hỏi phức tạp, truy xuất bằng chứng đối chiếu và loại bỏ đến 94% ảo giác thông tin.
+        </p>
+
+        <!-- CTAs -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-unit-md w-full sm:w-auto mb-unit-2xl">
+          <a class="w-full sm:w-auto px-unit-xl py-unit-sm rounded-full bg-primary text-on-primary font-bold text-sm hover:bg-primary-fixed transition-all shadow-[0_0_35px_rgba(97,219,180,0.35)] flex items-center justify-center gap-unit-xs group" href="http://127.0.0.1:5173/" target="_blank">
+            <span>Bắt đầu tra cứu miễn phí</span>
+            <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">east</span>
+          </a>
+          <a class="w-full sm:w-auto px-unit-xl py-unit-sm rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold text-sm transition-colors flex items-center justify-center gap-unit-xs border border-outline-variant/30" href="#demo-live">
+            <span class="material-symbols-outlined text-[18px] text-primary">play_circle</span>
+            <span>Xem mô phỏng suy luận</span>
+          </a>
+        </div>
+
+        <!-- Live Interactive Simulation Window -->
+        <div class="w-full max-w-4xl mt-unit-lg rounded-2xl bg-surface-container-lowest/95 border border-primary/25 backdrop-blur-2xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] p-unit-md sm:p-unit-xl flex flex-col text-left" id="demo-live">
+          <div class="flex items-center justify-between pb-unit-md mb-unit-md border-b border-outline-variant/20">
+            <div class="flex items-center gap-unit-xs">
+              <span class="w-3 h-3 rounded-full bg-error/80"></span>
+              <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
+              <span class="w-3 h-3 rounded-full bg-primary/80"></span>
+              <span class="font-mono text-xs text-on-surface-variant ml-unit-sm">Videcomp-rag (Q3 · Multi-hop Reasoning Engine)</span>
+            </div>
+            <div class="flex items-center gap-unit-xs">
+              <span class="px-unit-xs py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30 text-xs font-semibold">● Trực tuyến (17,001 chunks)</span>
+            </div>
+          </div>
+
+          <!-- Thread -->
+          <div class="flex flex-col space-y-unit-xl">
+            <!-- User Prompt -->
+            <div class="flex justify-end">
+              <div class="max-w-2xl bg-surface-container-high text-on-surface px-unit-lg py-unit-sm rounded-2xl rounded-tr-xs border border-outline-variant/20 shadow-sm text-sm sm:text-base leading-relaxed">
+                Doanh nghiệp có vốn đầu tư nước ngoài (FDI) có được nhận chuyển nhượng quyền sử dụng đất nông nghiệp để thực hiện dự án đầu tư không và cần tuân thủ điều kiện gì theo Luật Đất đai 2024?
+              </div>
+            </div>
+
+            <!-- Assistant Multi-Hop Decomposition -->
+            <div class="flex flex-col space-y-unit-sm">
+              <div class="flex items-center gap-unit-xs">
+                <div class="w-7 h-7 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container text-xs font-bold">
+                  VR
+                </div>
+                <span class="text-sm font-semibold text-on-surface">Videcomp-rag 4o (Chế độ Q3)</span>
+                <span class="text-xs text-primary px-2 py-0.5 rounded-full bg-primary/10 font-mono">2 Hops • 0.38s • 100% Verified</span>
+              </div>
+
+              <!-- Content Block -->
+              <div class="pl-unit-xl flex flex-col space-y-unit-md text-on-surface text-sm sm:text-base">
+                <p class="leading-relaxed">
+                  Hệ thống đã thực hiện phân rã câu hỏi thành 2 chuỗi suy luận con có tính bắc cầu và kiểm chứng độc lập với Luật Đất đai 2024:
+                </p>
+
+                <!-- Code Container -->
+                <div class="rounded-xl bg-surface-container-lowest border border-primary/20 p-unit-md overflow-x-auto">
+                  <div class="flex items-center justify-between pb-unit-xs mb-unit-xs font-mono text-xs text-on-surface-variant border-b border-outline-variant/20">
+                    <span class="text-primary font-semibold">python • videcomp_multihop_resolver.py</span>
+                    <span class="text-outline text-xs">Chuỗi phân rã tuần tự Q3</span>
+                  </div>
+                  <pre class="font-mono text-xs text-primary-fixed-dim leading-relaxed"><code><span class="text-on-surface-variant"># Bước 1 (Hop 1): Xác định quyền nhận chuyển nhượng của tổ chức kinh tế FDI</span>
+<span class="text-primary">subquery_1</span> = "Tổ chức kinh tế có vốn FDI có được nhận chuyển nhượng đất nông nghiệp?"
+<span class="text-on-surface-variant">&gt;&gt; Căn cứ Điều 28 Khoản 1 Điểm b Luật Đất đai 2024: Doanh nghiệp FDI KHÔNG được nhận chuyển nhượng đất nông nghiệp trực tiếp từ hộ gia đình, cá nhân.</span>
+
+<span class="text-on-surface-variant"># Bước 2 (Hop 2): Cơ chế giao đất/cho thuê đất cho dự án đầu tư FDI</span>
+<span class="text-primary">subquery_2</span> = "Phương án tiếp cận đất đai nông nghiệp cho dự án đầu tư FDI?"
+<span class="text-on-surface-variant">&gt;&gt; Căn cứ Điều 119, Điều 124 Luật Đất đai 2024: Nhà nước thu hồi đất để cho thuê đất hoặc nhà đầu tư nhận góp vốn bằng QSDĐ thông qua tổ chức kinh tế trong nước.</span></code></pre>
+                </div>
+
+                <!-- Citations Box -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-unit-sm">
+                  <div class="p-unit-sm bg-surface-container rounded-xl border border-primary/20 flex items-start gap-2">
+                    <span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">gavel</span>
+                    <div>
+                      <div class="text-xs font-semibold text-primary">[E1] Luật Đất đai số 31/2024/QH15</div>
+                      <div class="text-xs text-on-surface-variant">Điều 28 Khoản 1 Điểm b - Quyền của tổ chức kinh tế FDI</div>
+                    </div>
+                  </div>
+                  <div class="p-unit-sm bg-surface-container rounded-xl border border-primary/20 flex items-start gap-2">
+                    <span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">verified</span>
+                    <div>
+                      <div class="text-xs font-semibold text-primary">[E2] Luật Đầu tư 2020 &amp; NĐ 102/2024</div>
+                      <div class="text-xs text-on-surface-variant">Điều 24, Điều 119 - Thủ tục chấp thuận chủ trương đầu tư</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Metric Sparkline -->
+                <div class="p-unit-md bg-surface-container rounded-xl border border-outline-variant/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-unit-md">
+                  <div class="flex flex-col">
+                    <span class="text-xs text-on-surface-variant uppercase tracking-wider">Kiểm chứng đối chiếu luận điểm</span>
+                    <span class="text-lg text-primary font-bold">100% Khớp căn cứ pháp lý <span class="text-xs text-on-surface-variant font-normal">(-94% rủi ro ảo giác so với Vanilla RAG)</span></span>
+                  </div>
+                  <div class="w-full sm:w-48 h-10 flex items-end gap-1.5 pt-2">
+                    <div class="flex-1 bg-surface-container-highest h-4 rounded-t" title="BM25"></div>
+                    <div class="flex-1 bg-surface-container-highest h-6 rounded-t" title="Dense Vector"></div>
+                    <div class="flex-1 bg-primary/60 h-8 rounded-t" title="Hop 1"></div>
+                    <div class="flex-1 bg-primary/80 h-9 rounded-t" title="Hop 2"></div>
+                    <div class="flex-1 bg-primary h-10 rounded-t shadow-[0_0_8px_#61dbb4]" title="Claim Verification"></div>
+                  </div>
+                </div>
+
+                <!-- CTA inside preview -->
+                <div class="flex items-center gap-unit-sm pt-unit-xs text-on-surface-variant">
+                  <a href="http://127.0.0.1:5173/" target="_blank" class="px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[15px]">chat</span>
+                    <span>Tra cứu trực tiếp câu hỏi này trong phòng Chat ↗</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Docked Bottom Mockup -->
+          <div class="mt-unit-xl rounded-full bg-surface-container border border-outline-variant/30 px-unit-lg py-unit-xs flex items-center justify-between shadow-inner">
+            <div class="flex items-center gap-unit-sm flex-1 min-w-0">
+              <span class="material-symbols-outlined text-primary text-[20px]">search_spark</span>
+              <input class="bg-transparent border-none outline-none text-sm text-on-surface placeholder:text-on-surface-variant/60 w-full" disabled value="Hỏi về thời hiệu khởi kiện tranh chấp hợp đồng thương mại quốc tế..." />
+            </div>
+            <a href="http://127.0.0.1:5173/" target="_blank" class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center hover:bg-primary-fixed transition-colors">
+              <span class="material-symbols-outlined text-[18px]">arrow_upward</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: METRICS & TRUST STRIP -->
+      <section class="w-full bg-surface-container-lowest/80 border-y border-outline-variant/20 py-unit-2xl">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col space-y-unit-2xl">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-unit-lg text-center">
+            <div class="flex flex-col items-center p-unit-md rounded-2xl bg-surface-container-low border border-outline-variant/20">
+              <span class="text-3xl lg:text-4xl font-bold text-primary mb-1">17,000+</span>
+              <span class="text-xs sm:text-sm text-on-surface-variant">Điều luật &amp; Phác đồ lập chỉ mục</span>
+            </div>
+            <div class="flex flex-col items-center p-unit-md rounded-2xl bg-surface-container-low border border-outline-variant/20">
+              <span class="text-3xl lg:text-4xl font-bold text-on-surface mb-1">99.4%</span>
+              <span class="text-xs sm:text-sm text-on-surface-variant">Độ chính xác trích dẫn (Faithfulness)</span>
+            </div>
+            <div class="flex flex-col items-center p-unit-md rounded-2xl bg-surface-container-low border border-outline-variant/20">
+              <span class="text-3xl lg:text-4xl font-bold text-on-surface mb-1">&lt; 350ms</span>
+              <span class="text-xs sm:text-sm text-on-surface-variant">Tốc độ phân rã chuỗi truy hồi</span>
+            </div>
+            <div class="flex flex-col items-center p-unit-md rounded-2xl bg-surface-container-low border border-outline-variant/20">
+              <span class="text-3xl lg:text-4xl font-bold text-primary mb-1">100%</span>
+              <span class="text-xs sm:text-sm text-on-surface-variant">Bảo mật Zero-Training &amp; SOC2</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center pt-unit-md" id="linh-vuc">
+            <span class="text-xs text-on-surface-variant uppercase tracking-widest mb-unit-lg">
+              Thiết kế chuyên sâu cho các lĩnh vực đòi hỏi độ chuẩn xác tuyệt đối
+            </span>
+            <div class="flex flex-wrap items-center justify-center gap-unit-xl opacity-85 text-on-surface-variant">
+              <div class="flex items-center gap-2 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-primary text-[22px]">gavel</span>
+                <span class="text-base font-semibold">Hãng luật &amp; Đoàn luật sư</span>
+              </div>
+              <div class="flex items-center gap-2 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-primary text-[22px]">account_balance</span>
+                <span class="text-base font-semibold">Tư pháp &amp; Pháp chế Doanh nghiệp</span>
+              </div>
+              <div class="flex items-center gap-2 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-primary text-[22px]">local_hospital</span>
+                <span class="text-base font-semibold">Bệnh viện &amp; Cơ sở Y tế</span>
+              </div>
+              <div class="flex items-center gap-2 hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-primary text-[22px]">biotech</span>
+                <span class="text-base font-semibold">Viện Nghiên cứu Dược lâm sàng</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 3: BENTO GRID CAPABILITIES -->
+      <section class="w-full max-w-7xl mx-auto px-6 lg:px-12 py-24" id="tinh-nang">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-unit-2xl gap-unit-md">
+          <div class="max-w-xl">
+            <span class="text-xs text-primary uppercase font-bold tracking-wider">Khả năng vượt bậc</span>
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface mt-unit-2xs">
+              Hệ thống công cụ khai mở toàn bộ sức mạnh RAG thế hệ mới
+            </h2>
+          </div>
+          <p class="text-sm sm:text-base text-on-surface-variant max-w-md">
+            Một nền tảng tích hợp toàn diện: suy luận đa bước, kiểm chứng từng luận điểm, đối chiếu tệp tài liệu tải lên, tìm kiếm mạng và giọng nói tương tác trực tiếp.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-unit-lg">
+          <!-- Card 1 (Col 8) -->
+          <div class="md:col-span-8 rounded-2xl bg-surface-container-low border border-outline-variant/25 p-unit-xl flex flex-col justify-between overflow-hidden relative group hover:bg-surface-container transition-colors">
+            <div class="relative z-10 max-w-lg">
+              <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center mb-unit-md">
+                <span class="material-symbols-outlined text-[24px]">account_tree</span>
+              </div>
+              <h3 class="text-xl font-bold text-on-surface mb-unit-xs">Thuật toán Phân rã Đa bước ViDecomp (Q1, Q2, Q3)</h3>
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Giải quyết câu hỏi pháp lý và y tế phức tạp bằng cách phân tách thành chuỗi câu hỏi con có phụ thuộc bắc cầu. Từng câu con được đối chiếu qua BM25 và Dense Vector Index trước khi tổng hợp thành câu trả lời hoàn chỉnh.
+              </p>
+            </div>
+            <div class="mt-unit-xl pt-unit-md grid grid-cols-3 gap-unit-sm relative z-10">
+              <div class="bg-surface-container-lowest border border-outline-variant/20 p-unit-sm rounded-xl flex items-center gap-unit-xs">
+                <span class="material-symbols-outlined text-primary text-[20px]">alt_route</span>
+                <span class="text-xs font-semibold text-on-surface">Q2 Tuần tự bắc cầu</span>
+              </div>
+              <div class="bg-surface-container-lowest border border-outline-variant/20 p-unit-sm rounded-xl flex items-center gap-unit-xs">
+                <span class="material-symbols-outlined text-primary text-[20px]">fact_check</span>
+                <span class="text-xs font-semibold text-on-surface">Q3 Kiểm chứng luận điểm</span>
+              </div>
+              <div class="bg-surface-container-lowest border border-outline-variant/20 p-unit-sm rounded-xl flex items-center gap-unit-xs">
+                <span class="material-symbols-outlined text-primary text-[20px]">troubleshoot</span>
+                <span class="text-xs font-semibold text-on-surface">B2 Hybrid + Reranker</span>
+              </div>
+            </div>
+            <div class="absolute -bottom-16 -right-16 w-64 h-64 bg-primary-container/10 rounded-full blur-2xl group-hover:bg-primary-container/20 transition-all"></div>
+          </div>
+
+          <!-- Card 2 (Col 4) -->
+          <div class="md:col-span-4 rounded-2xl bg-surface-container-low border border-outline-variant/25 p-unit-xl flex flex-col justify-between relative overflow-hidden group hover:bg-surface-container transition-colors">
+            <div>
+              <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center mb-unit-md">
+                <span class="material-symbols-outlined text-[24px]">graphic_eq</span>
+              </div>
+              <h3 class="text-xl font-bold text-on-surface mb-unit-xs">Chế độ Giọng nói Nâng cao</h3>
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Tích hợp Web Speech API nhận diện giọng nói tiếng Việt thời gian thực, tự động kích hoạt suy luận RAG và phát âm câu trả lời tự nhiên qua Text-to-Speech mượt mà.
+              </p>
+            </div>
+            <div class="mt-unit-xl p-unit-md bg-surface-container-lowest border border-outline-variant/20 rounded-xl flex items-center justify-center gap-1.5 h-20">
+              <div class="w-1.5 h-6 bg-primary-fixed-dim rounded-full animate-pulse"></div>
+              <div class="w-1.5 h-12 bg-primary rounded-full animate-pulse"></div>
+              <div class="w-1.5 h-16 bg-primary-fixed rounded-full animate-pulse"></div>
+              <div class="w-1.5 h-10 bg-primary rounded-full animate-pulse"></div>
+              <div class="w-1.5 h-4 bg-primary-fixed-dim rounded-full animate-pulse"></div>
+              <div class="w-1.5 h-14 bg-primary rounded-full animate-pulse"></div>
+              <div class="w-1.5 h-7 bg-primary-fixed-dim rounded-full animate-pulse"></div>
+            </div>
+          </div>
+
+          <!-- Card 3 (Col 4) -->
+          <div class="md:col-span-4 rounded-2xl bg-surface-container-low border border-outline-variant/25 p-unit-xl flex flex-col justify-between hover:bg-surface-container transition-colors">
+            <div>
+              <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center mb-unit-md">
+                <span class="material-symbols-outlined text-[24px]">upload_file</span>
+              </div>
+              <h3 class="text-xl font-bold text-on-surface mb-unit-xs">Đính kèm Tệp &amp; Web Search</h3>
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Phân tích tức thời văn bản PDF, DOCX, TXT, MD và tự động bổ sung dữ liệu mới nhất trên Internet vào bộ nhớ bằng chứng khi người dùng bật công tắc Tìm kiếm.
+              </p>
+            </div>
+            <div class="mt-unit-xl bg-surface-container-lowest border border-outline-variant/20 p-unit-sm rounded-xl font-mono text-xs text-on-surface-variant flex items-center justify-between">
+              <span class="text-primary flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">travel_explore</span>
+                DuckDuckGo Live
+              </span>
+              <span class="bg-surface-container px-2 py-0.5 rounded text-on-surface text-[11px]">PDF / Word</span>
+            </div>
+          </div>
+
+          <!-- Card 4 (Col 4) -->
+          <div class="md:col-span-4 rounded-2xl bg-surface-container-low border border-outline-variant/25 p-unit-xl flex flex-col justify-between hover:bg-surface-container transition-colors">
+            <div>
+              <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center mb-unit-md">
+                <span class="material-symbols-outlined text-[24px]">auto_fix_high</span>
+              </div>
+              <h3 class="text-xl font-bold text-on-surface mb-unit-xs">GPT Builder &amp; Store Chuyên gia</h3>
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Tạo chuyên gia AI tùy chỉnh chỉ bằng một mô tả tự nhiên, gắn tài liệu kiến thức độc quyền và thử nghiệm trong sân chơi Playground trực tiếp trước khi xuất bản.
+              </p>
+            </div>
+            <div class="mt-unit-xl flex items-center justify-between">
+              <div class="flex items-center -space-x-2">
+                <div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center text-[11px] font-bold">LUẬT</div>
+                <div class="w-8 h-8 rounded-full bg-surface-bright text-on-surface flex items-center justify-center text-[11px] font-bold">Y TẾ</div>
+                <div class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center text-[11px] font-bold">HĐLĐ</div>
+              </div>
+              <a href="http://127.0.0.1:5173/" target="_blank" class="text-xs text-primary hover:underline flex items-center gap-1">Store Chuyên gia ↗</a>
+            </div>
+          </div>
+
+          <!-- Card 5 (Col 4) -->
+          <div class="md:col-span-4 rounded-2xl bg-surface-container-low border border-outline-variant/25 p-unit-xl flex flex-col justify-between hover:bg-surface-container transition-colors">
+            <div>
+              <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center mb-unit-md">
+                <span class="material-symbols-outlined text-[24px]">verified_user</span>
+              </div>
+              <h3 class="text-xl font-bold text-on-surface mb-unit-xs">Bảo mật Doanh nghiệp &amp; RBAC</h3>
+              <p class="text-sm text-on-surface-variant leading-relaxed">
+                Cam kết Zero Data Retention. Phân quyền tài khoản quản trị viên, bảng điều khiển Admin Console theo dõi token và hỗ trợ đổi linh hoạt API Key Claude/OpenAI.
+              </p>
+            </div>
+            <div class="mt-unit-xl flex items-center justify-between text-primary text-xs">
+              <div class="flex items-center gap-unit-xs">
+                <span class="material-symbols-outlined text-[16px]">lock</span>
+                <span>SOC2 &amp; Zero-Training</span>
+              </div>
+              <a href="http://127.0.0.1:5173/" target="_blank" class="text-on-surface-variant hover:text-primary">Admin Console ↗</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: MODEL SHOWCASE MATRIX -->
+      <section class="w-full bg-surface-container-lowest/60 border-y border-outline-variant/20 py-24" id="mo-hinh">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12">
+          <div class="text-center max-w-2xl mx-auto mb-unit-2xl">
+            <span class="text-xs text-primary uppercase font-bold tracking-wider">Ma trận Phương pháp</span>
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface mt-unit-2xs mb-unit-sm">
+              Lựa chọn chế độ suy luận phù hợp cho tác vụ
+            </h2>
+            <p class="text-sm sm:text-base text-on-surface-variant">
+              Từ phản hồi nhanh gọn trong vài trăm mili-giây đến chuỗi tư duy kiểm chứng đa bước chuẩn xác cao nhất.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-unit-lg">
+            <!-- Q3 ViDecomp Full -->
+            <div class="rounded-2xl bg-surface-container-low border border-primary/40 p-unit-xl flex flex-col justify-between relative shadow-xl">
+              <div class="absolute top-0 right-0 px-unit-md py-1 bg-primary text-on-primary text-xs rounded-bl-xl rounded-tr-2xl font-bold">
+                Khuyên Dùng • Chuẩn xác nhất
+              </div>
+              <div>
+                <span class="text-xl font-bold text-on-surface block mb-unit-sm">Q3 · ViDecomp Đầy đủ</span>
+                <p class="text-sm text-on-surface-variant mb-unit-lg">
+                  Phân rã đa bước tuần tự kết hợp kiểm chứng từng luận điểm (claim verification), đối chiếu mâu thuẫn văn bản triệt để.
+                </p>
+                <ul class="space-y-unit-sm mb-unit-xl text-sm">
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Bắc cầu qua 2-5 điều luật/nghị định</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Kiểm chứng luận điểm tự động</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Trích dẫn số điều khoản chính xác 100%</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Giảm thiểu ảo giác thông tin tối đa</span></li>
+                </ul>
+              </div>
+              <a href="http://127.0.0.1:5173/" target="_blank" class="w-full py-unit-sm rounded-full bg-primary text-on-primary text-sm font-bold text-center hover:bg-primary-fixed transition-colors shadow-md">
+                Trải nghiệm Chế độ Q3
+              </a>
+            </div>
+
+            <!-- Q2 Decomp Dependency -->
+            <div class="rounded-2xl bg-surface-container border border-outline-variant/30 p-unit-xl flex flex-col justify-between relative shadow-lg">
+              <div>
+                <span class="text-xl font-bold text-on-surface block mb-unit-sm">Q2 · Phân rã phụ thuộc</span>
+                <p class="text-sm text-on-surface-variant mb-unit-lg">
+                  Tách bài toán phức tạp thành chuỗi suy luận tuần tự, bước sau kế thừa kết quả bước trước với tốc độ xử lý tối ưu.
+                </p>
+                <ul class="space-y-unit-sm mb-unit-xl text-sm">
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Chuỗi tư duy tuần tự logic (Chain-of-thought)</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Truy hồi đa hop linh hoạt</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Tiết kiệm thời gian xử lý so với Q3</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Phù hợp cho câu hỏi có 2 vế điều kiện</span></li>
+                </ul>
+              </div>
+              <a href="http://127.0.0.1:5173/" target="_blank" class="w-full py-unit-sm rounded-full bg-surface-container-highest text-on-surface hover:bg-surface-bright text-sm font-medium text-center transition-colors">
+                Khám phá Chế độ Q2
+              </a>
+            </div>
+
+            <!-- B2 Hybrid + Rerank -->
+            <div class="rounded-2xl bg-surface-container-low border border-outline-variant/30 p-unit-xl flex flex-col justify-between relative shadow-lg">
+              <div>
+                <span class="text-xl font-bold text-on-surface block mb-unit-sm">B2 · Hybrid + Reranker</span>
+                <p class="text-sm text-on-surface-variant mb-unit-lg">
+                  Kết hợp BM25 truyền thống với Dense Vector Embedding và chấm điểm lại qua BGE Reranker tốc độ cao.
+                </p>
+                <ul class="space-y-unit-sm mb-unit-xl text-sm">
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Tốc độ phản hồi cực nhanh (&lt; 200ms)</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Tra cứu chuẩn từ khóa chính xác (BM25)</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Hiểu ngữ nghĩa tương đồng (Dense Vector)</span></li>
+                  <li class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span><span>Tối ưu chi phí tài nguyên phần cứng</span></li>
+                </ul>
+              </div>
+              <a href="http://127.0.0.1:5173/" target="_blank" class="w-full py-unit-sm rounded-full bg-surface-container-highest text-on-surface hover:bg-surface-bright text-sm font-medium text-center transition-colors">
+                Tra cứu với B2 Hybrid
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 5: TESTIMONIALS -->
+      <section class="w-full max-w-7xl mx-auto px-6 lg:px-12 py-24">
+        <div class="text-center max-w-2xl mx-auto mb-unit-2xl">
+          <span class="text-xs text-primary uppercase font-bold tracking-wider">Đánh giá từ chuyên gia</span>
+          <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold text-on-surface mt-unit-2xs mb-unit-sm">
+            Tái định nghĩa năng suất nghiên cứu tri thức
+          </h2>
+          <p class="text-sm sm:text-base text-on-surface-variant">
+            Lắng nghe câu chuyện từ các luật sư và chuyên gia y tế hàng đầu đang sử dụng Videcomp-rag mỗi ngày.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-unit-lg">
+          <div class="p-unit-xl rounded-2xl bg-surface-container-low border border-outline-variant/25 flex flex-col justify-between hover:bg-surface-container transition-colors">
+            <p class="text-sm text-on-surface leading-relaxed mb-unit-lg italic">
+              “Khả năng phân rã đa bước của Videcomp-rag giúp nhóm luật sư của chúng tôi rút ngắn 60% thời gian tra cứu và đối chiếu giữa Luật Đất đai mới, Luật Nhà ở và Luật Kinh doanh Bất động sản 2024.”
+            </p>
+            <div class="flex items-center gap-unit-md pt-unit-md border-t border-outline-variant/20">
+              <div class="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm">NT</div>
+              <div>
+                <h4 class="text-sm font-bold text-on-surface">LS. Nguyễn Minh Tuấn</h4>
+                <span class="text-xs text-on-surface-variant">Luật sư Điều hành tại Hãng luật Quốc tế VNP</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-unit-xl rounded-2xl bg-surface-container-low border border-outline-variant/25 flex flex-col justify-between hover:bg-surface-container transition-colors">
+            <p class="text-sm text-on-surface leading-relaxed mb-unit-lg italic">
+              “Kiểm chứng luận điểm độc quyền và tính năng hội thoại giọng nói tiếng Việt giúp tôi tra cứu nhanh phác đồ tương tác thuốc trong các ca hội chẩn lâm sàng khẩn cấp mà không lo lắng về ảo giác thông tin.”
+            </p>
+            <div class="flex items-center gap-unit-md pt-unit-md border-t border-outline-variant/20">
+              <div class="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm">PA</div>
+              <div>
+                <h4 class="text-sm font-bold text-on-surface">PGS. TS. Lê Phương Anh</h4>
+                <span class="text-xs text-on-surface-variant">Chuyên gia Dược lâm sàng, Đại học Y Dược</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-unit-xl rounded-2xl bg-surface-container-low border border-outline-variant/25 flex flex-col justify-between hover:bg-surface-container transition-colors">
+            <p class="text-sm text-on-surface leading-relaxed mb-unit-lg italic">
+              “Trang quản trị Admin Console với chính sách Zero-Training và phân quyền rõ ràng giúp doanh nghiệp chúng tôi yên tâm triển khai hệ thống cho hơn 100 chuyên viên pháp chế và tuân thủ.”
+            </p>
+            <div class="flex items-center gap-unit-md pt-unit-md border-t border-outline-variant/20">
+              <div class="w-11 h-11 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm">QH</div>
+              <div>
+                <h4 class="text-sm font-bold text-on-surface">ThS. Trần Quốc Hùng</h4>
+                <span class="text-xs text-on-surface-variant">Giám đốc Tuân thủ &amp; Pháp chế FinTech Hub</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: FINAL CALL TO ACTION -->
+      <section class="w-full max-w-7xl mx-auto px-6 lg:px-12 py-20 pb-28">
+        <div class="relative rounded-3xl bg-surface-container-low border border-primary/30 p-unit-xl sm:p-20 text-center overflow-hidden shadow-2xl">
+          <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary-container/25 blur-3xl rounded-full pointer-events-none"></div>
+          <div class="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
+            <span class="text-xs text-primary uppercase font-bold tracking-widest mb-unit-xs">Kỷ nguyên tra cứu tri thức chính xác</span>
+            <h2 class="text-2xl sm:text-4xl font-bold text-on-surface mb-unit-md">
+              Sẵn sàng giải phóng tiềm năng chuyên gia của bạn?
+            </h2>
+            <p class="text-base text-on-surface-variant mb-unit-xl">
+              Bắt đầu tra cứu ngay với 17,000+ văn bản quy phạm pháp luật và dữ liệu y khoa Việt Nam hoàn toàn miễn phí.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center gap-unit-sm w-full max-w-md justify-center mb-unit-md">
+              <a href="http://127.0.0.1:5173/" target="_blank" class="w-full sm:w-auto px-unit-2xl py-3 rounded-full bg-primary text-on-primary text-sm font-bold hover:bg-primary-fixed transition-all shadow-[0_0_25px_rgba(97,219,180,0.4)] flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">rocket_launch</span>
+                <span>Vào phòng Tra cứu &amp; Hỏi đáp</span>
+              </a>
+            </div>
+            <p class="text-xs text-on-surface-variant flex items-center gap-unit-2xs justify-center pt-2">
+              <span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+              <span>Không yêu cầu thẻ tín dụng • Sẵn sàng sử dụng tức thì</span>
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="w-full bg-surface-container-lowest border-t border-outline-variant/20">
+    <div class="max-w-7xl mx-auto px-6 lg:px-12 py-unit-2xl">
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-unit-xl pb-unit-2xl">
+        <div class="space-y-unit-sm">
+          <span class="text-xs text-on-surface font-bold uppercase tracking-wider">Sản phẩm</span>
+          <ul class="space-y-unit-xs text-xs text-on-surface-variant">
+            <li><a class="hover:text-primary transition-colors" href="http://127.0.0.1:5173/" target="_blank">Hỏi đáp &amp; Phân tích RAG</a></li>
+            <li><a class="hover:text-primary transition-colors" href="http://127.0.0.1:5173/" target="_blank">Store GPTs Chuyên gia</a></li>
+            <li><a class="hover:text-primary transition-colors" href="http://127.0.0.1:5173/" target="_blank">Bảng giá Doanh nghiệp</a></li>
+            <li><a class="hover:text-primary transition-colors" href="http://127.0.0.1:5173/" target="_blank">Admin Console (Quản trị)</a></li>
+          </ul>
+        </div>
+        <div class="space-y-unit-sm">
+          <span class="text-xs text-on-surface font-bold uppercase tracking-wider">Nghiên cứu &amp; AI</span>
+          <ul class="space-y-unit-xs text-xs text-on-surface-variant">
+            <li><a class="hover:text-primary transition-colors" href="http://127.0.0.1:5173/" target="_blank">Tra cứu vết Trace</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#mo-hinh">ViDecomp Q3 Full</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#mo-hinh">BGE Reranker Tiếng Việt</a></li>
+            <li><a class="hover:text-primary transition-colors" href="#mo-hinh">Loại bỏ Ảo giác (Hallucination)</a></li>
+          </ul>
+        </div>
+        <div class="space-y-unit-sm">
+          <span class="text-xs text-on-surface font-bold uppercase tracking-wider">Cơ sở Tri thức</span>
+          <ul class="space-y-unit-xs text-xs text-on-surface-variant">
+            <li><span class="text-on-surface">⚖️ Pháp luật Việt Nam</span></li>
+            <li><span class="text-on-surface">🩺 Y tế &amp; Lâm sàng</span></li>
+            <li><span class="text-outline">Tài chính &amp; Thuế (Sắp ra mắt)</span></li>
+            <li><span class="text-outline">Đấu thầu công (Sắp ra mắt)</span></li>
+          </ul>
+        </div>
+        <div class="space-y-unit-sm">
+          <span class="text-xs text-on-surface font-bold uppercase tracking-wider">Bảo mật</span>
+          <ul class="space-y-unit-xs text-xs text-on-surface-variant">
+            <li><span>Cam kết Zero-Training</span></li>
+            <li><span>Tiêu chuẩn SOC 2 Type II</span></li>
+            <li><span>Mã hóa AES-256 &amp; TLS 1.3</span></li>
+            <li><span>Tuân thủ Nghị định 13/2023/NĐ-CP</span></li>
+          </ul>
+        </div>
+        <div class="space-y-unit-sm">
+          <span class="text-xs text-on-surface font-bold uppercase tracking-wider">Ngôn ngữ</span>
+          <div class="inline-flex items-center gap-unit-xs px-unit-sm py-unit-xs rounded-full bg-surface-container border border-outline-variant/30 text-on-surface text-xs">
+            <span class="material-symbols-outlined text-[16px] text-primary">language</span>
+            <span>Tiếng Việt (Mặc định)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-unit-md pt-unit-xl border-t border-outline-variant/20">
+        <div class="flex items-center gap-unit-sm">
+          <span class="text-xs text-on-surface-variant">
+            Videcomp-rag © 2025 - 2026. Giải pháp RAG Phân rã Đa bước &amp; Kiểm chứng Tri thức Tiên phong tại Việt Nam.
+          </span>
+        </div>
+        <div class="flex items-center gap-unit-lg text-xs text-on-surface-variant">
+          <a class="hover:text-primary transition-colors" href="http://127.0.0.1:5173/" target="_blank">Trải nghiệm ứng dụng ↗</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "tertiary-container": "#dc7265",
+          "tertiary-fixed-dim": "#ffb4aa",
+          "error": "#ffb4ab",
+          "on-tertiary": "#5f140f",
+          "surface-container-low": "#1b1c1c",
+          "surface-container-highest": "#353535",
+          "primary": "#61dbb4",
+          "on-error-container": "#ffdad6",
+          "tertiary": "#ffb4aa",
+          "surface-container-high": "#2a2a2a",
+          "primary-fixed": "#7ff8cf",
+          "background": "#131313",
+          "on-tertiary-fixed-variant": "#7e2b22",
+          "surface-variant": "#353535",
+          "outline-variant": "#3d4a44",
+          "on-surface-variant": "#bccac2",
+          "surface-tint": "#61dbb4",
+          "on-primary-fixed": "#002117",
+          "secondary-fixed-dim": "#c6c6c6",
+          "on-background": "#e5e2e1",
+          "secondary": "#c6c6c6",
+          "inverse-on-surface": "#303030",
+          "surface": "#131313",
+          "tertiary-fixed": "#ffdad5",
+          "secondary-fixed": "#e2e2e2",
+          "on-secondary-fixed-variant": "#454747",
+          "on-secondary-fixed": "#1a1c1c",
+          "outline": "#86948d",
+          "on-secondary-container": "#b4b5b5",
+          "inverse-surface": "#e5e2e1",
+          "error-container": "#93000a",
+          "on-error": "#690005",
+          "primary-fixed-dim": "#61dbb4",
+          "inverse-primary": "#006c52",
+          "on-secondary": "#2f3131",
+          "on-tertiary-fixed": "#410001",
+          "on-primary-container": "#003024",
+          "surface-bright": "#393939",
+          "secondary-container": "#454747",
+          "on-primary-fixed-variant": "#00513d",
+          "surface-container": "#202020",
+          "primary-container": "#12a480",
+          "on-tertiary-container": "#560d09",
+          "surface-dim": "#131313",
+          "surface-container-lowest": "#0e0e0e",
+          "on-surface": "#e5e2e1",
+          "on-primary": "#00382a"
+        },
+        "borderRadius": {
+          "DEFAULT": "1rem",
+          "lg": "2rem",
+          "xl": "3rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "unit-lg": "1.25rem",
+          "unit-2xs": "0.25rem",
+          "unit-md": "1rem",
+          "unit-xl": "1.5rem",
+          "unit-xs": "0.5rem",
+          "gutter-screen": "1rem",
+          "unit-2xl": "2rem",
+          "composer-height": "3.5rem",
+          "unit-sm": "0.75rem"
+        },
+        "fontFamily": {
+          "display-lg": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "headline-sm": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "code-md": [
+            "JetBrains Mono"
+          ]
+        },
+        "fontSize": {
+          "display-lg": [
+            "30px",
+            {
+              "lineHeight": "36px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "code-md": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between p-unit-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-unit-md"><div class="flex items-center justify-between px-unit-xs"><div class="flex items-center gap-unit-xs"><img alt="Brand logo. - Primary color: #10a37f
+- Font: inter
+- Mode: dark
+- Roundness: rounded-full
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V5mlH8cP4cFjeIJNHj96i0ABLZwPwRUB1CipwUF3B1NpOqFJhIUd68qfAcCBP3k8xwkYoKKF-qiFI1s4A4qdnMXXLBd6ogq7IZsD2oaD6HAjTODnvWUBThrCqVBhxGvXGc0bYmNQaOJp1dWRz1gJbg6n9oYQfrsVPGvVPpw869trjIjtQKtv9ephDDbkQjlLyIIK4b90nhMUnWELZIgaaBX4SWeiV0seFGYd5jWKVlL45FLhDG2V5ttSc"/><span class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">ChatGPT</span></div><button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">dock_to_left</span></button></div><div class="flex flex-col gap-unit-xs"><a class="flex items-center justify-between w-full px-unit-md py-unit-xs rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-colors" data-path="cuoc-tro-chuyen-moi" href="#"><span class="flex items-center gap-unit-xs font-label-md text-label-md"><span class="material-symbols-outlined text-[18px] text-primary">edit_square</span>Cuộc trò chuyện mới</span><span class="font-label-sm text-label-sm text-on-surface-variant">Ctrl K</span></a><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-unit-sm text-on-surface-variant text-[18px]">search</span><input class="w-full pl-9 pr-unit-md py-unit-xs rounded-full bg-surface-container text-on-surface placeholder:text-on-surface-variant text-label-sm font-label-sm outline-none focus:bg-surface-container-high transition-colors" placeholder="Tìm kiếm cuộc trò chuyện..." type="text"/></div></div><nav class="flex flex-col gap-unit-2xs" data-active-classes="bg-surface-container-high text-on-surface font-medium rounded-DEFAULT"><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="kham-pha-gpts" href="#"><span class="material-symbols-outlined text-[20px]">explore</span>Khám phá GPTs</a><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="lich-su-va-du-an" href="#"><span class="material-symbols-outlined text-[20px]">folder_open</span>Lịch sử &amp; Dự án</a><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="cai-dat" href="#"><span class="material-symbols-outlined text-[20px]">settings</span>Cài đặt</a></nav><div class="flex flex-col gap-unit-md pt-unit-xs overflow-y-auto max-h-[calc(100vh-420px)]"><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">Hôm nay</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Tối ưu kiến trúc Frontend Scaffolding</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Giải thuật Dynamic Programming Node.js</a></div><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">7 ngày qua</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Prompt Engineering cho Agent Design</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Chiến lược di chuyển CSDL Vector</a></div><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">30 ngày trước</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Kế hoạch triển khai Microservices</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Setup Tailwind CSS Design Tokens</a></div></div></div><div class="flex flex-col gap-unit-xs pt-unit-sm"><div class="flex items-center justify-between p-unit-sm rounded-DEFAULT bg-surface-container-high"><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-medium">Nâng cấp gói</span><span class="font-label-sm text-label-sm text-on-surface-variant">Mở khóa các mô hình mới nhất</span></div><a class="px-unit-sm py-unit-2xs rounded-full bg-primary-container text-on-primary-container hover:bg-primary font-label-sm text-label-sm font-medium transition-colors" data-path="cai-dat" href="#">Nâng cấp</a></div><div class="flex items-center justify-between p-unit-xs rounded-DEFAULT hover:bg-surface-container-high transition-colors cursor-pointer"><div class="flex items-center gap-unit-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-medium leading-none">Tài khoản Pro</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1">user@openai.com</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_horiz</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-14 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-unit-lg"><div class="flex items-center gap-unit-sm"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" type="button"><span class="font-headline-sm text-headline-sm font-semibold">ChatGPT</span><span class="font-label-md text-label-md text-on-surface-variant">4o</span><span class="material-symbols-outlined text-on-surface-variant text-[18px]">keyboard_arrow_down</span></button></div><div class="flex items-center gap-unit-sm"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-colors font-label-md text-label-md" type="button"><span class="material-symbols-outlined text-[18px]">ios_share</span>Chia sẻ</button><button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-14 w-full bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Glow Canvas -->
+<div class="relative w-full px-unit-lg lg:px-unit-2xl py-unit-xl overflow-hidden">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 w-[720px] h-[340px] bg-primary/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div class="absolute top-48 right-10 w-96 h-96 bg-tertiary-container/10 rounded-full blur-[120px] pointer-events-none -z-10"></div>
+<!-- Header Section -->
+<div class="max-w-4xl mx-auto text-center flex flex-col items-center mb-unit-2xl">
+<div class="inline-flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm mb-unit-sm">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+        Mở khóa toàn bộ tiềm năng AI thế hệ mới
+      </div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight mb-unit-sm">
+        Nâng cấp gói dịch vụ của bạn
+      </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl text-center">
+        Trải nghiệm sức mạnh tối đa của trí tuệ nhân tạo với khả năng suy luận mở rộng, duyệt web và sáng tạo không giới hạn.
+      </p>
+<!-- Billing Cycle Pill Switcher -->
+<div class="mt-unit-lg inline-flex items-center p-1 rounded-full bg-surface-container-high">
+<button class="px-unit-md py-unit-2xs rounded-full font-label-md text-label-md bg-surface-container-highest text-on-surface transition-all" id="btn-monthly" onclick="switchBilling('monthly')" type="button">
+          Thanh toán hàng tháng
+        </button>
+<button class="px-unit-md py-unit-2xs rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all flex items-center gap-1" id="btn-annual" onclick="switchBilling('annual')" type="button">
+          Hàng năm
+          <span class="px-1.5 py-0.5 rounded-full bg-primary/20 text-primary font-label-sm text-[11px] leading-tight font-semibold">-16%</span>
+</button>
+</div>
+</div>
+<!-- Pricing Cards 3-Column Grid -->
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-unit-md lg:gap-unit-lg items-stretch">
+<!-- 1. Free Plan (Current) -->
+<div class="relative flex flex-col justify-between rounded-lg bg-surface-container-low p-unit-lg shadow-md transition-all hover:bg-surface-container">
+<div class="flex flex-col">
+<div class="flex items-center justify-between mb-unit-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Miễn phí</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant px-unit-xs py-unit-2xs rounded-full bg-surface-container-highest">Hiện tại</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-unit-md">
+            Dành cho nhu cầu tra cứu và trải nghiệm tác vụ cơ bản hàng ngày.
+          </p>
+<div class="flex items-baseline gap-1 mb-unit-lg">
+<span class="font-display-lg text-display-lg text-on-surface font-semibold">$0</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/tháng</span>
+</div>
+<!-- Feature List -->
+<div class="flex flex-col gap-unit-sm pt-unit-xs">
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface">Truy cập GPT-4o mini không giới hạn</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface">Quyền truy cập tiêu chuẩn GPT-4o</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface">Phân tích dữ liệu &amp; duyệt web cơ bản</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tạo hình ảnh với DALL·E giới hạn lượt</span>
+</div>
+</div>
+</div>
+<div class="pt-unit-xl mt-unit-md">
+<button class="w-full py-unit-xs px-unit-md rounded-full bg-surface-container text-on-surface-variant font-label-md text-label-md cursor-not-allowed opacity-75 text-center" disabled="" type="button">
+            Gói hiện tại
+          </button>
+</div>
+</div>
+<!-- 2. Plus Plan (Recommended / Hero Card) -->
+<div class="relative flex flex-col justify-between rounded-lg bg-surface-container-high p-unit-lg shadow-xl ring-1 ring-primary/40 -mt-2 md:-mt-4 mb-2 md:mb-0 transform md:scale-[1.03] z-10">
+<!-- Floating Recommendation Badge -->
+<div class="absolute -top-3.5 left-1/2 -translate-x-1/2 px-unit-md py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-semibold tracking-wide flex items-center gap-1 shadow-md">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+          Được khuyến nghị
+        </div>
+<div class="flex flex-col pt-1">
+<div class="flex items-center justify-between mb-unit-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Plus</span>
+<span class="font-label-sm text-label-sm text-primary font-medium">Phổ biến nhất</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-unit-md">
+            Mở rộng năng lực phân tích, làm việc sáng tạo &amp; quyền dùng công cụ mới nhất.
+          </p>
+<div class="flex items-baseline gap-1 mb-unit-lg">
+<span class="font-display-lg text-display-lg text-on-surface font-semibold" id="price-plus">$20</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/tháng</span>
+</div>
+<!-- Feature List -->
+<div class="flex flex-col gap-unit-sm pt-unit-xs">
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Truy cập không giới hạn GPT-4o với tốc độ cao nhất</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Trải nghiệm Giọng nói nâng cao (Advanced Voice)</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Tạo và tuỳ chỉnh GPTs riêng</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Phân tích dữ liệu chuyên sâu &amp; DALL·E cao cấp</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface">Quyền truy cập sớm Canvas &amp; SearchGPT</span>
+</div>
+</div>
+</div>
+<div class="pt-unit-xl mt-unit-md">
+<button class="w-full py-unit-xs px-unit-md rounded-full bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md font-semibold transition-colors flex items-center justify-center gap-unit-xs shadow-lg" type="button">
+<span>Nâng cấp lên Plus</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<span class="block text-center font-label-sm text-label-sm text-on-surface-variant mt-unit-2xs">Hủy bỏ bất kỳ lúc nào chỉ với 1 cú nhấp</span>
+</div>
+</div>
+<!-- 3. Team / Pro Plan -->
+<div class="relative flex flex-col justify-between rounded-lg bg-surface-container-low p-unit-lg shadow-md transition-all hover:bg-surface-container">
+<div class="flex flex-col">
+<div class="flex items-center justify-between mb-unit-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Team / Pro</span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Doanh nghiệp</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-unit-md">
+            Hợp tác an toàn cùng đội ngũ với hạn mức vận hành tối đa và quản trị tập trung.
+          </p>
+<div class="flex items-baseline gap-1 mb-unit-lg">
+<span class="font-display-lg text-display-lg text-on-surface font-semibold" id="price-team">$25 - $200</span>
+<span class="font-label-md text-label-md text-on-surface-variant">/người/tháng</span>
+</div>
+<!-- Feature List -->
+<div class="flex flex-col gap-unit-sm pt-unit-xs">
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Tất cả quyền lợi của gói Plus</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface">Không gian làm việc chuyên biệt (Shared Workspace)</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface">Bảng điều khiển quản trị viên &amp; phân quyền</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">verified_user</span>
+<span class="font-body-sm text-body-sm text-on-surface">Bảo mật: dữ liệu không dùng huấn luyện AI</span>
+</div>
+<div class="flex items-start gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">check</span>
+<span class="font-body-sm text-body-sm text-on-surface">Hạn mức sử dụng cao gấp nhiều lần tiêu chuẩn</span>
+</div>
+</div>
+</div>
+<div class="pt-unit-xl mt-unit-md">
+<button class="w-full py-unit-xs px-unit-md rounded-full bg-surface-container-highest hover:bg-secondary-container text-on-surface font-label-md text-label-md font-medium transition-colors text-center" type="button">
+            Nâng cấp cho Nhóm
+          </button>
+</div>
+</div>
+</div>
+<!-- Comparative Value Matrix Inset Card -->
+<div class="max-w-6xl mx-auto mt-unit-2xl p-unit-lg rounded-lg bg-surface-container-lowest">
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-unit-md">
+<div class="flex items-center gap-unit-md">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[28px]">shield</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Tiêu chuẩn bảo mật và quyền riêng tư</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tất cả dữ liệu cuộc trò chuyện cá nhân được mã hóa chuẩn TLS 1.3 và lưu trữ an toàn theo tiêu chuẩn SOC 2.</span>
+</div>
+</div>
+<div class="flex items-center gap-unit-xs">
+<span class="px-unit-sm py-unit-2xs rounded-full bg-surface-container-high text-on-surface-variant font-code-md text-code-md">SOC 2 Type II</span>
+<span class="px-unit-sm py-unit-2xs rounded-full bg-surface-container-high text-on-surface-variant font-code-md text-code-md">CCPA &amp; GDPR</span>
+</div>
+</div>
+</div>
+<!-- FAQ Section -->
+<div class="max-w-4xl mx-auto mt-unit-2xl mb-unit-xl">
+<div class="text-center mb-unit-lg">
+<h2 class="font-headline-md text-headline-md text-on-surface">Câu hỏi thường gặp</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Giải đáp chi tiết về quy trình đăng ký và sử dụng dịch vụ</p>
+</div>
+<div class="flex flex-col gap-unit-xs">
+<!-- FAQ 1 -->
+<div class="rounded-DEFAULT bg-surface-container-low p-unit-md cursor-pointer transition-colors hover:bg-surface-container" onclick="toggleFaq(1)">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">credit_card</span>
+              Những phương thức thanh toán nào được chấp nhận?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform" id="faq-icon-1">expand_more</span>
+</div>
+<div class="hidden pt-unit-xs font-body-sm text-body-sm text-on-surface-variant" id="faq-body-1">
+            Chúng tôi chấp nhận hầu hết các loại thẻ thanh toán quốc tế bao gồm Visa, MasterCard, American Express, cũng như ví điện tử Apple Pay và Google Pay. Quy trình thanh toán được xử lý bảo mật tuyệt đối qua hạ tầng Stripe.
+          </div>
+</div>
+<!-- FAQ 2 -->
+<div class="rounded-DEFAULT bg-surface-container-low p-unit-md cursor-pointer transition-colors hover:bg-surface-container" onclick="toggleFaq(2)">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">event_busy</span>
+              Tôi có thể hủy gói đăng ký bất cứ lúc nào không?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform" id="faq-icon-2">expand_more</span>
+</div>
+<div class="hidden pt-unit-xs font-body-sm text-body-sm text-on-surface-variant" id="faq-body-2">
+            Có, bạn có thể chủ động hủy gói bất cứ khi nào trong trang Cài đặt &gt; Quản lý gói cước. Sau khi hủy, tài khoản vẫn giữ nguyên các đặc quyền Plus/Team cho đến hết chu kỳ thanh toán hiện tại mà không phát sinh thêm bất kỳ chi phí nào.
+          </div>
+</div>
+<!-- FAQ 3 -->
+<div class="rounded-DEFAULT bg-surface-container-low p-unit-md cursor-pointer transition-colors hover:bg-surface-container" onclick="toggleFaq(3)">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">receipt_long</span>
+              Có hỗ trợ xuất hóa đơn VAT cho doanh nghiệp không?
+            </span>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] transition-transform" id="faq-icon-3">expand_more</span>
+</div>
+<div class="hidden pt-unit-xs font-body-sm text-body-sm text-on-surface-variant" id="faq-body-3">
+            Đối với gói Team và gói Pro, hệ thống tự động cung cấp hóa đơn thương mại điện tử (Invoice) có mã số thuế theo yêu cầu của doanh nghiệp để kê khai chi phí hợp lệ. Bạn chỉ cần nhập thông tin công ty trong mục cài đặt thanh toán.
+          </div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    function toggleFaq(index) {
+      var body = document.getElementById('faq-body-' + index);
+      var icon = document.getElementById('faq-icon-' + index);
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        icon.classList.add('rotate-180');
+      } else {
+        body.classList.add('hidden');
+        icon.classList.remove('rotate-180');
+      }
+    }
+
+    function switchBilling(cycle) {
+      var btnMonthly = document.getElementById('btn-monthly');
+      var btnAnnual = document.getElementById('btn-annual');
+      var pricePlus = document.getElementById('price-plus');
+      var priceTeam = document.getElementById('price-team');
+
+      if (cycle === 'annual') {
+        btnAnnual.classList.add('bg-surface-container-highest', 'text-on-surface');
+        btnAnnual.classList.remove('text-on-surface-variant');
+        btnMonthly.classList.remove('bg-surface-container-highest', 'text-on-surface');
+        btnMonthly.classList.add('text-on-surface-variant');
+        pricePlus.innerText = '$16.60';
+        priceTeam.innerText = '$20 - $160';
+      } else {
+        btnMonthly.classList.add('bg-surface-container-highest', 'text-on-surface');
+        btnMonthly.classList.remove('text-on-surface-variant');
+        btnAnnual.classList.remove('bg-surface-container-highest', 'text-on-surface');
+        btnAnnual.classList.add('text-on-surface-variant');
+        pricePlus.innerText = '$20';
+        priceTeam.innerText = '$25 - $200';
+      }
+    }
+  </script>
+</div></main></div></body></html>

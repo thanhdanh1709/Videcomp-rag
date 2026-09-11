@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "tertiary-container": "#dc7265",
+          "tertiary-fixed-dim": "#ffb4aa",
+          "error": "#ffb4ab",
+          "on-tertiary": "#5f140f",
+          "surface-container-low": "#1b1c1c",
+          "surface-container-highest": "#353535",
+          "primary": "#61dbb4",
+          "on-error-container": "#ffdad6",
+          "tertiary": "#ffb4aa",
+          "surface-container-high": "#2a2a2a",
+          "primary-fixed": "#7ff8cf",
+          "background": "#131313",
+          "on-tertiary-fixed-variant": "#7e2b22",
+          "surface-variant": "#353535",
+          "outline-variant": "#3d4a44",
+          "on-surface-variant": "#bccac2",
+          "surface-tint": "#61dbb4",
+          "on-primary-fixed": "#002117",
+          "secondary-fixed-dim": "#c6c6c6",
+          "on-background": "#e5e2e1",
+          "secondary": "#c6c6c6",
+          "inverse-on-surface": "#303030",
+          "surface": "#131313",
+          "tertiary-fixed": "#ffdad5",
+          "secondary-fixed": "#e2e2e2",
+          "on-secondary-fixed-variant": "#454747",
+          "on-secondary-fixed": "#1a1c1c",
+          "outline": "#86948d",
+          "on-secondary-container": "#b4b5b5",
+          "inverse-surface": "#e5e2e1",
+          "error-container": "#93000a",
+          "on-error": "#690005",
+          "primary-fixed-dim": "#61dbb4",
+          "inverse-primary": "#006c52",
+          "on-secondary": "#2f3131",
+          "on-tertiary-fixed": "#410001",
+          "on-primary-container": "#003024",
+          "surface-bright": "#393939",
+          "secondary-container": "#454747",
+          "on-primary-fixed-variant": "#00513d",
+          "surface-container": "#202020",
+          "primary-container": "#12a480",
+          "on-tertiary-container": "#560d09",
+          "surface-dim": "#131313",
+          "surface-container-lowest": "#0e0e0e",
+          "on-surface": "#e5e2e1",
+          "on-primary": "#00382a"
+        },
+        "borderRadius": {
+          "DEFAULT": "1rem",
+          "lg": "2rem",
+          "xl": "3rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "unit-lg": "1.25rem",
+          "unit-2xs": "0.25rem",
+          "unit-md": "1rem",
+          "unit-xl": "1.5rem",
+          "unit-xs": "0.5rem",
+          "gutter-screen": "1rem",
+          "unit-2xl": "2rem",
+          "composer-height": "3.5rem",
+          "unit-sm": "0.75rem"
+        },
+        "fontFamily": {
+          "display-lg": [
+            "Inter"
+          ],
+          "label-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "label-sm": [
+            "Inter"
+          ],
+          "headline-md": [
+            "Inter"
+          ],
+          "headline-sm": [
+            "Inter"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "code-md": [
+            "JetBrains Mono"
+          ]
+        },
+        "fontSize": {
+          "display-lg": [
+            "30px",
+            {
+              "lineHeight": "36px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "label-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.01em",
+              "fontWeight": "500"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.015em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "15px",
+            {
+              "lineHeight": "22px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ],
+          "body-sm": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.005em",
+              "fontWeight": "400"
+            }
+          ],
+          "code-md": [
+            "13px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0em",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-low z-50 flex flex-col justify-between p-unit-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-unit-md"><div class="flex items-center justify-between px-unit-xs"><div class="flex items-center gap-unit-xs"><img alt="Brand logo. - Primary color: #10a37f
+- Font: inter
+- Mode: dark
+- Roundness: rounded-full
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V5mlH8cP4cFjeIJNHj96i0ABLZwPwRUB1CipwUF3B1NpOqFJhIUd68qfAcCBP3k8xwkYoKKF-qiFI1s4A4qdnMXXLBd6ogq7IZsD2oaD6HAjTODnvWUBThrCqVBhxGvXGc0bYmNQaOJp1dWRz1gJbg6n9oYQfrsVPGvVPpw869trjIjtQKtv9ephDDbkQjlLyIIK4b90nhMUnWELZIgaaBX4SWeiV0seFGYd5jWKVlL45FLhDG2V5ttSc"/><span class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">ChatGPT</span></div><button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">dock_to_left</span></button></div><div class="flex flex-col gap-unit-xs"><a class="flex items-center justify-between w-full px-unit-md py-unit-xs rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-colors" data-path="cuoc-tro-chuyen-moi" href="#"><span class="flex items-center gap-unit-xs font-label-md text-label-md"><span class="material-symbols-outlined text-[18px] text-primary">edit_square</span>Cuộc trò chuyện mới</span><span class="font-label-sm text-label-sm text-on-surface-variant">Ctrl K</span></a><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-unit-sm text-on-surface-variant text-[18px]">search</span><input class="w-full pl-9 pr-unit-md py-unit-xs rounded-full bg-surface-container text-on-surface placeholder:text-on-surface-variant text-label-sm font-label-sm outline-none focus:bg-surface-container-high transition-colors" placeholder="Tìm kiếm cuộc trò chuyện..." type="text"/></div></div><nav class="flex flex-col gap-unit-2xs" data-active-classes="bg-surface-container-high text-on-surface font-medium rounded-DEFAULT"><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="kham-pha-gpts" href="#"><span class="material-symbols-outlined text-[20px]">explore</span>Khám phá GPTs</a><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="lich-su-va-du-an" href="#"><span class="material-symbols-outlined text-[20px]">folder_open</span>Lịch sử &amp; Dự án</a><a class="flex items-center gap-unit-sm px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors font-label-md text-label-md" data-path="cai-dat" href="#"><span class="material-symbols-outlined text-[20px]">settings</span>Cài đặt</a></nav><div class="flex flex-col gap-unit-md pt-unit-xs overflow-y-auto max-h-[calc(100vh-420px)]"><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">Hôm nay</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Tối ưu kiến trúc Frontend Scaffolding</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Giải thuật Dynamic Programming Node.js</a></div><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">7 ngày qua</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Prompt Engineering cho Agent Design</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Chiến lược di chuyển CSDL Vector</a></div><div class="flex flex-col gap-unit-2xs"><span class="px-unit-sm font-label-sm text-label-sm text-outline uppercase tracking-wider">30 ngày trước</span><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Kế hoạch triển khai Microservices</a><a class="px-unit-sm py-unit-2xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-body-sm text-body-sm truncate transition-colors" data-path="cuoc-tro-chuyen-moi" href="#">Setup Tailwind CSS Design Tokens</a></div></div></div><div class="flex flex-col gap-unit-xs pt-unit-sm"><div class="flex items-center justify-between p-unit-sm rounded-DEFAULT bg-surface-container-high"><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-medium">Nâng cấp gói</span><span class="font-label-sm text-label-sm text-on-surface-variant">Mở khóa các mô hình mới nhất</span></div><a class="px-unit-sm py-unit-2xs rounded-full bg-primary-container text-on-primary-container hover:bg-primary font-label-sm text-label-sm font-medium transition-colors" data-path="cai-dat" href="#">Nâng cấp</a></div><div class="flex items-center justify-between p-unit-xs rounded-DEFAULT hover:bg-surface-container-high transition-colors cursor-pointer"><div class="flex items-center gap-unit-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-medium leading-none">Tài khoản Pro</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1">user@openai.com</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">more_horiz</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-14 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-unit-lg"><div class="flex items-center gap-unit-sm"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" type="button"><span class="font-headline-sm text-headline-sm font-semibold">ChatGPT</span><span class="font-label-md text-label-md text-on-surface-variant">4o</span><span class="material-symbols-outlined text-on-surface-variant text-[18px]">keyboard_arrow_down</span></button></div><div class="flex items-center gap-unit-sm"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-2xs rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-colors font-label-md text-label-md" type="button"><span class="material-symbols-outlined text-[18px]">ios_share</span>Chia sẻ</button><button class="flex items-center justify-center w-8 h-8 rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">tune</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-14 w-full bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Glow Background -->
+<div class="relative w-full px-unit-lg py-unit-xl max-w-7xl mx-auto space-y-unit-2xl">
+<div class="absolute -top-16 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-1/3 -right-24 w-80 h-80 bg-primary-container/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Header Section -->
+<div class="flex flex-col gap-unit-md md:flex-row md:items-end md:justify-between">
+<div class="flex flex-col gap-unit-2xs">
+<div class="flex items-center gap-unit-xs">
+<span class="px-unit-xs py-0.5 rounded-full bg-surface-container-high text-primary font-code-md text-label-sm uppercase tracking-wider">Workspace 01</span>
+<span class="text-outline text-label-sm">•</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">Đồng bộ hoá tự động</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">Lịch sử trò chuyện &amp; Dự án</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Tổ chức các cuộc trò chuyện phân loại, tài nguyên gắn kèm và không gian cộng tác AI.</p>
+</div>
+<div class="flex items-center gap-unit-sm">
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-sm rounded-full bg-surface-container-high hover:bg-surface-container-highest text-on-surface transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">drive_file_move</span>
+<span class="font-label-md text-label-md">Nhập cuộc trò chuyện</span>
+</button>
+<button class="flex items-center gap-unit-xs px-unit-md py-unit-sm rounded-full bg-primary hover:bg-primary-fixed text-on-primary font-medium transition-all shadow-md active:scale-95" id="btn-create-proj" type="button">
+<span class="material-symbols-outlined text-[18px]">create_new_folder</span>
+<span class="font-label-md text-label-md">Tạo Dự án mới</span>
+</button>
+</div>
+</div>
+<!-- Search & Filter Controls -->
+<div class="p-unit-sm rounded-DEFAULT bg-surface-container-low shadow-sm flex flex-col md:flex-row items-center justify-between gap-unit-sm">
+<div class="relative w-full md:w-96 flex items-center">
+<span class="material-symbols-outlined absolute left-unit-sm text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-unit-md py-unit-xs rounded-full bg-surface-container text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none focus:bg-surface-container-high transition-colors" id="filter-search" placeholder="Tìm theo tiêu đề, nhãn dự án hoặc tệp..." type="text"/>
+</div>
+<div class="flex items-center gap-unit-xs w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+<div class="flex items-center bg-surface-container rounded-full p-1">
+<button class="time-filter-btn px-unit-sm py-unit-2xs rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm font-medium transition-all" data-range="all" type="button">Tất cả</button>
+<button class="time-filter-btn px-unit-sm py-unit-2xs rounded-full text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-all" data-range="7d" type="button">7 ngày qua</button>
+<button class="time-filter-btn px-unit-sm py-unit-2xs rounded-full text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-all" data-range="30d" type="button">30 ngày qua</button>
+</div>
+<div class="h-5 w-[1px] bg-surface-container-highest mx-unit-xs hidden md:block"></div>
+<button class="flex items-center gap-unit-2xs px-unit-sm py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px] text-primary">tune</span>
+          Bộ lọc nâng cao
+        </button>
+</div>
+</div>
+<!-- Active Projects / Folders Overview -->
+<div class="flex flex-col gap-unit-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">folder_special</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Thư mục dự án đang hoạt động</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-code-md text-label-sm">4 Không gian</span>
+</div>
+<a class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-unit-2xs" href="#">Xem toàn bộ lưu trữ <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+</div>
+<!-- Bento Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-unit-md">
+<!-- Project Card 1 -->
+<div class="group relative flex flex-col justify-between p-unit-md rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer shadow-sm hover:shadow-md">
+<div class="flex flex-col gap-unit-sm">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">web</span>
+</div>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                2 giờ trước
+              </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Tối ưu UI/UX SaaS B2B</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">Kiến trúc hệ thống design tokens, micro-interactions &amp; luồng Onboarding khách hàng doanh nghiệp.</p>
+</div>
+</div>
+<div class="flex flex-col gap-unit-xs mt-unit-md pt-unit-xs">
+<!-- Inline Chart: Activity Level -->
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Mức độ hoạt động</span>
+<span class="font-code-md text-primary">88%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full w-[88%] transition-all"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm mt-unit-2xs">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">chat_bubble</span> 12 đoạn chat</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">attach_file</span> 8 tệp đính kèm</span>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="group relative flex flex-col justify-between p-unit-md rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer shadow-sm hover:shadow-md">
+<div class="flex flex-col gap-unit-sm">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">insights</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hôm qua</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Nghiên cứu thị trường AI 2025</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">Báo cáo tổng quan phân tích Agentic Workflows, LLM Router và xu hướng triển khai on-premise.</p>
+</div>
+</div>
+<div class="flex flex-col gap-unit-xs mt-unit-md pt-unit-xs">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Mức độ hoạt động</span>
+<span class="font-code-md text-primary">45%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full w-[45%] transition-all"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm mt-unit-2xs">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">chat_bubble</span> 5 đoạn chat</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">attach_file</span> 3 tệp đính kèm</span>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="group relative flex flex-col justify-between p-unit-md rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer shadow-sm hover:shadow-md">
+<div class="flex flex-col gap-unit-sm">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">code</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 ngày trước</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Mã nguồn React Native App</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">Cấu trúc Tailwind Expo Router, SQLite sync cơ chế offline-first và tối ưu hóa FPS.</p>
+</div>
+</div>
+<div class="flex flex-col gap-unit-xs mt-unit-md pt-unit-xs">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Mức độ hoạt động</span>
+<span class="font-code-md text-primary">92%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full w-[92%] transition-all"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm mt-unit-2xs">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">chat_bubble</span> 18 đoạn chat</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">terminal</span> Codebase sync</span>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="group relative flex flex-col justify-between p-unit-md rounded-DEFAULT bg-surface-container-low hover:bg-surface-container transition-all cursor-pointer shadow-sm hover:shadow-md">
+<div class="flex flex-col gap-unit-sm">
+<div class="flex items-start justify-between">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">movie</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Tuần trước</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold group-hover:text-primary transition-colors truncate">Kịch bản nội dung Video</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 line-clamp-2">Storyboards, Hook 3 giây chuyển đổi và kịch bản phân cảnh ngắn đa kênh TikTok/Reels.</p>
+</div>
+</div>
+<div class="flex flex-col gap-unit-xs mt-unit-md pt-unit-xs">
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span>Mức độ hoạt động</span>
+<span class="font-code-md text-primary">60%</span>
+</div>
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-1.5 rounded-full w-[60%] transition-all"></div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm mt-unit-2xs">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">chat_bubble</span> 7 đoạn chat</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">movie_edit</span> Media pack</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Batch Action Floating / Sticky Toolbar -->
+<div class="hidden sticky top-16 z-30 flex items-center justify-between px-unit-md py-unit-xs rounded-full bg-surface-container-highest/95 backdrop-blur-md shadow-xl transition-all" id="batch-toolbar">
+<div class="flex items-center gap-unit-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">checklist</span>
+<span class="font-label-md text-label-md text-on-surface"><span class="font-semibold text-primary" id="selected-count">0</span> cuộc trò chuyện đã chọn</span>
+<button class="font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface underline ml-unit-xs" id="clear-selection" type="button">Bỏ chọn</button>
+</div>
+<div class="flex items-center gap-unit-xs">
+<button class="flex items-center gap-unit-2xs px-unit-sm py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">maps_ar</span>
+          Chuyển vào thư mục
+        </button>
+<button class="flex items-center gap-unit-2xs px-unit-sm py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">download</span>
+          Xuất JSON / Markdown
+        </button>
+<button class="flex items-center gap-unit-2xs px-unit-sm py-1.5 rounded-full bg-error-container hover:bg-opacity-80 text-on-error-container font-label-sm text-label-sm transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">delete</span>
+          Xoá đã chọn
+        </button>
+</div>
+</div>
+<!-- Conversations Table / List Section -->
+<div class="flex flex-col gap-unit-sm">
+<div class="flex items-center justify-between px-unit-xs">
+<div class="flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chat</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Tất cả cuộc hội thoại</h2>
+<span class="text-on-surface-variant text-label-sm font-label-sm font-code-md">(52 bản ghi)</span>
+</div>
+<div class="flex items-center gap-unit-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Sắp xếp:</span>
+<button class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface hover:text-primary transition-colors" type="button">
+            Gần đây nhất
+            <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Modern Flat Data Table with Row Hover -->
+<div class="w-full overflow-x-auto rounded-DEFAULT bg-surface-container-low shadow-sm">
+<table class="w-full text-left text-on-surface font-body-sm text-body-sm border-collapse">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-unit-sm pl-unit-md pr-unit-xs w-10">
+<input class="rounded accent-primary bg-surface-container-highest cursor-pointer" id="select-all" type="checkbox"/>
+</th>
+<th class="py-unit-sm px-unit-sm">Tên cuộc trò chuyện</th>
+<th class="py-unit-sm px-unit-sm">Mô hình</th>
+<th class="py-unit-sm px-unit-sm">Dự án</th>
+<th class="py-unit-sm px-unit-sm">Ngày tạo</th>
+<th class="py-unit-sm px-unit-sm">Sửa đổi lần cuối</th>
+<th class="py-unit-sm pr-unit-md pl-unit-sm text-right">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y-0" id="chat-rows-container">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container transition-colors group cursor-pointer">
+<td class="py-unit-sm pl-unit-md pr-unit-xs" onclick="event.stopPropagation()">
+<input class="row-checkbox rounded accent-primary bg-surface-container-highest cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<div class="flex items-center gap-unit-xs min-w-[280px]">
+<div class="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[16px]">architecture</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-medium group-hover:text-primary transition-colors truncate">Tối ưu kiến trúc Frontend Scaffolding</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm truncate">Chiến lược micro-frontends và cache SSR hydration</span>
+</div>
+<span class="material-symbols-outlined text-primary text-[16px] shrink-0" style="font-variation-settings: 'FILL' 1;" title="Đã ghim">keep</span>
+</div>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-md text-label-sm text-primary">
+                  GPT-4o
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                  Tối ưu UI/UX SaaS
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                12 Th10, 2024
+              </td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                10 phút trước
+              </td>
+<td class="py-unit-sm pr-unit-md pl-unit-sm text-right" onclick="event.stopPropagation()">
+<div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-primary transition-colors" title="Bỏ ghim" type="button">
+<span class="material-symbols-outlined text-[18px]">keep_off</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Đổi tên" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Chia sẻ liên kết" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Lưu trữ Archive" type="button">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-error transition-colors" title="Xóa" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container transition-colors group cursor-pointer">
+<td class="py-unit-sm pl-unit-md pr-unit-xs" onclick="event.stopPropagation()">
+<input class="row-checkbox rounded accent-primary bg-surface-container-highest cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<div class="flex items-center gap-unit-xs min-w-[280px]">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[16px]">psychology</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-medium group-hover:text-primary transition-colors truncate">Giải thuật Dynamic Programming Node.js</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm truncate">Tối ưu ma trận Knapsack và đệ quy ghi nhớ cache</span>
+</div>
+</div>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-md text-label-sm text-secondary-fixed">
+                  o1-preview
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                  React Native App
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                10 Th10, 2024
+              </td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                2 giờ trước
+              </td>
+<td class="py-unit-sm pr-unit-md pl-unit-sm text-right" onclick="event.stopPropagation()">
+<div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-primary transition-colors" title="Ghim" type="button">
+<span class="material-symbols-outlined text-[18px]">keep</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Đổi tên" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Chia sẻ liên kết" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Lưu trữ Archive" type="button">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-error transition-colors" title="Xóa" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container transition-colors group cursor-pointer">
+<td class="py-unit-sm pl-unit-md pr-unit-xs" onclick="event.stopPropagation()">
+<input class="row-checkbox rounded accent-primary bg-surface-container-highest cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<div class="flex items-center gap-unit-xs min-w-[280px]">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[16px]">bar_chart</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-medium group-hover:text-primary transition-colors truncate">Chiến lược di chuyển CSDL Vector</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm truncate">Đánh giá Pinecone vs Qdrant vs pgvector</span>
+</div>
+</div>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-md text-label-sm text-secondary-fixed-dim">
+                  GPT-4o mini
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+                  Nghiên cứu AI 2025
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                08 Th10, 2024
+              </td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                Hôm qua
+              </td>
+<td class="py-unit-sm pr-unit-md pl-unit-sm text-right" onclick="event.stopPropagation()">
+<div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-primary transition-colors" title="Ghim" type="button">
+<span class="material-symbols-outlined text-[18px]">keep</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Đổi tên" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Chia sẻ liên kết" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Lưu trữ Archive" type="button">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-error transition-colors" title="Xóa" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container transition-colors group cursor-pointer">
+<td class="py-unit-sm pl-unit-md pr-unit-xs" onclick="event.stopPropagation()">
+<input class="row-checkbox rounded accent-primary bg-surface-container-highest cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<div class="flex items-center gap-unit-xs min-w-[280px]">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[16px]">campaign</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-medium group-hover:text-primary transition-colors truncate">Prompt Engineering cho Agent Design</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm truncate">ReAct Loop và định dạng JSON Function Calling</span>
+</div>
+</div>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-md text-label-sm text-primary">
+                  GPT-4o
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+                  Kịch bản Marketing
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                04 Th10, 2024
+              </td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                3 ngày trước
+              </td>
+<td class="py-unit-sm pr-unit-md pl-unit-sm text-right" onclick="event.stopPropagation()">
+<div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-primary transition-colors" title="Ghim" type="button">
+<span class="material-symbols-outlined text-[18px]">keep</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Đổi tên" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Chia sẻ liên kết" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Lưu trữ Archive" type="button">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-error transition-colors" title="Xóa" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container transition-colors group cursor-pointer">
+<td class="py-unit-sm pl-unit-md pr-unit-xs" onclick="event.stopPropagation()">
+<input class="row-checkbox rounded accent-primary bg-surface-container-highest cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<div class="flex items-center gap-unit-xs min-w-[280px]">
+<div class="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant shrink-0">
+<span class="material-symbols-outlined text-[16px]">dataset</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-medium group-hover:text-primary transition-colors truncate">Setup Tailwind CSS Design Tokens</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm truncate">Config file tailwind với theme màu &amp; fonts chuẩn M3</span>
+</div>
+</div>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-surface-container-high font-code-md text-label-sm text-secondary-fixed-dim">
+                  GPT-4o mini
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm">
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                  Chưa gán
+                </span>
+</td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                28 Th09, 2024
+              </td>
+<td class="py-unit-sm px-unit-sm text-on-surface-variant font-code-md text-label-sm">
+                5 ngày trước
+              </td>
+<td class="py-unit-sm pr-unit-md pl-unit-sm text-right" onclick="event.stopPropagation()">
+<div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-primary transition-colors" title="Ghim" type="button">
+<span class="material-symbols-outlined text-[18px]">keep</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Đổi tên" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Chia sẻ liên kết" type="button">
+<span class="material-symbols-outlined text-[18px]">link</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-on-surface transition-colors" title="Lưu trữ Archive" type="button">
+<span class="material-symbols-outlined text-[18px]">archive</span>
+</button>
+<button class="p-1 hover:bg-surface-container-highest rounded text-on-surface-variant hover:text-error transition-colors" title="Xóa" type="button">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination & Storage Footprint Meta -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-unit-sm pt-unit-xs px-unit-xs text-on-surface-variant">
+<div class="flex items-center gap-unit-xs font-body-sm text-body-sm">
+<span>Hiển thị 1-5 trong số 52 cuộc hội thoại</span>
+<span class="text-outline">•</span>
+<span class="font-code-md text-label-sm">Dung lượng sử dụng: 420.5 MB</span>
+</div>
+<div class="flex items-center gap-unit-2xs">
+<button class="p-1.5 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface disabled:opacity-30 disabled:pointer-events-none transition-colors" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="px-unit-sm py-0.5 rounded-full bg-surface-container-highest text-on-surface font-code-md text-label-sm">1</span>
+<button class="px-unit-sm py-0.5 rounded-full hover:bg-surface-container-high text-on-surface-variant font-code-md text-label-sm" type="button">2</button>
+<button class="px-unit-sm py-0.5 rounded-full hover:bg-surface-container-high text-on-surface-variant font-code-md text-label-sm" type="button">3</button>
+<button class="p-1.5 rounded-full hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Create Project Modal (Hidden by default) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden p-unit-md" id="create-modal">
+<div class="w-full max-w-lg bg-surface-container-high rounded-DEFAULT p-unit-lg shadow-2xl flex flex-col gap-unit-md border-0">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-unit-xs">
+<span class="material-symbols-outlined text-primary text-[24px]">create_new_folder</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Tạo Thư mục / Dự án mới</h3>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded-full" id="close-modal" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-unit-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium">Tên dự án</label>
+<input class="w-full px-unit-md py-unit-xs rounded-full bg-surface-container text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none focus:ring-1 focus:ring-primary" placeholder="Ví dụ: Tái cấu trúc API v2..." type="text"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium">Mô tả mục tiêu</label>
+<textarea class="w-full p-unit-sm rounded-DEFAULT bg-surface-container text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none resize-none focus:ring-1 focus:ring-primary" placeholder="Mục đích, phạm vi ngữ cảnh và tài liệu đính kèm..." rows="3"></textarea>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium">Chọn màu biểu tượng</label>
+<div class="flex items-center gap-unit-xs pt-1">
+<span class="w-6 h-6 rounded-full bg-primary ring-2 ring-primary ring-offset-2 ring-offset-surface-container-high cursor-pointer"></span>
+<span class="w-6 h-6 rounded-full bg-tertiary cursor-pointer"></span>
+<span class="w-6 h-6 rounded-full bg-secondary cursor-pointer"></span>
+<span class="w-6 h-6 rounded-full bg-primary-fixed cursor-pointer"></span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-end gap-unit-xs pt-unit-xs">
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-highest text-on-surface font-label-md text-label-md transition-colors" id="cancel-modal" type="button">Hủy bỏ</button>
+<button class="px-unit-md py-unit-xs rounded-full bg-primary hover:bg-primary-fixed text-on-primary font-label-md text-label-md font-medium transition-colors" id="confirm-modal" type="button">Tạo không gian</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Selection and Floating Action Bar Logic
+  const selectAll = document.getElementById('select-all');
+  const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+  const batchToolbar = document.getElementById('batch-toolbar');
+  const selectedCount = document.getElementById('selected-count');
+  const clearSelectionBtn = document.getElementById('clear-selection');
+
+  function updateToolbar() {
+    const checked = document.querySelectorAll('.row-checkbox:checked').length;
+    if (checked > 0) {
+      batchToolbar.classList.remove('hidden');
+      selectedCount.textContent = checked;
+    } else {
+      batchToolbar.classList.add('hidden');
+    }
+  }
+
+  if (selectAll) {
+    selectAll.addEventListener('change', (e) => {
+      rowCheckboxes.forEach((cb) => {
+        cb.checked = e.target.checked;
+      });
+      updateToolbar();
+    });
+  }
+
+  rowCheckboxes.forEach((cb) => {
+    cb.addEventListener('change', () => {
+      const allChecked = Array.from(rowCheckboxes).every((c) => c.checked);
+      if (selectAll) {
+        selectAll.checked = allChecked;
+      }
+      updateToolbar();
+    });
+  });
+
+  if (clearSelectionBtn) {
+    clearSelectionBtn.addEventListener('click', () => {
+      rowCheckboxes.forEach((cb) => {
+        cb.checked = false;
+      });
+      if (selectAll) selectAll.checked = false;
+      updateToolbar();
+    });
+  }
+
+  // Time filter pills
+  const filterBtns = document.querySelectorAll('.time-filter-btn');
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach((b) => {
+        b.classList.remove('bg-surface-container-highest', 'text-on-surface', 'font-medium');
+        b.classList.add('text-on-surface-variant');
+      });
+      btn.classList.add('bg-surface-container-highest', 'text-on-surface', 'font-medium');
+      btn.classList.remove('text-on-surface-variant');
+    });
+  });
+
+  // Modal interactions
+  const btnCreateProj = document.getElementById('btn-create-proj');
+  const createModal = document.getElementById('create-modal');
+  const closeModal = document.getElementById('close-modal');
+  const cancelModal = document.getElementById('cancel-modal');
+  const confirmModal = document.getElementById('confirm-modal');
+
+  function toggleModal(show) {
+    if (show) {
+      createModal.classList.remove('hidden');
+    } else {
+      createModal.classList.add('hidden');
+    }
+  }
+
+  if (btnCreateProj) btnCreateProj.addEventListener('click', () => toggleModal(true));
+  if (closeModal) closeModal.addEventListener('click', () => toggleModal(false));
+  if (cancelModal) cancelModal.addEventListener('click', () => toggleModal(false));
+  if (confirmModal) confirmModal.addEventListener('click', () => toggleModal(false));
+</script></main></div></body></html>

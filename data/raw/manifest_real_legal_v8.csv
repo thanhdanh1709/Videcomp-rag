@@ -1,0 +1,5 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+LUAT_15_2023_KBCB,legal,https://xaydungchinhsach.chinhphu.vn/toan-van-luat-15-2023-qh15-kham-benh-chua-benh-119231127164453959.htm,data/raw/legal/LUAT_15_2023_KBCB.html,2026-09-08,official-public-html
+LUAT_55_2010_ATTP,legal,https://congbao.chinhphu.vn/van-ban/luat-so-55-2010-qh12-562.htm,data/raw/legal/LUAT_55_2010_ATTP.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_BHYT_HOPNHAT_40VBHN,legal,https://congbao.chinhphu.vn/van-ban/van-ban-hop-nhat-so-40-vbhn-vpqh-469125.htm,data/raw/legal/LUAT_BHYT_HOPNHAT_40VBHN.pdf,2026-09-08,official-public-consolidated-text
+LUAT_114_2025_PHONGBENH,legal,https://vanban.chinhphu.vn/?pageid=27160&docid=216498&classid=1&typegroupid=3,data/raw/legal/LUAT_114_2025_PHONGBENH.pdf,2026-09-08,official-public-gazette-pdf

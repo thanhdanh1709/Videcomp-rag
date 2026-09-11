@@ -1,0 +1,5 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+LUAT_72_2020_BVMT_P1,legal,https://congbao.chinhphu.vn/van-ban/luat-so-72-2020-qh14-32703.htm,data/raw/legal/LUAT_72_2020_BVMT_P1.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_72_2020_BVMT_P2,legal,https://congbao.chinhphu.vn/van-ban/luat-so-72-2020-qh14-32703.htm,data/raw/legal/LUAT_72_2020_BVMT_P2.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_16_2017_LAMNGHIEP,legal,https://congbao.chinhphu.vn/van-ban/luat-so-16-2017-qh14-25345.htm,data/raw/legal/LUAT_16_2017_LAMNGHIEP.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_20_2008_DDSH_HOPNHAT,legal,https://congbao.chinhphu.vn/van-ban/van-ban-hop-nhat-so-73-vbhn-vpqh-469203.htm,data/raw/legal/LUAT_20_2008_DDSH_HOPNHAT.pdf,2026-09-08,official-public-consolidated-text

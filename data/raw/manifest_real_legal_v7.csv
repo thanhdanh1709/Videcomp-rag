@@ -1,0 +1,11 @@
+source_id,domain,source_url,local_path,retrieved_at,license_note
+LUAT_18_2017_THUYSAN,legal,https://congbao.chinhphu.vn/van-ban/luat-so-18-2017-qh14-25319.htm,data/raw/legal/LUAT_18_2017_THUYSAN.pdf,2026-09-08,official-public-gazette-pdf
+ND_06_2019_DVTVRUNG,legal,https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-06-2019-nd-cp-28311.htm,data/raw/legal/ND_06_2019_DVTVRUNG.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_31_2024_DATDAI,legal,https://xaydungchinhsach.chinhphu.vn/toan-van-luat-dat-dai-119240221224513596.htm,data/raw/legal/LUAT_31_2024_DATDAI.html,2026-09-08,official-public-html
+LUAT_38_2019_QLTHUE_P1,legal,https://congbao.chinhphu.vn/van-ban/luat-so-38-2019-qh14-29256/27294.htm,data/raw/legal/LUAT_38_2019_QLTHUE_P1.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_38_2019_QLTHUE_P2,legal,https://congbao.chinhphu.vn/van-ban/luat-so-38-2019-qh14-29256/27294.htm,data/raw/legal/LUAT_38_2019_QLTHUE_P2.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_59_2020_DOANHNGHIEP_P1,legal,https://congbao.chinhphu.vn/van-ban/luat-so-59-2020-qh14-31674.htm,data/raw/legal/LUAT_59_2020_DOANHNGHIEP_P1.pdf,2026-09-08,official-public-gazette-pdf
+LUAT_59_2020_DOANHNGHIEP_P2,legal,https://congbao.chinhphu.vn/van-ban/luat-so-59-2020-qh14-31674.htm,data/raw/legal/LUAT_59_2020_DOANHNGHIEP_P2.pdf,2026-09-08,official-public-gazette-pdf
+ND_45_2022_XPVPHC_MOITRUONG_P1,legal,https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-45-2022-nd-cp-37540.htm,data/raw/legal/ND_45_2022_XPVPHC_MOITRUONG_P1.pdf,2026-09-08,official-public-gazette-pdf
+ND_45_2022_XPVPHC_MOITRUONG_P2,legal,https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-45-2022-nd-cp-37540.htm,data/raw/legal/ND_45_2022_XPVPHC_MOITRUONG_P2.pdf,2026-09-08,official-public-gazette-pdf
+ND_45_2022_XPVPHC_MOITRUONG_P3,legal,https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-45-2022-nd-cp-37540.htm,data/raw/legal/ND_45_2022_XPVPHC_MOITRUONG_P3.pdf,2026-09-08,official-public-gazette-pdf

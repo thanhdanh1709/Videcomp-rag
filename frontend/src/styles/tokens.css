@@ -1,0 +1,92 @@
+/* Design tokens matching GiaoDien/conversational_clarity/DESIGN.md */
+:root {
+  /* Conversational Clarity Palette */
+  --surface: #131313;
+  --surface-dim: #131313;
+  --surface-bright: #393939;
+  --surface-container-lowest: #0e0e0e;
+  --surface-container-low: #1b1c1c;
+  --surface-container: #202020;
+  --surface-container-high: #2a2a2a;
+  --surface-container-highest: #353535;
+
+  --on-surface: #e5e2e1;
+  --on-surface-variant: #bccac2;
+  --inverse-surface: #e5e2e1;
+  --inverse-on-surface: #303030;
+  --outline: #86948d;
+  --outline-variant: #3d4a44;
+
+  /* Primary Brand - Mint Emerald */
+  --primary: #61dbb4;
+  --on-primary: #00382a;
+  --primary-container: #12a480;
+  --on-primary-container: #003024;
+  --inverse-primary: #006c52;
+  --primary-fixed: #7ff8cf;
+  --primary-fixed-dim: #61dbb4;
+
+  /* Legacy variable mappings for seamless compatibility */
+  --chat-canvas-bg: #131313;
+  --chat-sidebar-bg: #1b1c1c;
+  --chat-sidebar-hover: #202020;
+  --chat-sidebar-active: #2a2a2a;
+  --chat-composer-bg: #202020;
+  --chat-user-bubble: #202020;
+  --chat-card-bg: #1b1c1c;
+  --chat-card-hover: #202020;
+  --chat-code-bg: #0e0e0e;
+  --chat-modal-bg: #1b1c1c;
+  --chat-popover-bg: #2a2a2a;
+
+  --chat-brand-green: #61dbb4;
+  --chat-brand-green-hover: #12a480;
+  --chat-brand-green-light: #7ff8cf;
+
+  --text-primary: #e5e2e1;
+  --text-secondary: #bccac2;
+  --text-muted: #86948d;
+  --text-dim: #66726c;
+
+  /* Borders & Dividers */
+  --chat-hairline: rgba(255, 255, 255, 0.08);
+  --chat-hairline-bright: rgba(255, 255, 255, 0.16);
+  --border-subtle: rgba(255, 255, 255, 0.1);
+
+  /* Status Colors */
+  --status-supported: #61dbb4;
+  --status-unsupported: #ffb4ab;
+  --status-insufficient: #ffdad5;
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+
+  /* Typography */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  /* Shape & Radii */
+  --radius-sm: 0.5rem;
+  --radius-DEFAULT: 1rem;
+  --radius-md: 1.5rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+
+  /* Spacings */
+  --unit-2xs: 0.25rem;
+  --unit-xs: 0.5rem;
+  --unit-sm: 0.75rem;
+  --unit-md: 1rem;
+  --unit-lg: 1.25rem;
+  --unit-xl: 1.5rem;
+  --unit-2xl: 2rem;
+  --gutter-screen: 1rem;
+  --composer-height: 3.5rem;
+
+  /* Shadows & Glows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.65);
+  --shadow-glow: 0 0 32px rgba(97, 219, 180, 0.25);
+}

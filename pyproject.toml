@@ -1,0 +1,9 @@
+[project]
+name = "videcomp-rag"
+version = "0.1.0"
+description = "Query Decomposition cho Multi-hop QA tren du lieu tieng Viet chuyen nganh (phap luat / y te)."
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

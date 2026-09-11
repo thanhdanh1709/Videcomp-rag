@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-container-high":"#2a2a2a","on-surface":"#e5e2e1","on-error-container":"#ffdad6","secondary-fixed-dim":"#c6c6c6","surface-container":"#202020","on-surface-variant":"#bccac2","surface":"#131313","secondary":"#c6c6c6","primary":"#61dbb4","on-background":"#e5e2e1","on-secondary-container":"#b4b5b5","primary-fixed":"#7ff8cf","inverse-on-surface":"#303030","on-primary-container":"#003024","surface-container-low":"#1b1c1c","on-tertiary-fixed-variant":"#7e2b22","surface-tint":"#61dbb4","surface-variant":"#353535","secondary-fixed":"#e2e2e2","error-container":"#93000a","tertiary-container":"#dc7265","primary-container":"#12a480","tertiary-fixed-dim":"#ffb4aa","tertiary-fixed":"#ffdad5","surface-container-lowest":"#0e0e0e","on-secondary-fixed":"#1a1c1c","on-primary-fixed-variant":"#00513d","outline-variant":"#3d4a44","secondary-container":"#454747","tertiary":"#ffb4aa","inverse-surface":"#e5e2e1","surface-bright":"#393939","on-primary-fixed":"#002117","on-secondary-fixed-variant":"#454747","error":"#ffb4ab","on-secondary":"#2f3131","on-primary":"#00382a","primary-fixed-dim":"#61dbb4","surface-container-highest":"#353535","background":"#131313","on-tertiary-fixed":"#410001","on-tertiary-container":"#560d09","on-tertiary":"#5f140f","on-error":"#690005","surface-dim":"#131313","inverse-primary":"#006c52","outline":"#86948d"},"borderRadius":{"DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px"},"spacing":{"unit-xs":"0.5rem","composer-height":"3.5rem","unit-2xs":"0.25rem","unit-md":"1rem","unit-2xl":"2rem","unit-xl":"1.5rem","unit-sm":"0.75rem","gutter-screen":"1rem","unit-lg":"1.25rem"},"fontFamily":{"code-md":["JetBrains Mono"],"display-lg":["Inter"],"headline-sm":["Inter"],"label-sm":["Inter"],"label-md":["Inter"],"body-md":["Inter"],"headline-md":["Inter"],"body-lg":["Inter"],"body-sm":["Inter"]},"fontSize":{"code-md":["13px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"400"}],"display-lg":["30px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"label-md":["14px",{"lineHeight":"20px","letterSpacing":"0em","fontWeight":"500"}],"body-md":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-md":["22px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"400"}],"body-sm":["13px",{"lineHeight":"18px","letterSpacing":"0.005em","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-screen w-[260px] bg-surface-container-low z-50 flex flex-col justify-between p-unit-sm select-none"><div class="flex flex-col gap-unit-xs min-h-0"><div class="flex items-center justify-between px-unit-xs py-unit-2xs"><a class="flex items-center gap-unit-xs" data-path="chat-phan-tich-du-lieu-uiux" href="#"><img alt="ChatGPT Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1V5mlH8cP4cFjeIJNHj96i0ABLZwPwRUB1CipwUF3B1NpOqFJhIUd68qfAcCBP3k8xwkYoKKF-qiFI1s4A4qdnMXXLBd6ogq7IZsD2oaD6HAjTODnvWUBThrCqVBhxGvXGc0bYmNQaOJp1dWRz1gJbg6n9oYQfrsVPGvVPpw869trjIjtQKtv9ephDDbkQjlLyIIK4b90nhMUnWELZIgaaBX4SWeiV0seFGYd5jWKVlL45FLhDG2V5ttSc"/><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">ChatGPT</span></a><div class="flex items-center gap-unit-2xs"><button class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" title="Đóng thanh bên" type="button"><span class="material-symbols-outlined text-[20px]">dock_to_left</span></button><a class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors flex items-center justify-center" data-path="chat-phan-tich-du-lieu-uiux" href="#" title="Cuộc trò chuyện mới"><span class="material-symbols-outlined text-[20px]">edit_square</span></a></div></div><div class="mt-unit-xs px-unit-2xs"><button class="w-full flex items-center justify-between px-unit-sm py-unit-xs rounded-DEFAULT bg-surface-container hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors text-left" type="button"><div class="flex items-center gap-unit-xs"><span class="material-symbols-outlined text-[18px]">search</span><span class="font-label-md text-label-md">Tìm kiếm đoạn chat</span></div><span class="font-label-sm text-label-sm text-outline px-unit-2xs py-[2px] bg-surface-container-lowest rounded-full">Ctrl K</span></button></div><div class="px-unit-2xs pt-unit-xs"><nav class="flex flex-col gap-1" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><a class="flex items-center px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-colors" data-path="kham-pha-gpts" href="#">Khám phá GPTs</a><a class="flex items-center px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-label-md text-label-md transition-colors" data-path="lich-su-va-du-an" href="#">Lịch sử &amp; Dự án</a><a aria-current="page" class="flex items-center px-unit-sm py-unit-xs rounded-DEFAULT transition-colors bg-surface-container-highest text-on-surface font-semibold" data-path="cai-dat" href="#">Cài đặt</a></nav></div><div class="overflow-y-auto mt-unit-xs flex-1 pr-unit-2xs space-y-unit-md"><nav class="space-y-unit-2xs" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><div class="px-unit-xs py-unit-2xs font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">Hôm nay</div><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-phan-tich-du-lieu-uiux" href="#">Phân tích dữ liệu UI/UX</a><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-toi-uu-hoa-truy-van-sql" href="#">Tối ưu hoá truy vấn SQL</a></nav><nav class="space-y-unit-2xs" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><div class="px-unit-xs py-unit-2xs font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">7 ngày qua</div><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-y-tuong-kich-ban-video" href="#">Ý tưởng kịch bản video</a></nav><nav class="space-y-unit-2xs" data-active-classes="bg-surface-container-highest text-on-surface font-semibold"><div class="px-unit-xs py-unit-2xs font-label-sm text-label-sm text-outline uppercase tracking-wider font-semibold">30 ngày trước</div><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-lap-ke-hoach-du-lich-da-lat" href="#">Lập kế hoạch du lịch Đà Lạt</a><a class="block px-unit-sm py-unit-xs rounded-DEFAULT text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors truncate font-label-md text-label-md" data-path="chat-cau-truc-du-an-react-native" href="#">Cấu trúc dự án React Native</a></nav></div></div><div class="flex flex-col gap-unit-xs pt-unit-xs"><a class="flex items-center gap-unit-xs px-unit-sm py-unit-xs rounded-DEFAULT bg-surface-container hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" data-path="pricing-upgrade" href="#"><div class="p-unit-2xs rounded-full bg-primary-container text-on-primary-container flex items-center justify-center"><span class="material-symbols-outlined text-[18px]">auto_awesome</span></div><div class="flex flex-col min-w-0"><span class="font-label-md text-label-md font-semibold truncate">Nâng cấp gói</span><span class="font-label-sm text-label-sm text-outline truncate">Mở khóa các mô hình tân tiến</span></div></a><a class="w-full flex items-center justify-between px-unit-xs py-unit-xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" data-path="cai-dat" href="#"><div class="flex items-center gap-unit-xs"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col text-left"><span class="font-label-md text-label-md font-semibold text-on-surface truncate max-w-[130px]">Người dùng</span><span class="font-label-sm text-label-sm text-outline truncate">Gói miễn phí</span></div></div><span class="material-symbols-outlined text-outline text-[18px]">settings</span></a></div></aside><div class="pl-[260px]"><header class="fixed top-0 left-[260px] right-0 h-14 bg-surface/90 backdrop-blur-xl z-40 flex items-center justify-between px-unit-lg"><div class="flex items-center gap-unit-sm"><button class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" title="Thu gọn thanh bên" type="button"><span class="material-symbols-outlined text-[22px]">menu_open</span></button><button class="flex items-center gap-unit-2xs px-unit-sm py-unit-xs rounded-DEFAULT hover:bg-surface-container-high hover:text-on-surface text-on-surface transition-colors" type="button"><span class="font-headline-sm text-headline-sm font-semibold">ChatGPT</span><span class="font-label-sm text-label-sm text-primary px-unit-2xs py-[2px] bg-primary-container/20 rounded-full font-semibold">4o</span><span class="material-symbols-outlined text-outline text-[18px]">expand_more</span></button></div><div class="flex items-center gap-unit-xs"><button class="flex items-center gap-unit-xs px-unit-sm py-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" type="button"><span class="material-symbols-outlined text-[18px]">ios_share</span><span class="font-label-md text-label-md hidden sm:inline">Chia sẻ</span></button><button class="p-unit-xs rounded-full hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant transition-colors" title="Đoạn chat tạm thời" type="button"><span class="material-symbols-outlined text-[20px]">history_toggle_off</span></button><a class="w-8 h-8 rounded-full bg-primary flex items-center justify-center hover:opacity-90 transition-opacity" data-path="cai-dat" href="#" title="Cài đặt &amp; Tài khoản"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></a></div></header><main class="relative pt-14 bg-surface min-h-screen w-full"><div class="flex flex-col w-full">
+<div class="relative w-full min-h-[calc(100vh-3.5rem)] flex items-center justify-center p-unit-md md:p-unit-xl">
+<!-- Ambient Backdrop Layer with subtle glow -->
+<div class="absolute inset-0 bg-surface-container-lowest/80 backdrop-blur-md pointer-events-none z-0"></div>
+<div class="absolute w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none -top-20 right-1/4"></div>
+<!-- Main Settings Dialog Modal Hub -->
+<div class="relative z-10 w-full max-w-5xl h-[680px] bg-surface-container-low rounded-xl shadow-2xl flex flex-col overflow-hidden text-on-surface">
+<!-- Top Modal Header -->
+<div class="flex items-center justify-between px-unit-xl py-unit-md bg-surface-container-low">
+<div class="flex items-center gap-unit-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Cài đặt</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Quản lý tùy chọn trải nghiệm, dữ liệu cá nhân và bảo mật tài khoản</p>
+</div>
+</div>
+<button class="w-9 h-9 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" onclick="history.back()" title="Đóng cài đặt" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Settings Body: Split Panel Architecture -->
+<div class="flex flex-1 min-h-0 overflow-hidden bg-surface-container-low">
+<!-- Left Navigation Sidebar -->
+<nav class="w-64 flex flex-col py-unit-xs px-unit-sm bg-surface-container-lowest/50 select-none overflow-y-auto gap-1">
+<button class="tab-button w-full flex items-center gap-unit-sm px-unit-md py-unit-sm rounded-DEFAULT text-left font-label-md text-label-md font-semibold bg-surface-container-highest text-on-surface transition-colors" id="btn-tab-general" onclick="switchTab('tab-general')" type="button">
+<span class="material-symbols-outlined text-[20px] text-primary">settings</span>
+<span class="truncate">Chung</span>
+</button>
+<button class="tab-button w-full flex items-center gap-unit-sm px-unit-md py-unit-sm rounded-DEFAULT text-left font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" id="btn-tab-personalization" onclick="switchTab('tab-personalization')" type="button">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+<span class="truncate">Cá nhân hoá</span>
+</button>
+<button class="tab-button w-full flex items-center gap-unit-sm px-unit-md py-unit-sm rounded-DEFAULT text-left font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" id="btn-tab-data" onclick="switchTab('tab-data')" type="button">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="truncate">Kiểm soát dữ liệu</span>
+</button>
+<button class="tab-button w-full flex items-center justify-between px-unit-md py-unit-sm rounded-DEFAULT text-left font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" id="btn-tab-billing" onclick="switchTab('tab-billing')" type="button">
+<div class="flex items-center gap-unit-sm min-w-0">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+<span class="truncate">Tài khoản &amp; Gói</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-[1px] bg-primary-container/20 text-primary rounded-full font-medium">Plus</span>
+</button>
+<button class="tab-button w-full flex items-center gap-unit-sm px-unit-md py-unit-sm rounded-DEFAULT text-left font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" id="btn-tab-beta" onclick="switchTab('tab-beta')" type="button">
+<span class="material-symbols-outlined text-[20px]">science</span>
+<span class="truncate">Tính năng thử nghiệm</span>
+</button>
+<button class="tab-button w-full flex items-center gap-unit-sm px-unit-md py-unit-sm rounded-DEFAULT text-left font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" id="btn-tab-security" onclick="switchTab('tab-security')" type="button">
+<span class="material-symbols-outlined text-[20px]">shield</span>
+<span class="truncate">Bảo mật</span>
+</button>
+<!-- Storage Meter Widget on Sidebar Footer -->
+<div class="mt-auto p-unit-sm rounded-DEFAULT bg-surface-container/70 flex flex-col gap-unit-xs">
+<div class="flex justify-between items-center text-on-surface-variant font-label-sm text-label-sm">
+<span class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+                Bộ nhớ ngữ cảnh
+              </span>
+<span class="text-on-surface font-semibold">42%</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 42%;"></div>
+</div>
+<span class="font-code-md text-[11px] text-outline">18.4 / 45 KB đã lưu</span>
+</div>
+</nav>
+<!-- Right Content Panels Area -->
+<div class="flex-1 overflow-y-auto px-unit-xl py-unit-lg bg-surface min-w-0 space-y-unit-lg">
+<!-- TAB 1: CHUNG (GENERAL) -->
+<div class="tab-content flex flex-col gap-unit-xl" id="tab-general">
+<!-- Section: Giao diện -->
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Giao diện &amp; Hiển thị</span>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Chủ đề giao diện</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tùy chỉnh tông màu hiển thị của ứng dụng trên thiết bị này</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-surface-container-high text-on-surface font-label-md text-label-md pl-unit-md pr-9 py-unit-xs rounded-full cursor-pointer hover:bg-surface-variant focus:outline-none">
+<option selected="">Tối (Mặc định)</option>
+<option>Sáng (Light)</option>
+<option>Theo hệ điều hành</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[18px]">expand_more</span>
+</div>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Ngôn ngữ giao diện</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ngôn ngữ hiển thị cho các nút bấm, mô tả và hệ thống</span>
+</div>
+<div class="relative">
+<select class="appearance-none bg-surface-container-high text-on-surface font-label-md text-label-md pl-unit-md pr-9 py-unit-xs rounded-full cursor-pointer hover:bg-surface-variant focus:outline-none">
+<option selected="">Tiếng Việt (Vietnamese)</option>
+<option>English (US)</option>
+<option>Français</option>
+<option>日本語</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+<!-- Section: Âm thanh & Phản hồi -->
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Âm thanh &amp; Giọng nói</span>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Giọng đọc mô hình (Voice)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Giọng điệu khi trò chuyện trực tiếp qua chế độ thoại nâng cao</span>
+</div>
+<div class="flex items-center gap-unit-xs">
+<button class="w-8 h-8 rounded-full bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Nghe thử" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<div class="relative">
+<select class="appearance-none bg-surface-container-high text-on-surface font-label-md text-label-md pl-unit-md pr-9 py-unit-xs rounded-full cursor-pointer hover:bg-surface-variant focus:outline-none">
+<option selected="">Breeze (Ấm áp, tự nhiên)</option>
+<option>Cove (Trầm ấm, thư thái)</option>
+<option>Ember (Rõ ràng, dứt khoát)</option>
+<option>Juniper (Sôi nổi, biểu cảm)</option>
+<option>Maple (Nhẹ nhàng, từ tốn)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-[18px]">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Hiệu ứng âm thanh</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Phát tiếng ting nhẹ khi tạo xong mã hoặc phản hồi xong</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input checked="" class="sr-only peer" id="toggle-sound" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+<!-- Section: Quản lý cuộc trò chuyện -->
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Lưu trữ &amp; Dọn dẹp</span>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Kho lưu trữ đoạn chat (Archive)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Quản lý và phục hồi các cuộc hội thoại đã được ẩn khỏi thanh bên</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Quản lý (14)
+                </button>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Lưu trữ tất cả đoạn chat</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Đưa toàn bộ lịch sử trò chuyện hiện tại vào kho lưu trữ an toàn</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Lưu trữ tất cả
+                </button>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-error">Xoá tất cả đoạn chat</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hành động này sẽ xóa vĩnh viễn toàn bộ tin nhắn và không thể khôi phục</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-error-container/20 hover:bg-error-container text-error hover:text-on-error-container font-label-md text-label-md font-medium transition-colors flex items-center gap-1" onclick="confirmDeleteAll()" type="button">
+<span class="material-symbols-outlined text-[16px]">delete_forever</span>
+<span>Xoá tất cả</span>
+</button>
+</div>
+</div>
+</div>
+<!-- TAB 2: CÁ NHÂN HOÁ (PERSONALIZATION) -->
+<div class="tab-content hidden flex flex-col gap-unit-xl" id="tab-personalization">
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Tùy biến hành vi AI</span>
+<!-- Custom Instructions Card -->
+<div class="p-unit-lg rounded-DEFAULT bg-surface-container flex flex-col gap-unit-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-unit-sm">
+<div class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">edit_note</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Hướng dẫn tùy chỉnh (Custom Instructions)</span>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-primary-container text-on-primary-container font-semibold">Đang bật</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Cung cấp ngữ cảnh về nghề nghiệp, phong cách trả lời yêu thích và các quy tắc để ChatGPT ghi nhớ xuyên suốt mọi phiên trò chuyện.
+                </p>
+<!-- Prompt preview 1 -->
+<div class="flex flex-col gap-unit-2xs">
+<label class="font-label-sm text-label-sm text-outline font-semibold">Bạn muốn ChatGPT biết điều gì về bạn?</label>
+<div class="p-unit-sm rounded-DEFAULT bg-surface-container-lowest font-body-sm text-body-sm text-on-surface select-none">
+                    "Tôi là Senior Product Designer chuyên xây dựng hệ thống UI/UX cho ứng dụng SaaS &amp; Mobile. Tôi ưa chuộng sự ngắn gọn, cấu trúc rõ ràng và các giải pháp logic bám sát design tokens."
+                  </div>
+</div>
+<!-- Prompt preview 2 -->
+<div class="flex flex-col gap-unit-2xs">
+<label class="font-label-sm text-label-sm text-outline font-semibold">Bạn muốn ChatGPT phản hồi như thế nào?</label>
+<div class="p-unit-sm rounded-DEFAULT bg-surface-container-lowest font-body-sm text-body-sm text-on-surface select-none">
+                    "Trả lời súc tích, ưu tiên code mẫu sạch, không lặp lại câu hỏi. Trực diện và đưa ra các đề xuất thiết kế sắc bén theo chuẩn Material Design &amp; Tailwind CSS."
+                  </div>
+</div>
+<div class="flex justify-end gap-unit-xs pt-unit-xs">
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-md text-label-md transition-colors" type="button">
+                    Chỉnh sửa hướng dẫn
+                  </button>
+</div>
+</div>
+</div>
+<!-- Memory Section -->
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Bộ nhớ thích ứng (Memory)</span>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Bộ nhớ thông minh</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cho phép ChatGPT ghi nhớ các sở thích, dự án và ngữ cảnh bạn đã chia sẻ để cải thiện câu trả lời tương lai</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Quản lý các sự kiện đã ghi nhớ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Xem, chỉnh sửa hoặc xóa từng ký ức cụ thể mà ChatGPT đang nắm giữ</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Quản lý (28 mục)
+                </button>
+</div>
+</div>
+</div>
+<!-- TAB 3: KIỂM SOÁT DỮ LIỆU (DATA CONTROLS) -->
+<div class="tab-content hidden flex flex-col gap-unit-xl" id="tab-data">
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Quyền riêng tư &amp; Dữ liệu</span>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Lịch sử trò chuyện &amp; Đào tạo mô hình</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Lưu các đoạn chat mới vào thanh bên và cho phép sử dụng ẩn danh để cải tiến mô hình AI</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Liên kết chia sẻ (Shared Links)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Xem lại danh sách tất cả các đường link hội thoại bạn từng tạo công khai</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Quản lý liên kết
+                </button>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Xuất toàn bộ dữ liệu</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tải về bản sao lịch sử hội thoại, thông tin tài khoản và cấu hình dưới định dạng JSON/HTML qua email</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Xuất dữ liệu
+                </button>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-error">Xóa tài khoản</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hủy vĩnh viễn tài khoản ChatGPT, gói đăng ký và toàn bộ thông tin liên kết</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-error-container/20 hover:bg-error-container text-error hover:text-on-error-container font-label-md text-label-md font-medium transition-colors" type="button">
+                  Xóa tài khoản
+                </button>
+</div>
+</div>
+</div>
+<!-- TAB 4: TÀI KHOẢN & GÓI CƯỚC (BILLING) -->
+<div class="tab-content hidden flex flex-col gap-unit-xl" id="tab-billing">
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Tình trạng gói cước</span>
+<div class="p-unit-lg rounded-DEFAULT bg-surface-container flex flex-col md:flex-row md:items-center justify-between gap-unit-md">
+<div class="flex items-start gap-unit-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[28px]">auto_awesome</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-unit-xs">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">ChatGPT Plus</h2>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 rounded-full bg-primary text-on-primary font-semibold">Đang hoạt động</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Truy cập không giới hạn GPT-4o, phân tích dữ liệu nâng cao và tạo hình ảnh DALL·E</p>
+<span class="font-code-md text-code-md text-outline mt-unit-2xs">$20.00 / tháng • Tự động gia hạn vào 18/11/2024</span>
+</div>
+</div>
+<div class="flex items-center gap-unit-xs self-end md:self-auto">
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                    Quản lý thẻ &amp; Hóa đơn
+                  </button>
+</div>
+</div>
+<!-- Payment Method Section -->
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Phương thức thanh toán chính</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-2 mt-0.5">
+<span class="font-code-md text-code-md text-on-surface">Mastercard •••• 8842</span>
+<span class="text-outline">Hết hạn 09/27</span>
+</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Cập nhật
+                </button>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Nâng cấp lên ChatGPT Team</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Không gian làm việc cộng tác nhóm với bảng điều khiển quản trị viên và dữ liệu bảo mật tuyệt đối</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-label-md text-label-md font-semibold transition-colors" type="button">
+                  Nâng cấp Team
+                </button>
+</div>
+</div>
+</div>
+<!-- TAB 5: TÍNH NĂNG THỬ NGHIỆM (BETA) -->
+<div class="tab-content hidden flex flex-col gap-unit-xl" id="tab-beta">
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Phòng thí nghiệm OpenAI</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-unit-xs">Trải nghiệm sớm các công cụ nguyên mẫu trước khi ra mắt công chúng.</p>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Advanced Data Analysis v2</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Môi trường thực thi mã Python nâng cao hỗ trợ đồ họa trực quan 3D và đa thư viện mới</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Canvas - Môi trường đồng sáng tạo tài liệu &amp; mã nguồn</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mở cửa sổ chỉnh sửa văn bản và code song song bên cạnh khung trò chuyện</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Duyệt web tăng tốc với trích dẫn sâu</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Thu thập dữ liệu web trực tiếp theo thời gian thực với phân tích nguồn chi tiết</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer select-none">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- TAB 6: BẢO MẬT (SECURITY) -->
+<div class="tab-content hidden flex flex-col gap-unit-xl" id="tab-security">
+<div class="flex flex-col gap-unit-xs">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-semibold">Bảo mật đăng nhập</span>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Xác thực hai yếu tố (2FA)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bảo vệ tài khoản với ứng dụng xác thực (Google Authenticator, 1Password) khi đăng nhập</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-primary hover:bg-primary-fixed-dim text-on-primary font-label-md text-label-md font-semibold transition-colors" type="button">
+                  Kích hoạt 2FA
+                </button>
+</div>
+<div class="flex items-center justify-between py-unit-sm">
+<div class="flex flex-col min-w-0 pr-unit-md">
+<span class="font-label-md text-label-md font-semibold text-on-surface">Đăng xuất khỏi tất cả thiết bị</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hủy quyền truy cập trên mọi trình duyệt và ứng dụng di động khác đang duy trì phiên</span>
+</div>
+<button class="px-unit-md py-unit-xs rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md font-medium transition-colors" type="button">
+                  Đăng xuất tất cả
+                </button>
+</div>
+<!-- Active Session Card -->
+<div class="mt-unit-sm p-unit-md rounded-DEFAULT bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-unit-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">laptop_mac</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-medium text-on-surface">Phiên hiện tại • Chrome trên macOS</span>
+<span class="font-code-md text-[12px] text-outline">Hà Nội, Việt Nam • IP: 118.70.198.***</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm px-unit-xs py-0.5 bg-primary-container/20 text-primary rounded-full font-medium">Hiện hoạt</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Status Pill Bar inside modal -->
+<div class="px-unit-xl py-unit-xs bg-surface-container-lowest/80 flex items-center justify-between text-outline font-label-sm text-label-sm">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-primary">verified_user</span>
+          Tài khoản cá nhân: user@openai-partner.dev
+        </span>
+<span class="font-code-md text-[11px]">ChatGPT Client v4.2024.11</span>
+</div>
+</div>
+</div>
+<script>
+    function switchTab(tabId) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+      });
+      // Deactivate all nav buttons
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('bg-surface-container-highest', 'text-on-surface', 'font-semibold');
+        btn.classList.add('text-on-surface-variant');
+      });
+
+      // Activate target tab
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) {
+        targetContent.classList.remove('hidden');
+      }
+
+      // Activate clicked button
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-surface-container-highest', 'text-on-surface', 'font-semibold');
+        activeBtn.classList.remove('text-on-surface-variant');
+      }
+    }
+
+    function confirmDeleteAll() {
+      if (confirm('Bạn có chắc chắn muốn xoá toàn bộ lịch sử các đoạn trò chuyện không? Hành động này sẽ không thể khôi phục.')) {
+        alert('Đã dọn dẹp toàn bộ dữ liệu lịch sử thành công.');
+      }
+    }
+  </script>
+</div></main></div></body></html>
