@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Domain, Mode } from "../api/types";
+import type { Domain, LiveHopState, Mode, PlanHop } from "../api/types";
 import type { HistoryEntry } from "../hooks/useHistory";
 import { DOMAIN_LABEL, MODE_LABEL } from "../api/types";
 import { HopTrace } from "./HopTrace";
@@ -12,7 +12,22 @@ import { VidecompBadge } from "./Icons";
 import { formatDuration } from "../lib/format";
 
 export type ChatItem =
-  | { kind: "pending"; id: string; question: string; domain: Domain; mode: Mode; startedAt: number; note?: string }
+  | {
+      kind: "pending";
+      id: string;
+      question: string;
+      domain: Domain;
+      mode: Mode;
+      startedAt: number;
+      note?: string;
+      livePlan?: PlanHop[];
+      liveHops?: LiveHopState[];
+      streamingText?: string;
+      isCached?: boolean;
+      cacheSimilarity?: number;
+      cachedQuestion?: string;
+      cacheLatencyMs?: number;
+    }
   | { kind: "error"; id: string; question: string; domain: Domain; mode: Mode; error: string }
   | { kind: "done"; entry: HistoryEntry };
 
@@ -109,7 +124,37 @@ export function MessagePair({
 
           {/* Trạng thái: Đang suy luận / Pending */}
           {item.kind === "pending" && (
-            <ThinkingIndicator mode={mode} startedAt={item.startedAt} note={item.note} />
+            <div className="flex flex-col gap-3">
+              <ThinkingIndicator
+                mode={mode}
+                startedAt={item.startedAt}
+                note={item.note}
+                livePlan={item.livePlan}
+                liveHops={item.liveHops}
+                isCached={item.isCached}
+                cacheSimilarity={item.cacheSimilarity}
+                cacheLatencyMs={item.cacheLatencyMs}
+              />
+
+              {/* Dòng 3: Bắn từng token câu trả lời ra màn hình (Typewriter Effect như DeepSeek R1 / ChatGPT) */}
+              {item.streamingText && (
+                <div className="p-4 rounded-2xl bg-surface-container/70 border border-primary/25 backdrop-blur-sm animate-in fade-in duration-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-outline-variant/15 text-[11px] font-semibold text-primary uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[15px] animate-pulse text-primary">
+                        edit_note
+                      </span>
+                      Dòng 3: Đang sinh câu trả lời thời gian thực (Typewriter Stream)
+                    </span>
+                    <span className="font-mono text-[10px] text-outline">Real-time SSE</span>
+                  </div>
+                  <div className="text-on-surface font-body-md text-body-md leading-relaxed whitespace-pre-wrap">
+                    {item.streamingText}
+                    <span className="inline-block w-1.5 h-4 bg-primary ml-1 rounded-sm animate-pulse align-middle shadow-sm" />
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {/* Trạng thái: Lỗi / Error */}
@@ -126,6 +171,17 @@ export function MessagePair({
           {/* Trạng thái: Hoàn thành / Done */}
           {item.kind === "done" && (
             <>
+              {/* Huy hiệu Semantic Cache nếu phản hồi từ bộ đệm */}
+              {item.entry.result.is_cached && (
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-body-sm w-fit animate-in fade-in">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-400">offline_bolt</span>
+                  <span>
+                    ⚡ <strong>Phản hồi từ Bộ đệm Ngữ nghĩa</strong> · Độ tương đồng:{" "}
+                    <strong>{((item.entry.result.cache_similarity ?? 0.95) * 100).toFixed(1)}%</strong> ({item.entry.result.latency_ms.toFixed(0)}ms)
+                  </span>
+                </div>
+              )}
+
               {/* Lộ trình suy luận bắc cầu đa bước */}
               <HopTrace
                 plan={item.entry.result.query_plan}

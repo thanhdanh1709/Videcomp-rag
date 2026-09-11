@@ -1,12 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import type { Domain, Mode, UploadedFile } from "../api/types";
+import type {
+  AnswerResult,
+  Domain,
+  LiveHopState,
+  Mode,
+  QARequest,
+  StreamEvent,
+  UploadedFile,
+  UploadTaskProgress,
+} from "../api/types";
 import {
   askQuestion,
+  askQuestionStream,
   ApiError,
   DEFAULT_INDEX_PATHS,
   INDEX_NOT_LOADED_DETAIL,
   loadIndex,
   uploadDocument,
+  uploadDocumentAsync,
   deleteSessionFile,
 } from "../api/client";
 import { DOMAIN_LABEL } from "../api/types";
@@ -70,6 +81,7 @@ export function ChatView({
   const [question, setQuestion] = useState(initialQuestion || "");
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadTaskProgress | null>(null);
   const [isWebSearchActive, setIsWebSearchActive] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -85,6 +97,7 @@ export function ChatView({
   // Xóa danh sách file upload khi đổi session mới
   useEffect(() => {
     setUploadedFiles([]);
+    setUploadProgress(null);
   }, [sessionId]);
 
   // Tự động cuộn trang mượt mà
@@ -103,8 +116,17 @@ export function ChatView({
 
   const handleUploadFile = async (file: File) => {
     setIsUploading(true);
+    setUploadProgress({
+      taskId: "init",
+      progress: 5,
+      stage: `Đang nạp tệp ${file.name}...`,
+      status: "pending",
+      filename: file.name,
+    });
     try {
-      const res = await uploadDocument(file, sessionId);
+      const res = await uploadDocumentAsync(file, sessionId, (p) => {
+        setUploadProgress(p);
+      });
       setUploadedFiles((prev) => [
         ...prev.filter((f) => f.filename !== file.name),
         { filename: file.name, size: file.size, chunk_count: res.chunk_count },
@@ -114,6 +136,7 @@ export function ChatView({
       onShowToast?.("Không thể tải tệp: " + (err.message || "Lỗi tải lên"));
     } finally {
       setIsUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -140,24 +163,92 @@ export function ChatView({
     const tempId = crypto.randomUUID();
     setStream((prev) => [
       ...prev,
-      { kind: "pending", id: tempId, question: trimmed, domain: d, mode: m, startedAt: Date.now() },
+      {
+        kind: "pending",
+        id: tempId,
+        question: trimmed,
+        domain: d,
+        mode: m,
+        startedAt: Date.now(),
+        streamingText: "",
+        liveHops: [],
+      },
     ]);
     if (q === question) setQuestion("");
 
-    const askOnce = () =>
-      askQuestion({
-        question: contextualQuestion,
-        domain: d,
-        mode: m,
-        top_k: 8,
-        rerank_top_k: 5,
-        max_corrective_rounds: 1,
-        session_id: sessionId,
-        web_search: isWebSearchActive,
-      });
+    const payload: QARequest = {
+      question: contextualQuestion,
+      domain: d,
+      mode: m,
+      top_k: 8,
+      rerank_top_k: 5,
+      max_corrective_rounds: 1,
+      session_id: sessionId,
+      web_search: isWebSearchActive,
+    };
+
+    const onStreamEvent = (ev: StreamEvent) => {
+      setStream((prev) =>
+        prev.map((it) => {
+          if (it.kind !== "pending" || it.id !== tempId) return it;
+
+          if (ev.type === "step") {
+            return { ...it, note: ev.message };
+          }
+          if (ev.type === "cache_hit") {
+            return {
+              ...it,
+              isCached: true,
+              cacheSimilarity: ev.similarity,
+              cachedQuestion: ev.cached_question,
+              cacheLatencyMs: ev.latency_ms,
+              note: `Khớp bộ đệm ngữ nghĩa (${((ev.similarity ?? 0.95) * 100).toFixed(1)}%)`,
+            };
+          }
+          if (ev.type === "plan") {
+            const liveHops: LiveHopState[] = (ev.hops || []).map((h) => ({
+              id: h.id,
+              question: h.question,
+              status: "pending",
+              docs: [],
+            }));
+            return { ...it, livePlan: ev.hops, liveHops };
+          }
+          if (ev.type === "hop_start") {
+            const updatedHops = (it.liveHops || []).map((h) =>
+              h.id === ev.hop_id ? { ...h, status: "running" as const, bound_question: ev.bound_question } : h
+            );
+            return { ...it, liveHops: updatedHops };
+          }
+          if (ev.type === "hop_retrieval") {
+            const updatedHops = (it.liveHops || []).map((h) =>
+              h.id === ev.hop_id ? { ...h, docs: ev.docs || [] } : h
+            );
+            return { ...it, liveHops: updatedHops };
+          }
+          if (ev.type === "hop_done") {
+            const updatedHops = (it.liveHops || []).map((h) =>
+              h.id === ev.hop_id
+                ? { ...h, status: "done" as const, intermediate_answer: ev.intermediate_answer }
+                : h
+            );
+            return { ...it, liveHops: updatedHops };
+          }
+          if (ev.type === "token" && ev.token) {
+            return {
+              ...it,
+              streamingText: (it.streamingText || "") + ev.token,
+            };
+          }
+          return it;
+        })
+      );
+    };
+
+    const askOnce = () => askQuestionStream(payload, onStreamEvent);
 
     try {
-      let result;
+      let result: AnswerResult;
       try {
         result = await askOnce();
       } catch (err) {
@@ -254,6 +345,7 @@ export function ChatView({
         onUploadFile={handleUploadFile}
         onRemoveFile={handleRemoveFile}
         isUploading={isUploading}
+        uploadProgress={uploadProgress}
         isWebSearchActive={isWebSearchActive}
         onToggleWebSearch={() => {
           const next = !isWebSearchActive;

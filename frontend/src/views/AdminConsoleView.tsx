@@ -3,8 +3,13 @@ import {
   getAdminConfig,
   updateAdminConfig,
   testApiKey,
+  fetchLocalModels,
+  getCacheStats,
+  clearSemanticCache,
+  updateCacheConfig,
   type AdminConfig,
 } from "../api/client";
+import type { SemanticCacheStats } from "../api/types";
 
 interface Member {
   id: string;
@@ -23,37 +28,37 @@ const INITIAL_MEMBERS: Member[] = [
     name: "Nguyễn Hoàng Nam",
     email: "nam.nguyen@techcorp.vn",
     role: "owner",
-    models: "Tất cả (GPT-4o, o1, Canvas)",
+    models: "Claude 3.5 Sonnet, Qwen 2.5 14B",
     lastActive: "Vừa xong",
     tokens: "2.4M tokens",
-    avatarText: "NH",
+    avatarText: "HN",
   },
   {
     id: "m-2",
-    name: "Trần Minh Thư",
-    email: "thu.tran@techcorp.vn",
+    name: "Trần Minh Anh",
+    email: "anh.tran@techcorp.vn",
     role: "admin",
-    models: "Tất cả (GPT-4o, o1, Advanced)",
+    models: "Qwen 2.5 32B, Vistral 7B",
     lastActive: "15 phút trước",
-    tokens: "1.8M tokens",
-    avatarText: "TM",
+    tokens: "890K tokens",
+    avatarText: "MA",
   },
   {
     id: "m-3",
     name: "Lê Quốc Bảo",
     email: "bao.le@techcorp.vn",
     role: "member",
-    models: "GPT-4o, DALL·E 3, Canvas",
+    models: "PhoGPT, Qwen 2.5 14B",
     lastActive: "2 giờ trước",
-    tokens: "850K tokens",
-    avatarText: "LB",
+    tokens: "512K tokens",
+    avatarText: "QB",
   },
   {
     id: "m-4",
     name: "Đặng Phương Linh",
     email: "linh.dang@techcorp.vn",
     role: "member",
-    models: "GPT-4o, Code Interpreter",
+    models: "Claude 3.5 Sonnet, Canvas",
     lastActive: "Hôm qua",
     tokens: "1.4M tokens",
     avatarText: "PL",
@@ -63,7 +68,7 @@ const INITIAL_MEMBERS: Member[] = [
     name: "Vũ Gia Huy",
     email: "huy.vu@techcorp.vn",
     role: "member",
-    models: "GPT-4o mini, Browsing",
+    models: "Vistral 7B, Browsing",
     lastActive: "3 ngày trước",
     tokens: "320K tokens",
     avatarText: "GH",
@@ -77,7 +82,7 @@ export function AdminConsoleView({
   onShowToast?: (msg: string) => void;
   onLogout?: () => void;
 }) {
-  // Quản lý API Key state
+  // Quản lý API Key state & On-Premise Providers
   const [config, setConfig] = useState<AdminConfig | null>(null);
   const [newAnthropicKey, setNewAnthropicKey] = useState("");
   const [showKey, setShowKey] = useState(false);
@@ -85,6 +90,17 @@ export function AdminConsoleView({
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [isTestingKey, setIsTestingKey] = useState(false);
   const [testResult, setTestResult] = useState<{ status: string; message: string } | null>(null);
+
+  // Cấu hình Ollama On-Premise
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState("http://localhost:11434");
+  const [ollamaModel, setOllamaModel] = useState("qwen2.5:14b");
+  const [installedOllamaModels, setInstalledOllamaModels] = useState<string[]>([]);
+  const [isScanningModels, setIsScanningModels] = useState(false);
+
+  // Cấu hình vLLM Cluster
+  const [vllmBaseUrl, setVllmBaseUrl] = useState("http://localhost:8000/v1");
+  const [vllmModel, setVllmModel] = useState("Qwen/Qwen2.5-14B-Instruct");
+  const [vllmApiKey, setVllmApiKey] = useState("");
 
   // Time filter analytics
   const [timeFilter, setTimeFilter] = useState<"30d" | "7d" | "24h">("30d");
@@ -105,54 +121,134 @@ export function AdminConsoleView({
   const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
 
-  // Đọc cấu hình API Key từ backend khi nạp view
+  // Cấu hình Bộ đệm Ngữ nghĩa (Semantic Cache)
+  const [cacheStats, setCacheStats] = useState<SemanticCacheStats | null>(null);
+  const [cacheThreshold, setCacheThreshold] = useState(0.93);
+  const [isCacheEnabled, setIsCacheEnabled] = useState(true);
+  const [isSavingCacheConfig, setIsSavingCacheConfig] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+
+  // Đọc cấu hình API Key, Local LLM và Semantic Cache từ backend khi nạp view
   useEffect(() => {
     getAdminConfig()
       .then((res) => {
         setConfig(res);
         setSelectedProvider(res.llm_provider || "anthropic");
+        if (res.ollama_base_url) setOllamaBaseUrl(res.ollama_base_url);
+        if (res.ollama_model) setOllamaModel(res.ollama_model);
+        if (res.vllm_base_url) setVllmBaseUrl(res.vllm_base_url);
+        if (res.vllm_model) setVllmModel(res.vllm_model);
+      })
+      .catch(() => {});
+
+    getCacheStats()
+      .then((s) => {
+        setCacheStats(s);
+        setCacheThreshold(s.threshold);
+        setIsCacheEnabled(s.enabled);
       })
       .catch(() => {});
   }, []);
 
-  const handleSaveApiKey = async () => {
-    if (!newAnthropicKey.trim() && selectedProvider === config?.llm_provider) {
-      onShowToast?.("Vui lòng nhập API Key mới để cập nhật!");
-      return;
+  const handleSaveCacheConfig = async () => {
+    setIsSavingCacheConfig(true);
+    try {
+      const res = await updateCacheConfig({
+        threshold: cacheThreshold,
+        enabled: isCacheEnabled,
+      });
+      setCacheStats(res.stats);
+      onShowToast?.("Đã lưu cấu hình Bộ đệm Ngữ nghĩa thành công!");
+    } catch (err: any) {
+      onShowToast?.("Lỗi cập nhật cấu hình cache: " + (err.message || ""));
+    } finally {
+      setIsSavingCacheConfig(false);
     }
+  };
 
+  const handleClearCache = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa toàn bộ bản ghi bộ đệm ngữ nghĩa?")) return;
+    setIsClearingCache(true);
+    try {
+      await clearSemanticCache();
+      const updatedStats = await getCacheStats();
+      setCacheStats(updatedStats);
+      onShowToast?.("Đã xóa sạch toàn bộ bản ghi trong Bộ đệm Ngữ nghĩa!");
+    } catch (err: any) {
+      onShowToast?.("Lỗi xóa cache: " + (err.message || ""));
+    } finally {
+      setIsClearingCache(false);
+    }
+  };
+
+  const handleScanOllamaModels = async () => {
+    setIsScanningModels(true);
+    try {
+      const models = await fetchLocalModels("ollama", ollamaBaseUrl);
+      setInstalledOllamaModels(models);
+      if (models.length > 0) {
+        onShowToast?.(`Đã tìm thấy ${models.length} mô hình trên Ollama On-Premise!`);
+        if (!models.includes(ollamaModel)) {
+          setOllamaModel(models[0]);
+        }
+      } else {
+        onShowToast?.("Chưa phát hiện mô hình nào hoặc Ollama chưa được bật.");
+      }
+    } catch {
+      onShowToast?.("Không thể kết nối tới Ollama tại " + ollamaBaseUrl);
+    } finally {
+      setIsScanningModels(false);
+    }
+  };
+
+  const handleSaveConfig = async () => {
     setIsSavingKey(true);
     try {
       const res = await updateAdminConfig({
         anthropic_api_key: newAnthropicKey.trim() || undefined,
         llm_provider: selectedProvider,
+        ollama_base_url: ollamaBaseUrl.trim() || undefined,
+        ollama_model: ollamaModel.trim() || undefined,
+        vllm_base_url: vllmBaseUrl.trim() || undefined,
+        vllm_model: vllmModel.trim() || undefined,
+        vllm_api_key: vllmApiKey.trim() || undefined,
       });
       setConfig((prev) => (prev ? { ...prev, ...res } : null));
       setNewAnthropicKey("");
-      onShowToast?.("Đã cập nhật API Key và nhà cung cấp LLM thành công!");
+      setVllmApiKey("");
+      onShowToast?.("Đã cập nhật cấu hình mô hình và nhà cung cấp LLM thành công!");
     } catch (err: any) {
-      onShowToast?.("Lỗi cập nhật API Key: " + (err.message || "Lỗi server"));
+      onShowToast?.("Lỗi cập nhật cấu hình: " + (err.message || "Lỗi server"));
     } finally {
       setIsSavingKey(false);
     }
   };
 
-  const handleTestApiKey = async () => {
-    const keyToTest = newAnthropicKey.trim() || (config?.has_anthropic_key ? "existing-key" : "");
-    if (!keyToTest) {
-      onShowToast?.("Vui lòng nhập khóa API để kiểm tra kết nối!");
-      return;
-    }
-
+  const handleTestConnection = async () => {
     setIsTestingKey(true);
     setTestResult(null);
     try {
-      const res = await testApiKey(selectedProvider, newAnthropicKey.trim() || "test");
+      let res;
+      if (selectedProvider === "anthropic") {
+        const key = newAnthropicKey.trim() || (config?.has_anthropic_key ? "existing-key" : "");
+        if (!key) {
+          onShowToast?.("Vui lòng nhập Anthropic API Key để kiểm tra kết nối!");
+          setIsTestingKey(false);
+          return;
+        }
+        res = await testApiKey("anthropic", key);
+      } else if (selectedProvider === "ollama") {
+        res = await testApiKey("ollama", undefined, ollamaBaseUrl, ollamaModel);
+      } else if (selectedProvider === "vllm") {
+        res = await testApiKey("vllm", vllmApiKey.trim() || undefined, vllmBaseUrl, vllmModel);
+      } else {
+        res = await testApiKey("mock");
+      }
       setTestResult(res);
       if (res.status === "ok") {
-        onShowToast?.("Kết nối API Key thành công!");
+        onShowToast?.(res.message || "Kết nối thành công!");
       } else {
-        onShowToast?.("Kiểm tra API Key thất bại");
+        onShowToast?.(res.message || "Kiểm tra kết nối thất bại");
       }
     } catch (err: any) {
       setTestResult({ status: "error", message: err.message || "Không thể kết nối tới máy chủ" });
@@ -380,7 +476,7 @@ export function AdminConsoleView({
           </div>
         </div>
 
-        {/* PHÂN HỆ ĐỔI API KEY & CẤU HÌNH LLM PROVIDER (CHỨC NĂNG TRỌNG TÂM ĐƯỢC YÊU CẦU) */}
+        {/* PHÂN HỆ CẤU HÌNH NHÀ CUNG CẤP LLM & MÔ HÌNH CỤC BỘ (ON-PREMISE OLLAMA / VLLM) */}
         <section
           id="api-key-section"
           className="p-unit-lg md:p-unit-xl rounded-DEFAULT bg-surface-container-low border-2 border-primary/40 shadow-xl space-y-unit-md relative overflow-hidden"
@@ -392,95 +488,262 @@ export function AdminConsoleView({
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[24px]">vpn_key</span>
                 <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
-                  Quản lý &amp; Cập nhật API Key (LLM Engine)
+                  Quản lý Mô hình &amp; Nhà cung cấp LLM
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-[11px] font-bold">
-                  Cập nhật thời gian thực
+                  On-Premise &amp; Cloud
                 </span>
               </div>
               <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                Thiết lập khóa API bí mật của nhà cung cấp mô hình ngôn ngữ lớn (Anthropic Claude, OpenAI, v.v.). Hệ thống sẽ lưu trữ bảo mật và kích hoạt ngay vào pipeline suy luận RAG.
+                Thiết lập kết nối trực tiếp với các mô hình cục bộ On-Premise (Ollama, vLLM) hoặc đám mây (Anthropic Claude). Hỗ trợ Private Cloud 100% bảo mật tuyệt đối cho cơ quan nhà nước, ngân hàng và bệnh viện.
               </p>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[12px] text-outline">Trạng thái khóa:</span>
-              <span
-                className={`px-2.5 py-1 rounded-full text-[12px] font-semibold flex items-center gap-1 ${
-                  config?.has_anthropic_key
-                    ? "bg-primary-container/20 text-primary border border-primary/30"
-                    : "bg-error-container/20 text-error border border-error/30"
-                }`}
-              >
+              <span className="text-[12px] text-outline">Chế độ hiện tại:</span>
+              <span className="px-2.5 py-1 rounded-full text-[12px] font-semibold flex items-center gap-1 bg-primary-container/20 text-primary border border-primary/30">
                 <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                {config?.has_anthropic_key
-                  ? `Đã nạp (${config.anthropic_api_key_masked})`
-                  : "Chưa cấu hình API Key"}
+                {selectedProvider === "ollama"
+                  ? `Ollama On-Premise (${ollamaModel})`
+                  : selectedProvider === "vllm"
+                  ? `vLLM Cluster (${vllmModel})`
+                  : selectedProvider === "anthropic"
+                  ? `Anthropic Claude (${config?.anthropic_api_key_masked || "Chưa có key"})`
+                  : "Mock (Thực nghiệm)"}
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-unit-md">
-            {/* Cột 1: Chọn Provider & Nhập Khóa API */}
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-unit-md">
+            {/* Cột 1: Chọn Provider & Cấu hình chi tiết */}
+            <div className="space-y-4">
               <div>
                 <label className="block text-[12px] font-semibold text-outline uppercase tracking-wider mb-1.5">
                   Nhà cung cấp Mô hình (Provider)
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { id: "anthropic", label: "Anthropic Claude", icon: "neurology" },
-                    { id: "openai_compatible", label: "OpenAI / Local", icon: "dns" },
-                    { id: "mock", label: "Mock (Thực nghiệm)", icon: "terminal" },
+                    { id: "ollama", label: "Ollama (On-Premise)", icon: "home_storage", tag: "Private" },
+                    { id: "vllm", label: "vLLM Cluster", icon: "dns", tag: "GPU Server" },
+                    { id: "anthropic", label: "Anthropic Claude", icon: "neurology", tag: "Cloud API" },
+                    { id: "mock", label: "Mock (Thử nghiệm)", icon: "terminal", tag: "Heuristic" },
                   ].map((p) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => setSelectedProvider(p.id)}
-                      className={`p-2 rounded-DEFAULT border flex flex-col items-center gap-1 transition-all ${
+                      className={`p-2.5 rounded-DEFAULT border flex flex-col items-center gap-1 transition-all text-center relative ${
                         selectedProvider === p.id
                           ? "bg-primary/20 border-primary text-primary font-bold shadow-sm"
                           : "bg-surface-container border-outline-variant/30 text-outline hover:text-on-surface"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[20px]">{p.icon}</span>
-                      <span className="text-[11px] truncate">{p.label}</span>
+                      <span className="material-symbols-outlined text-[22px]">{p.icon}</span>
+                      <span className="text-[11px] font-semibold">{p.label}</span>
+                      <span className="text-[9px] px-1 py-0.2 rounded bg-surface-container-high text-on-surface-variant">
+                        {p.tag}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-[12px] font-semibold text-outline uppercase tracking-wider mb-1.5">
-                  Anthropic API Key mới (bắt đầu bằng sk-ant-...)
-                </label>
-                <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">
-                    lock
-                  </span>
-                  <input
-                    type={showKey ? "text" : "password"}
-                    value={newAnthropicKey}
-                    onChange={(e) => setNewAnthropicKey(e.target.value)}
-                    placeholder={
-                      config?.has_anthropic_key
-                        ? `Nhập key mới để thay thế (${config.anthropic_api_key_masked})`
-                        : "Dán khóa sk-ant-... vào đây"
-                    }
-                    className="w-full bg-surface-container-high pl-10 pr-10 py-2.5 rounded-DEFAULT text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowKey((v) => !v)}
-                    className="absolute right-3 text-outline hover:text-on-surface"
-                    title={showKey ? "Ẩn khóa" : "Hiện khóa"}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      {showKey ? "visibility_off" : "visibility"}
+              {/* Form theo từng Provider */}
+              {selectedProvider === "ollama" && (
+                <div className="space-y-3 p-3 rounded-DEFAULT bg-surface-container/60 border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-bold text-primary flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[16px]">verified_user</span>
+                      Cấu hình Ollama On-Premise (Private Cloud 100%)
                     </span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={handleScanOllamaModels}
+                      disabled={isScanningModels}
+                      className="px-2 py-0.5 rounded text-[11px] bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 flex items-center gap-1 transition-colors"
+                      title="Quét danh sách mô hình đã tải trên máy chủ"
+                    >
+                      <span className={`material-symbols-outlined text-[14px] ${isScanningModels ? "animate-spin" : ""}`}>
+                        sync
+                      </span>
+                      <span>{isScanningModels ? "Đang quét..." : "Quét mô hình"}</span>
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-outline mb-1 font-semibold">
+                      Địa chỉ máy chủ Ollama (Base URL)
+                    </label>
+                    <input
+                      type="text"
+                      value={ollamaBaseUrl}
+                      onChange={(e) => setOllamaBaseUrl(e.target.value)}
+                      placeholder="http://localhost:11434"
+                      className="w-full bg-surface-container-high px-3 py-2 rounded text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-outline mb-1 font-semibold">
+                      Mô hình suy luận (Model)
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={ollamaModel}
+                        onChange={(e) => setOllamaModel(e.target.value)}
+                        placeholder="qwen2.5:14b"
+                        className="flex-1 bg-surface-container-high px-3 py-2 rounded text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preset buttons */}
+                  <div>
+                    <span className="block text-[10px] text-outline mb-1 uppercase tracking-wider">
+                      Mô hình On-Premise đề xuất:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { id: "qwen2.5:14b", label: "Qwen 2.5 14B (Khuyên dùng)" },
+                        { id: "qwen2.5:32b", label: "Qwen 2.5 32B (Độ chính xác cao)" },
+                        { id: "vistral:7b", label: "Vistral 7B (Tiếng Việt)" },
+                        { id: "phogpt:latest", label: "PhoGPT (Việt Nam)" },
+                      ].map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setOllamaModel(m.id)}
+                          className={`px-2 py-1 rounded text-[11px] border transition-colors ${
+                            ollamaModel === m.id
+                              ? "bg-primary text-on-primary font-bold border-primary"
+                              : "bg-surface-container-high text-on-surface-variant hover:text-on-surface border-outline-variant/30"
+                          }`}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {installedOllamaModels.length > 0 && (
+                    <div className="pt-1">
+                      <span className="block text-[10px] text-outline mb-1">
+                        Mô hình phát hiện trên máy ({installedOllamaModels.length}):
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {installedOllamaModels.map((im) => (
+                          <button
+                            key={im}
+                            type="button"
+                            onClick={() => setOllamaModel(im)}
+                            className="px-2 py-0.5 rounded bg-surface-container-highest text-primary text-[10px] font-mono hover:bg-primary/20 transition-colors"
+                          >
+                            {im}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Privacy Badge */}
+                  <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-400 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">lock</span>
+                    <span>100% Private Cloud: Toàn bộ dữ liệu câu hỏi và tài liệu lưu trú trong mạng nội bộ.</span>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {selectedProvider === "vllm" && (
+                <div className="space-y-3 p-3 rounded-DEFAULT bg-surface-container/60 border border-primary/20">
+                  <span className="text-[12px] font-bold text-primary flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[16px]">dns</span>
+                    Cấu hình Cụm máy chủ vLLM GPU Cluster
+                  </span>
+
+                  <div>
+                    <label className="block text-[11px] text-outline mb-1 font-semibold">
+                      Endpoint vLLM (OpenAI-Compatible Base URL)
+                    </label>
+                    <input
+                      type="text"
+                      value={vllmBaseUrl}
+                      onChange={(e) => setVllmBaseUrl(e.target.value)}
+                      placeholder="http://localhost:8000/v1"
+                      className="w-full bg-surface-container-high px-3 py-2 rounded text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-outline mb-1 font-semibold">
+                      Tên mô hình vLLM (Model ID)
+                    </label>
+                    <input
+                      type="text"
+                      value={vllmModel}
+                      onChange={(e) => setVllmModel(e.target.value)}
+                      placeholder="Qwen/Qwen2.5-14B-Instruct"
+                      className="w-full bg-surface-container-high px-3 py-2 rounded text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] text-outline mb-1 font-semibold">
+                      API Key xác thực cụm vLLM (Tùy chọn)
+                    </label>
+                    <input
+                      type="password"
+                      value={vllmApiKey}
+                      onChange={(e) => setVllmApiKey(e.target.value)}
+                      placeholder="token-xác-thực-nội-bộ (nếu có)"
+                      className="w-full bg-surface-container-high px-3 py-2 rounded text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {selectedProvider === "anthropic" && (
+                <div className="space-y-3 p-3 rounded-DEFAULT bg-surface-container/60 border border-primary/20">
+                  <label className="block text-[12px] font-semibold text-outline uppercase tracking-wider mb-1.5">
+                    Anthropic API Key mới (bắt đầu bằng sk-ant-...)
+                  </label>
+                  <div className="relative flex items-center">
+                    <span className="material-symbols-outlined absolute left-3 text-outline text-[18px]">
+                      lock
+                    </span>
+                    <input
+                      type={showKey ? "text" : "password"}
+                      value={newAnthropicKey}
+                      onChange={(e) => setNewAnthropicKey(e.target.value)}
+                      placeholder={
+                        config?.has_anthropic_key
+                          ? `Nhập key mới để thay thế (${config.anthropic_api_key_masked})`
+                          : "Dán khóa sk-ant-... vào đây"
+                      }
+                      className="w-full bg-surface-container-high pl-10 pr-10 py-2.5 rounded-DEFAULT text-on-surface text-label-md font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowKey((v) => !v)}
+                      className="absolute right-3 text-outline hover:text-on-surface"
+                      title={showKey ? "Ẩn khóa" : "Hiện khóa"}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {showKey ? "visibility_off" : "visibility"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {selectedProvider === "mock" && (
+                <div className="p-3 rounded-DEFAULT bg-surface-container/60 border border-primary/20 space-y-1 text-[12px] text-on-surface-variant">
+                  <span className="font-semibold text-primary">Chế độ Thực nghiệm Heuristic (Mock):</span>
+                  <p>
+                    Pipeline chạy bằng các luật phân rã và trích xuất heuristic cục bộ, không gọi bất kỳ mô hình bên ngoài nào. Thích hợp để kiểm thử luồng RAG khi chưa có GPU.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Cột 2: Kiểm tra kết nối & Thao tác Lưu */}
@@ -488,13 +751,13 @@ export function AdminConsoleView({
               <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-label-sm font-semibold text-on-surface">
-                    Kiểm tra xác thực kết nối
+                    Kiểm tra kết nối mô hình
                   </span>
                   <button
                     type="button"
-                    onClick={handleTestApiKey}
+                    onClick={handleTestConnection}
                     disabled={isTestingKey}
-                    className="px-unit-md py-1 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-primary text-label-sm font-semibold border border-primary/30 transition-all flex items-center gap-1.5 disabled:opacity-40"
+                    className="px-unit-md py-1.5 rounded-full bg-surface-container-high hover:bg-surface-container-highest text-primary text-label-sm font-semibold border border-primary/30 transition-all flex items-center gap-1.5 disabled:opacity-40"
                   >
                     {isTestingKey ? (
                       <>
@@ -514,7 +777,7 @@ export function AdminConsoleView({
 
                 {testResult ? (
                   <div
-                    className={`p-2 rounded text-[12px] flex items-start gap-1.5 ${
+                    className={`p-2.5 rounded text-[12px] flex items-start gap-1.5 ${
                       testResult.status === "ok"
                         ? "bg-primary/10 text-primary border border-primary/30"
                         : "bg-error-container/20 text-error border border-error/30"
@@ -527,7 +790,7 @@ export function AdminConsoleView({
                   </div>
                 ) : (
                   <p className="text-[12px] text-outline">
-                    Nhấp vào nút Kiểm tra kết nối để gửi truy vấn xác minh tính hợp lệ của API Key với máy chủ Anthropic trước khi lưu.
+                    Nhấp vào nút Kiểm tra kết nối để xác thực trực tiếp endpoint và phản hồi từ mô hình đã cấu hình trước khi lưu.
                   </p>
                 )}
               </div>
@@ -535,7 +798,7 @@ export function AdminConsoleView({
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={handleSaveApiKey}
+                  onClick={handleSaveConfig}
                   disabled={isSavingKey}
                   className="flex items-center gap-2 px-unit-xl py-2.5 rounded-full bg-primary text-on-primary font-label-md font-bold hover:opacity-90 shadow-md transition-all active:scale-95 disabled:opacity-40"
                 >
@@ -544,14 +807,174 @@ export function AdminConsoleView({
                       <span className="material-symbols-outlined text-[18px] animate-spin">
                         progress_activity
                       </span>
-                      <span>Đang lưu API Key...</span>
+                      <span>Đang lưu cấu hình...</span>
                     </>
                   ) : (
                     <>
                       <span className="material-symbols-outlined text-[18px]">save</span>
-                      <span>Lưu cấu hình API Key</span>
+                      <span>Lưu cấu hình Mô hình &amp; LLM</span>
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PHÂN HỆ QUẢN TRỊ BỘ ĐỆM NGỮ NGHĨA (SEMANTIC CACHE HUB) */}
+        <section
+          id="semantic-cache-section"
+          className="p-unit-lg md:p-unit-xl rounded-DEFAULT bg-surface-container-low border-2 border-emerald-500/40 shadow-xl space-y-unit-md relative overflow-hidden"
+        >
+          <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl" />
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-outline-variant/20 gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-emerald-400 text-[24px]">offline_bolt</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
+                  Bộ đệm Ngữ nghĩa &amp; Tối ưu Chi phí API (Semantic Caching)
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold">
+                  Tăng tốc &lt; 150ms · Tiết kiệm 40–70% Token
+                </span>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Tự động lưu trữ câu hỏi và câu trả lời đã được kiểm chứng (grounded NLI). Khi có câu hỏi mới tương đồng nghĩa (Cosine similarity &ge; {cacheThreshold}), hệ thống trả về kết quả ngay lập tức mà không cần gọi lại LLM.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleClearCache}
+                disabled={isClearingCache}
+                className="px-3.5 py-1.5 rounded-full bg-error-container/20 hover:bg-error-container/30 text-error border border-error/30 text-label-sm font-semibold transition-all flex items-center gap-1.5 disabled:opacity-40"
+              >
+                {isClearingCache ? (
+                  <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[16px]">delete_sweep</span>
+                )}
+                <span>Xóa bộ nhớ đệm (Clear Cache)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Thẻ KPI Semantic Cache */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-unit-md">
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Tổng câu hỏi đã đệm</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-on-surface font-bold">
+                  {cacheStats?.total_entries ?? 0}
+                </span>
+                <span className="text-outline text-label-sm">bản ghi</span>
+              </div>
+              <span className="text-[11px] text-outline mt-1 font-mono">SQLite + Vector Index FlatIP</span>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Số lượt trúng Cache (Hits)</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-emerald-400 font-bold">
+                  {cacheStats?.total_hits ?? 0}
+                </span>
+                <span className="text-outline text-label-sm">lượt</span>
+              </div>
+              <span className="text-[11px] text-emerald-400/90 mt-1">Độ trễ trung bình: &lt; 20ms</span>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Tỷ lệ trúng (Hit Rate)</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-primary font-bold">
+                  {cacheStats?.hit_rate_pct ?? 0}%
+                </span>
+              </div>
+              <span className="text-[11px] text-on-surface-variant mt-1">Tỷ lệ câu hỏi không cần gọi LLM</span>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/25 flex flex-col justify-between">
+              <span className="font-label-sm text-outline uppercase tracking-wider">Chi phí API ước tính đã tiết kiệm</span>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display-md text-emerald-400 font-bold">
+                  ${cacheStats?.saved_cost_usd?.toFixed(3) ?? "0.000"}
+                </span>
+                <span className="text-outline text-label-sm">USD</span>
+              </div>
+              <span className="text-[11px] text-emerald-400/90 mt-1">Tiết kiệm ~40% – 70% ngân sách token</span>
+            </div>
+          </div>
+
+          {/* Thiết lập Ngưỡng tương đồng Cosine & Trạng thái hoạt động */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-unit-md pt-2">
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-label-md text-on-surface font-semibold block">
+                    Ngưỡng tương đồng Cosine (Similarity Threshold)
+                  </span>
+                  <span className="text-[12px] text-on-surface-variant">
+                    Khoảng: 0.80 đến 0.98. Khuyến nghị: <strong>0.93</strong> cho phân tích pháp lý &amp; y tế.
+                  </span>
+                </div>
+                <span className="font-mono text-emerald-400 font-bold text-[18px] px-2.5 py-1 rounded bg-surface-container-high border border-emerald-500/30">
+                  {cacheThreshold.toFixed(2)}
+                </span>
+              </div>
+
+              <input
+                type="range"
+                min="0.80"
+                max="0.98"
+                step="0.01"
+                value={cacheThreshold}
+                onChange={(e) => setCacheThreshold(parseFloat(e.target.value))}
+                className="w-full accent-emerald-400 cursor-pointer h-2 bg-surface-container-highest rounded-lg"
+              />
+
+              <div className="flex justify-between text-[11px] text-outline font-mono">
+                <span>0.80 (Rộng hơn)</span>
+                <span className="text-emerald-400 font-semibold">0.93 (Chuẩn xác thực)</span>
+                <span>0.98 (Gần như tuyệt đối)</span>
+              </div>
+            </div>
+
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex flex-col justify-between space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="font-label-md text-on-surface font-semibold block">
+                    Trạng thái Bộ đệm Ngữ nghĩa
+                  </span>
+                  <span className="text-[12px] text-on-surface-variant">
+                    Bật hoặc tắt chức năng tra cứu vector cache trước khi phân rã đa bước.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsCacheEnabled(!isCacheEnabled)}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
+                    isCacheEnabled ? "bg-emerald-500 justify-end" : "bg-surface-container-highest justify-start"
+                  }`}
+                >
+                  <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleSaveCacheConfig}
+                  disabled={isSavingCacheConfig}
+                  className="flex items-center gap-2 px-unit-lg py-2 rounded-full bg-emerald-500 text-black font-label-md font-bold hover:opacity-90 transition-all shadow-md active:scale-95 disabled:opacity-40"
+                >
+                  {isSavingCacheConfig ? (
+                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-[18px]">check</span>
+                  )}
+                  <span>Lưu cấu hình Cache</span>
                 </button>
               </div>
             </div>

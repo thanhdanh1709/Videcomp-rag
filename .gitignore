@@ -25,6 +25,8 @@ data/indices/
 data/processed/
 data/chunks/
 data/videcomp.db
+data/*.db
+backend/data/
 experiments/results/
 experiments/reports/
 

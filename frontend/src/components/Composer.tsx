@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { KeyboardEvent, ChangeEvent } from "react";
-import type { Domain, Mode, UploadedFile } from "../api/types";
+import type { Domain, Mode, UploadedFile, UploadTaskProgress } from "../api/types";
 import { DOMAIN_LABEL } from "../api/types";
 
 function formatFileSize(bytes: number): string {
@@ -24,6 +24,7 @@ export function Composer({
   onUploadFile,
   onRemoveFile,
   isUploading = false,
+  uploadProgress = null,
   isWebSearchActive = false,
   onToggleWebSearch,
 }: {
@@ -41,6 +42,7 @@ export function Composer({
   onUploadFile?: (file: File) => void;
   onRemoveFile?: (filename: string) => void;
   isUploading?: boolean;
+  uploadProgress?: UploadTaskProgress | null;
   isWebSearchActive?: boolean;
   onToggleWebSearch?: () => void;
 }) {
@@ -96,35 +98,68 @@ export function Composer({
         {/* Hộp soạn thảo kính mờ dạng Pill Container */}
         <div className="relative bg-surface-container/95 backdrop-blur-xl p-unit-sm rounded-lg shadow-2xl border border-outline-variant/30 transition-all duration-200 focus-within:border-primary/40 focus-within:shadow-primary/5 focus-within:bg-surface-container-high">
           {/* Danh sách tệp đính kèm hiển thị trên textarea */}
-          {(uploadedFiles.length > 0 || isUploading) && (
-            <div className="flex flex-wrap items-center gap-2 pb-2 mb-2 border-b border-outline-variant/20 px-1">
-              {uploadedFiles.map((f) => (
-                <div
-                  key={f.filename}
-                  className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-high border border-primary/30 text-label-sm text-on-surface text-[12px] group"
-                >
-                  <span className="material-symbols-outlined text-[16px] text-primary">
-                    {f.filename.endsWith(".pdf") ? "picture_as_pdf" : "description"}
-                  </span>
-                  <span className="max-w-[160px] truncate font-medium">{f.filename}</span>
-                  <span className="text-[10px] text-outline">({formatFileSize(f.size)})</span>
-                  {onRemoveFile && (
-                    <button
-                      type="button"
-                      onClick={() => onRemoveFile(f.filename)}
-                      className="text-outline hover:text-error transition-colors ml-0.5"
-                      title="Xóa tệp đính kèm này"
+          {(uploadedFiles.length > 0 || isUploading || uploadProgress) && (
+            <div className="flex flex-col gap-2 pb-2 mb-2 border-b border-outline-variant/20 px-1">
+              {uploadedFiles.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {uploadedFiles.map((f) => (
+                    <div
+                      key={f.filename}
+                      className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-surface-container-high border border-primary/30 text-label-sm text-on-surface text-[12px] group"
                     >
-                      <span className="material-symbols-outlined text-[14px]">close</span>
-                    </button>
-                  )}
+                      <span className="material-symbols-outlined text-[16px] text-primary">
+                        {f.filename.endsWith(".pdf") ? "picture_as_pdf" : "description"}
+                      </span>
+                      <span className="max-w-[160px] truncate font-medium">{f.filename}</span>
+                      <span className="text-[10px] text-outline">({formatFileSize(f.size)})</span>
+                      {onRemoveFile && (
+                        <button
+                          type="button"
+                          onClick={() => onRemoveFile(f.filename)}
+                          className="text-outline hover:text-error transition-colors ml-0.5"
+                          title="Xóa tệp đính kèm này"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
 
-              {isUploading && (
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-container-high text-[12px] text-primary animate-pulse">
-                  <span className="material-symbols-outlined text-[15px] animate-spin">sync</span>
-                  <span>Đang tải & trích xuất văn bản...</span>
+              {/* Thanh tiến trình tác vụ nền 0% -> 100% */}
+              {(isUploading || uploadProgress) && (
+                <div className="w-full flex flex-col gap-1.5 p-2 rounded-lg bg-surface-container-high/90 border border-primary/30 animate-in fade-in duration-200 shadow-sm">
+                  <div className="flex items-center justify-between text-[12px]">
+                    <div className="flex items-center gap-2 min-w-0 font-medium text-on-surface">
+                      <span className="material-symbols-outlined text-[16px] text-primary animate-spin">
+                        progress_activity
+                      </span>
+                      <span className="truncate max-w-[200px] sm:max-w-[280px]">
+                        {uploadProgress?.filename || "Đang tải lên tài liệu..."}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant font-normal hidden sm:inline">
+                        • {uploadProgress?.stage || "Đang xử lý trong hàng đợi nền..."}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono text-[11px] font-bold">
+                        {Math.round(uploadProgress?.progress ?? 5)}%
+                      </span>
+                    </div>
+                  </div>
+                  {/* Thanh dải màu chạy tiến độ */}
+                  <div className="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden relative">
+                    <div
+                      className="bg-gradient-to-r from-primary via-emerald-400 to-primary bg-[length:200%_100%] h-full rounded-full transition-all duration-300 ease-out animate-pulse"
+                      style={{ width: `${Math.min(100, Math.max(5, uploadProgress?.progress ?? 5))}%` }}
+                    />
+                  </div>
+                  {uploadProgress?.stage && (
+                    <span className="text-[11px] text-on-surface-variant sm:hidden truncate">
+                      {uploadProgress.stage}
+                    </span>
+                  )}
                 </div>
               )}
             </div>

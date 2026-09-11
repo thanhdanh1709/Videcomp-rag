@@ -21,7 +21,7 @@ current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if current_dir not in sys.path:
     sys.path.insert(0, current_dir)
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
@@ -33,6 +33,9 @@ from backend.app.db.models import (
     ExperimentRecord,
     BenchmarkAnnotationRecord,
     UserRecord,
+    ChatSessionRecord,
+    ProjectFolderRecord,
+    CustomAgentRecord,
 )
 
 SQLITE_DSN = "sqlite:///./data/videcomp.db"
@@ -66,6 +69,9 @@ def migrate():
         ("qa_traces", QATraceRecord),
         ("experiments", ExperimentRecord),
         ("benchmark_annotations", BenchmarkAnnotationRecord),
+        ("projects", ProjectFolderRecord),
+        ("custom_agents", CustomAgentRecord),
+        ("chat_sessions", ChatSessionRecord),
     ]
 
     print("[3/4] Bắt đầu di chuyển dữ liệu...")
@@ -86,12 +92,13 @@ def migrate():
                 pg_db.rollback()
                 print(f"  - Bảng {table_name}: Bỏ qua hoặc gặp lỗi ({e})")
 
-        # Cập nhật sequence cho bảng có primary key serial
-        try:
-            pg_db.execute(text("SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 0) + 1, false);"))
-            pg_db.commit()
-        except Exception:
-            pg_db.rollback()
+        # Cập nhật sequence cho các bảng có primary key serial/autoincrement
+        for table in ["users", "index_versions"]:
+            try:
+                pg_db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 0) + 1, false);"))
+                pg_db.commit()
+            except Exception:
+                pg_db.rollback()
 
     print(f"[4/4] Hoàn tất! Đã đồng bộ thành công {total_rows} bản ghi sang PostgreSQL.")
 

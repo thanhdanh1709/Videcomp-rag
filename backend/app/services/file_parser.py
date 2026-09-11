@@ -5,7 +5,7 @@ import hashlib
 import io
 import logging
 import re
-from typing import BinaryIO
+from typing import BinaryIO, Callable
 
 from ..schemas.evidence import EvidenceCandidate
 
@@ -19,22 +19,35 @@ def _clean_text(text: str) -> str:
     return text.strip()
 
 
-def extract_text_from_file(filename: str, content: bytes) -> list[tuple[str, str]]:
+def extract_text_from_file(
+    filename: str,
+    content: bytes,
+    progress_callback: Callable[[float, str], None] | None = None,
+) -> list[tuple[str, str]]:
     """Trích xuất văn bản từ tệp dưới dạng danh sách [(tiêu_đề_phần, nội_dung)]."""
     ext = filename.lower().split(".")[-1]
     sections: list[tuple[str, str]] = []
+
+    if progress_callback:
+        progress_callback(5.0, f"Bắt đầu đọc tệp {filename}...")
 
     if ext == "pdf":
         import pypdf
 
         reader = pypdf.PdfReader(io.BytesIO(content))
+        total_pages = len(reader.pages)
         for page_idx, page in enumerate(reader.pages, start=1):
             text = page.extract_text() or ""
             text = _clean_text(text)
             if text:
                 sections.append((f"Trang {page_idx}", text))
+            if progress_callback and total_pages > 0:
+                pct = 5.0 + (page_idx / total_pages) * 55.0
+                progress_callback(pct, f"Đang trích xuất trang {page_idx}/{total_pages} ({int(pct)}%)...")
 
     elif ext in ("docx", "doc"):
+        if progress_callback:
+            progress_callback(15.0, "Đang phân tích cấu trúc văn bản và bảng biểu Word...")
         import docx
 
         doc = docx.Document(io.BytesIO(content))
@@ -50,11 +63,15 @@ def extract_text_from_file(filename: str, content: bytes) -> list[tuple[str, str
                 if row_text:
                     paragraphs.append(row_text)
 
+        if progress_callback:
+            progress_callback(45.0, "Đang tổng hợp nội dung văn bản Word...")
         full_doc_text = _clean_text("\n".join(paragraphs))
         if full_doc_text:
             sections.append(("Nội dung văn bản", full_doc_text))
 
     else:  # txt, md, csv, html, v.v.
+        if progress_callback:
+            progress_callback(20.0, "Đang giải mã và làm sạch văn bản...")
         try:
             raw_text = content.decode("utf-8")
         except UnicodeDecodeError:
@@ -67,6 +84,9 @@ def extract_text_from_file(filename: str, content: bytes) -> list[tuple[str, str
         if clean:
             sections.append(("Toàn văn tài liệu", clean))
 
+    if progress_callback:
+        progress_callback(60.0, f"Đã trích xuất xong {len(sections)} phần nội dung.")
+
     return sections
 
 
@@ -75,17 +95,22 @@ def parse_file_to_candidates(
     content: bytes,
     chunk_size: int = 400,
     chunk_overlap: int = 50,
+    progress_callback: Callable[[float, str], None] | None = None,
 ) -> list[EvidenceCandidate]:
     """Phân rã tệp tải lên thành các đoạn EvidenceCandidate có cấu trúc chuẩn."""
-    sections = extract_text_from_file(filename, content)
+    sections = extract_text_from_file(filename, content, progress_callback=progress_callback)
     candidates: list[EvidenceCandidate] = []
 
     clean_doc_name = re.sub(r"[^\w\s.-]", "", filename).strip()
     file_hash = hashlib.md5(filename.encode("utf-8", errors="ignore")).hexdigest()[:6]
     doc_id = f"FILE_{file_hash}_{clean_doc_name[:25]}"
 
+    if progress_callback:
+        progress_callback(65.0, "Bắt đầu băm nhỏ văn bản (chunking) theo cửa sổ trượt...")
+
     chunk_seq = 1
-    for sec_title, sec_text in sections:
+    total_sections = max(1, len(sections))
+    for sec_idx, (sec_title, sec_text) in enumerate(sections, start=1):
         words = sec_text.split()
         if not words:
             continue
@@ -113,5 +138,12 @@ def parse_file_to_candidates(
             if end >= len(words):
                 break
             start += chunk_size - chunk_overlap
+
+        if progress_callback:
+            pct = 65.0 + (sec_idx / total_sections) * 30.0
+            progress_callback(pct, f"Đang chia đoạn {sec_title} (đoạn {chunk_seq - 1}, {int(pct)}%)...")
+
+    if progress_callback:
+        progress_callback(96.0, f"Đã tạo {len(candidates)} đoạn trích xuất. Đang lưu trữ...")
 
     return candidates

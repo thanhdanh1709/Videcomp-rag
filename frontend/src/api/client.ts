@@ -1,4 +1,14 @@
-import type { AnswerResult, Domain, ExperimentRecord, Mode, QARequest, TraceRecord } from "./types";
+import type {
+  AnswerResult,
+  Domain,
+  ExperimentRecord,
+  Mode,
+  QARequest,
+  SemanticCacheStats,
+  StreamEvent,
+  TraceRecord,
+  UploadTaskProgress,
+} from "./types";
 import type { ProjectFolder } from "../types/project";
 import type { CustomAgent } from "../types/agent";
 
@@ -73,6 +83,110 @@ export function askQuestion(payload: QARequest): Promise<AnswerResult> {
   });
 }
 
+export async function askQuestionStream(
+  payload: QARequest,
+  onEvent: (event: StreamEvent) => void,
+  signal?: AbortSignal
+): Promise<AnswerResult> {
+  const base = getApiBaseUrl();
+  const token = localStorage.getItem("videcomp.token");
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
+  const res = await fetch(`${base}/api/v1/qa/answer-stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders,
+    },
+    body: JSON.stringify(payload),
+    signal,
+  });
+
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      detail = body.detail || JSON.stringify(body);
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(res.status, detail);
+  }
+
+  const reader = res.body?.getReader();
+  if (!reader) {
+    throw new Error("Trình duyệt không hỗ trợ đọc Stream response body.");
+  }
+
+  const decoder = new TextDecoder("utf-8");
+  let buffer = "";
+  let finalResult: AnswerResult | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || !trimmed.startsWith("data:")) continue;
+      const jsonStr = trimmed.slice(5).trim();
+      if (!jsonStr) continue;
+
+      try {
+        const ev: StreamEvent = JSON.parse(jsonStr);
+        onEvent(ev);
+        if (ev.type === "done" && ev.result) {
+          finalResult = ev.result;
+        }
+      } catch (err) {
+        console.warn("Lỗi parse SSE event:", trimmed, err);
+      }
+    }
+  }
+
+  if (buffer.trim().startsWith("data:")) {
+    try {
+      const ev: StreamEvent = JSON.parse(buffer.trim().slice(5).trim());
+      onEvent(ev);
+      if (ev.type === "done" && ev.result) {
+        finalResult = ev.result;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (!finalResult) {
+    throw new Error("Luồng kết nối kết thúc mà không nhận được kết quả hoàn chỉnh.");
+  }
+
+  return finalResult;
+}
+
+export function getCacheStats(): Promise<SemanticCacheStats> {
+  return request<SemanticCacheStats>("/api/v1/admin/cache-stats");
+}
+
+export function clearSemanticCache(): Promise<{ status: string; message: string }> {
+  return request<{ status: string; message: string }>("/api/v1/admin/cache-clear", {
+    method: "POST",
+  });
+}
+
+export function updateCacheConfig(config: {
+  threshold?: number;
+  enabled?: boolean;
+}): Promise<{ status: string; message: string; stats: SemanticCacheStats }> {
+  return request("/api/v1/admin/cache-config", {
+    method: "POST",
+    body: JSON.stringify(config),
+  });
+}
+
 export function loadIndex(domain: Domain, bm25Dir: string, vectorDir: string): Promise<{ chunk_count: number }> {
   return request("/api/v1/index/load", {
     method: "POST",
@@ -122,6 +236,125 @@ export async function uploadDocument(
   return res.json();
 }
 
+/**
+ * Tải lên tài liệu lớn qua hàng đợi bất đồng bộ (Background Task Queue)
+ * với thanh tiến trình phần trăm (0% -> 100%) và thông tin bước xử lý chi tiết.
+ */
+export async function uploadDocumentAsync(
+  file: File,
+  sessionId: string,
+  onProgress?: (p: UploadTaskProgress) => void
+): Promise<{ status: string; filename: string; size: number; chunk_count: number }> {
+  const base = getApiBaseUrl();
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("session_id", sessionId);
+
+  // 1. Gửi file tới endpoint bất đồng bộ
+  const res = await fetch(`${base}/api/v1/documents/upload-async`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      detail = body.detail || JSON.stringify(body);
+    } catch {}
+    throw new ApiError(res.status, detail);
+  }
+
+  const initData = await res.json();
+  const taskId = initData.task_id;
+
+  onProgress?.({
+    taskId,
+    progress: 2,
+    stage: "Đã đưa vào hàng đợi xử lý...",
+    status: "pending",
+    filename: file.name,
+  });
+
+  return new Promise((resolve, reject) => {
+    let eventSource: EventSource | null = null;
+    let pollInterval: number | null = null;
+    let isDone = false;
+
+    const cleanup = () => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+      }
+      if (pollInterval !== null) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    };
+
+    const handleUpdate = (task: any) => {
+      if (isDone) return;
+      onProgress?.({
+        taskId: task.task_id,
+        progress: task.progress ?? 0,
+        stage: task.stage || "Đang xử lý...",
+        status: task.status,
+        filename: file.name,
+        chunkCount: task.result?.chunk_count,
+      });
+
+      if (task.status === "completed") {
+        isDone = true;
+        cleanup();
+        resolve(task.result || { status: "success", filename: file.name, size: file.size, chunk_count: 0 });
+      } else if (task.status === "failed") {
+        isDone = true;
+        cleanup();
+        reject(new Error(task.error || "Tác vụ xử lý tệp thất bại"));
+      }
+    };
+
+    // 2. Kết nối Server-Sent Events (SSE) để nhận tiến trình liên tục
+    try {
+      eventSource = new EventSource(`${base}/api/v1/tasks/${encodeURIComponent(taskId)}/events`);
+      eventSource.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          handleUpdate(data);
+        } catch {}
+      };
+      eventSource.onerror = () => {
+        // Fallback sang Polling định kỳ nếu SSE bị ngắt kết nối
+        if (!isDone && !pollInterval) {
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+          pollInterval = window.setInterval(async () => {
+            try {
+              const t = await request<any>(`/api/v1/tasks/${encodeURIComponent(taskId)}`);
+              handleUpdate(t);
+            } catch (err) {
+              cleanup();
+              reject(err);
+            }
+          }, 600);
+        }
+      };
+    } catch {
+      // Fallback Polling
+      pollInterval = window.setInterval(async () => {
+        try {
+          const t = await request<any>(`/api/v1/tasks/${encodeURIComponent(taskId)}`);
+          handleUpdate(t);
+        } catch (err) {
+          cleanup();
+          reject(err);
+        }
+      }, 600);
+    }
+  });
+}
+
 export async function fetchSessionFiles(
   sessionId: string
 ): Promise<{ session_id: string; files: any[]; chunk_count: number }> {
@@ -140,6 +373,12 @@ export interface AdminConfig {
   has_anthropic_key: boolean;
   llm_base_url: string;
   llm_model: string;
+  ollama_base_url?: string;
+  ollama_model?: string;
+  vllm_base_url?: string;
+  vllm_model?: string;
+  vllm_api_key_masked?: string;
+  has_vllm_key?: boolean;
   config_version: string;
 }
 
@@ -153,7 +392,21 @@ export async function updateAdminConfig(payload: {
   llm_base_url?: string;
   llm_api_key?: string;
   llm_model?: string;
-}): Promise<{ status: string; message: string; llm_provider: string; anthropic_api_key_masked: string }> {
+  ollama_base_url?: string;
+  ollama_model?: string;
+  vllm_base_url?: string;
+  vllm_model?: string;
+  vllm_api_key?: string;
+}): Promise<{
+  status: string;
+  message: string;
+  llm_provider: string;
+  anthropic_api_key_masked?: string;
+  ollama_base_url?: string;
+  ollama_model?: string;
+  vllm_base_url?: string;
+  vllm_model?: string;
+}> {
   return request("/api/v1/admin/config", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -163,13 +416,27 @@ export async function updateAdminConfig(payload: {
 
 export async function testApiKey(
   provider: string,
-  apiKey: string
-): Promise<{ status: string; message: string }> {
+  apiKey?: string,
+  baseUrl?: string,
+  model?: string
+): Promise<{ status: string; message: string; models?: string[] }> {
   return request("/api/v1/admin/test-api-key", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ provider, api_key: apiKey }),
+    body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl, model }),
   });
+}
+
+export async function fetchLocalModels(
+  provider: "ollama" | "vllm" = "ollama",
+  baseUrl?: string
+): Promise<string[]> {
+  const params = new URLSearchParams({ provider });
+  if (baseUrl) params.set("base_url", baseUrl);
+  const res = await request<{ provider: string; models: string[] }>(
+    `/api/v1/admin/local-models?${params.toString()}`
+  );
+  return res.models || [];
 }
 
 export interface AuthResponse {

@@ -13,10 +13,12 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..core.config import settings
-from ..core.llm_provider import get_llm_provider
+from ..core.llm_provider import fetch_ollama_models, fetch_vllm_models, get_llm_provider
+from ..core.task_queue import task_manager
 from ..db import repository
 from ..schemas.api import (
     IndexBuildRequest,
@@ -27,10 +29,12 @@ from ..schemas.api import (
     QueryDecomposeRequest,
 )
 from ..schemas.benchmark import BenchmarkItem
+from ..core.semantic_cache import get_semantic_cache
+from ..schemas.answer import AnswerResult
 from ..services import evaluator, file_parser, ingestion, query_analyzer, query_decomposer, web_search
 from ..services.chunker import build_chunks
 from ..services.index_builder import BM25Index, FaissVectorIndex, build_bm25_index, build_vector_index
-from ..services.pipeline import run_qa
+from ..services.pipeline import run_qa, run_qa_stream
 from ..services.retriever import HybridRetriever
 from .state import AppState
 
@@ -138,6 +142,88 @@ async def documents_upload(file: UploadFile = File(...), session_id: str = Form(
     }
 
 
+@router.post("/documents/upload-async", status_code=202)
+async def documents_upload_async(file: UploadFile = File(...), session_id: str = Form(...)):
+    """Tải lên tài liệu lớn qua hàng đợi tác vụ nền với tiến trình 0% -> 100%."""
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Tệp tải lên rỗng")
+
+    task = task_manager.create_task(name=f"Trích xuất & lập chỉ mục: {file.filename}")
+
+    def _process_file(progress_callback):
+        candidates = file_parser.parse_file_to_candidates(
+            file.filename, content, progress_callback=progress_callback
+        )
+        if session_id not in state.session_candidates:
+            state.session_candidates[session_id] = []
+            state.session_files[session_id] = []
+
+        # Xóa bớt candidate cũ của cùng tên file nếu upload đè
+        state.session_candidates[session_id] = [
+            c for c in state.session_candidates[session_id]
+            if not c.source_url or file.filename not in c.source_url
+        ]
+        state.session_candidates[session_id].extend(candidates)
+
+        file_info = {
+            "filename": file.filename,
+            "size": len(content),
+            "chunk_count": len(candidates),
+        }
+        state.session_files[session_id] = [
+            f for f in state.session_files[session_id] if f["filename"] != file.filename
+        ] + [file_info]
+
+        return {
+            "status": "success",
+            "filename": file.filename,
+            "size": len(content),
+            "chunk_count": len(candidates),
+            "total_session_chunks": len(state.session_candidates[session_id]),
+        }
+
+    task_manager.run_in_background(task.task_id, _process_file)
+    return {
+        "task_id": task.task_id,
+        "status": "pending",
+        "filename": file.filename,
+        "size": len(content),
+    }
+
+
+@router.get("/tasks/{task_id}")
+def get_task_status(task_id: str):
+    """Lấy trạng thái và tiến độ (0% -> 100%) của một tác vụ nền (Polling)."""
+    task = task_manager.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Không tìm thấy task_id")
+    return task.to_dict()
+
+
+@router.get("/tasks/{task_id}/events")
+async def get_task_events(task_id: str):
+    """Server-Sent Events (SSE) đẩy dữ liệu tiến độ thời gian thực về frontend."""
+    task = task_manager.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Không tìm thấy task_id")
+
+    async def _event_stream():
+        import json
+        async for event in task_manager.subscribe(task_id):
+            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 @router.get("/documents/session/{session_id}")
 def documents_get_session(session_id: str):
     return {
@@ -192,6 +278,62 @@ def qa_answer(req: QARequest):
     )
     repository.save_qa_trace(result, domain=req.domain, mode=req.mode)
     return result.model_dump()
+
+
+@router.post("/qa/answer-stream")
+async def qa_answer_stream(req: QARequest):
+    """Phản hồi dòng thời gian thực chuẩn SSE (Server-Sent Events) kết hợp Semantic Cache."""
+    retriever = state.retrievers.get(req.domain)
+    if retriever is None:
+        raise HTTPException(status_code=400, detail="chua build index cho domain nay")
+
+    extra_candidates = []
+
+    # 1. Bổ sung các đoạn văn bản từ tệp đính kèm trong phiên làm việc hiện tại
+    if req.session_id and req.session_id in state.session_candidates:
+        extra_candidates.extend(state.session_candidates[req.session_id])
+
+    # 2. Bổ sung các đoạn trích từ Tìm kiếm Web thời gian thực nếu được bật
+    if req.web_search:
+        try:
+            web_cands = web_search.web_search_to_candidates(req.question, max_results=4)
+            extra_candidates.extend(web_cands)
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("Lỗi web search trong qa_answer_stream: %s", exc)
+
+    async def _event_generator():
+        import json
+        async for event in run_qa_stream(
+            req.question,
+            req.domain,
+            mode=req.mode,
+            retriever=retriever,
+            top_k=req.rerank_top_k,
+            max_corrective_rounds=req.max_corrective_rounds,
+            extra_candidates=extra_candidates if extra_candidates else None,
+        ):
+            # Nếu là event done, lưu QA trace vào DB repository
+            if event.get("type") == "done" and "result" in event:
+                try:
+                    res_dict = event["result"]
+                    ans_res = AnswerResult(**res_dict)
+                    repository.save_qa_trace(ans_res, domain=req.domain, mode=req.mode)
+                except Exception as save_err:
+                    import logging
+                    logging.getLogger(__name__).warning("Lỗi lưu QA trace từ stream: %s", save_err)
+
+            yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
+
+    return StreamingResponse(
+        _event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/qa/{request_id}/trace")
@@ -292,23 +434,39 @@ class AdminConfigRequest(BaseModel):
     llm_base_url: Optional[str] = None
     llm_api_key: Optional[str] = None
     llm_model: Optional[str] = None
+    ollama_base_url: Optional[str] = None
+    ollama_model: Optional[str] = None
+    vllm_base_url: Optional[str] = None
+    vllm_model: Optional[str] = None
+    vllm_api_key: Optional[str] = None
 
 
 class TestApiKeyRequest(BaseModel):
     provider: str
-    api_key: str
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    model: Optional[str] = None
 
 
 @router.get("/admin/config")
 def admin_get_config():
     key = settings.anthropic_api_key or ""
     masked_key = (key[:8] + "..." + key[-4:]) if len(key) > 12 else ("****" if key else "")
+    vllm_key = settings.vllm_api_key or ""
+    masked_vllm_key = (vllm_key[:4] + "..." + vllm_key[-4:]) if len(vllm_key) > 8 else ("****" if vllm_key else "")
+
     return {
         "llm_provider": settings.llm_provider,
         "anthropic_api_key_masked": masked_key,
         "has_anthropic_key": bool(settings.anthropic_api_key),
         "llm_base_url": settings.llm_base_url,
         "llm_model": settings.llm_model,
+        "ollama_base_url": settings.ollama_base_url,
+        "ollama_model": settings.ollama_model,
+        "vllm_base_url": settings.vllm_base_url,
+        "vllm_model": settings.vllm_model,
+        "vllm_api_key_masked": masked_vllm_key,
+        "has_vllm_key": bool(settings.vllm_api_key),
         "config_version": settings.config_version,
     }
 
@@ -332,25 +490,60 @@ def admin_update_config(req: AdminConfigRequest):
         settings.llm_model = req.llm_model
         _update_env_file("LLM_MODEL", req.llm_model)
 
+    # Cập nhật Ollama On-Premise
+    if req.ollama_base_url is not None:
+        settings.ollama_base_url = req.ollama_base_url
+        _update_env_file("OLLAMA_BASE_URL", req.ollama_base_url)
+    if req.ollama_model is not None:
+        settings.ollama_model = req.ollama_model
+        _update_env_file("OLLAMA_MODEL", req.ollama_model)
+
+    # Cập nhật vLLM Cluster
+    if req.vllm_base_url is not None:
+        settings.vllm_base_url = req.vllm_base_url
+        _update_env_file("VLLM_BASE_URL", req.vllm_base_url)
+    if req.vllm_model is not None:
+        settings.vllm_model = req.vllm_model
+        _update_env_file("VLLM_MODEL", req.vllm_model)
+    if req.vllm_api_key is not None:
+        settings.vllm_api_key = req.vllm_api_key
+        _update_env_file("VLLM_API_KEY", req.vllm_api_key)
+
     key = settings.anthropic_api_key or ""
     masked_key = (key[:8] + "..." + key[-4:]) if len(key) > 12 else ("****" if key else "")
+    vllm_key = settings.vllm_api_key or ""
+    masked_vllm_key = (vllm_key[:4] + "..." + vllm_key[-4:]) if len(vllm_key) > 8 else ("****" if vllm_key else "")
+
     return {
         "status": "success",
         "message": "Đã cập nhật cấu hình API Key và mô hình thành công",
         "llm_provider": settings.llm_provider,
         "anthropic_api_key_masked": masked_key,
         "has_anthropic_key": bool(settings.anthropic_api_key),
+        "ollama_base_url": settings.ollama_base_url,
+        "ollama_model": settings.ollama_model,
+        "vllm_base_url": settings.vllm_base_url,
+        "vllm_model": settings.vllm_model,
+        "vllm_api_key_masked": masked_vllm_key,
     }
 
 
 @router.post("/admin/test-api-key")
 def admin_test_api_key(req: TestApiKeyRequest):
-    key_to_test = req.api_key.strip()
-    if not key_to_test or key_to_test in ("test", "existing", "existing-key"):
-        key_to_test = settings.anthropic_api_key or ""
-    if not key_to_test:
-        raise HTTPException(status_code=400, detail="Vui lòng nhập API Key để kiểm tra")
-    if req.provider == "anthropic":
+    provider = req.provider.lower()
+
+    if provider == "mock":
+        return {
+            "status": "ok",
+            "message": "Chế độ Mock (heuristic thực nghiệm) luôn sẵn sàng, không yêu cầu kết nối mạng!",
+        }
+
+    if provider == "anthropic":
+        key_to_test = (req.api_key or "").strip()
+        if not key_to_test or key_to_test in ("test", "existing", "existing-key"):
+            key_to_test = settings.anthropic_api_key or ""
+        if not key_to_test:
+            raise HTTPException(status_code=400, detail="Vui lòng nhập Anthropic API Key để kiểm tra")
         try:
             import anthropic
             client = anthropic.Anthropic(api_key=key_to_test)
@@ -362,7 +555,88 @@ def admin_test_api_key(req: TestApiKeyRequest):
             return {"status": "ok", "message": "Kết nối thành công tới Anthropic Claude API!"}
         except Exception as exc:
             return {"status": "error", "message": f"Kiểm tra thất bại: {exc}"}
-    return {"status": "ok", "message": "Định dạng API Key hợp lệ"}
+
+    if provider == "ollama":
+        base_url = req.base_url or settings.ollama_base_url
+        models = fetch_ollama_models(base_url)
+        if models:
+            target_model = req.model or settings.ollama_model
+            has_target = any(target_model in m for m in models)
+            model_note = f" (Mô hình '{target_model}' đã sẵn sàng)" if has_target else f" (Chưa tải '{target_model}', có sẵn: {', '.join(models[:3])})"
+            return {
+                "status": "ok",
+                "message": f"Kết nối máy chủ On-Premise Ollama thành công! Phát hiện {len(models)} mô hình{model_note}.",
+                "models": models,
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"Không thể kết nối tới Ollama tại '{base_url}'. Hãy kiểm tra lệnh 'ollama serve' hoặc địa chỉ IP mạng nội bộ.",
+            }
+
+    if provider == "vllm":
+        base_url = req.base_url or settings.vllm_base_url
+        models = fetch_vllm_models(base_url, api_key=req.api_key)
+        if models:
+            return {
+                "status": "ok",
+                "message": f"Kết nối máy chủ GPU vLLM Cluster thành công! Đang phục vụ các mô hình: {', '.join(models)}.",
+                "models": models,
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"Không thể kết nối tới cụm vLLM tại '{base_url}'. Hãy kiểm tra dịch vụ vLLM hoặc cấu hình mạng nội bộ.",
+            }
+
+    return {"status": "ok", "message": f"Đã lưu cấu hình cho nhà cung cấp {provider}."}
+
+
+@router.get("/admin/local-models")
+def admin_get_local_models(provider: str = "ollama", base_url: Optional[str] = None):
+    """Lấy danh sách các mô hình đang được cài đặt trên máy chủ On-Premise (Ollama/vLLM)."""
+    if provider == "ollama":
+        models = fetch_ollama_models(base_url)
+        return {"provider": "ollama", "models": models}
+    elif provider == "vllm":
+        models = fetch_vllm_models(base_url)
+        return {"provider": "vllm", "models": models}
+    return {"provider": provider, "models": []}
+
+
+class CacheConfigUpdate(BaseModel):
+    threshold: float | None = None
+    enabled: bool | None = None
+
+
+@router.get("/admin/cache-stats")
+def admin_get_cache_stats():
+    """Lấy số liệu thống kê thời gian thực của Bộ đệm Ngữ nghĩa (Semantic Cache)."""
+    cache = get_semantic_cache()
+    return cache.get_stats()
+
+
+@router.post("/admin/cache-clear")
+def admin_clear_cache():
+    """Xóa toàn bộ bản ghi bộ đệm ngữ nghĩa đã lưu."""
+    cache = get_semantic_cache()
+    cache.clear()
+    return {"status": "ok", "message": "Đã xóa toàn bộ bộ nhớ đệm ngữ nghĩa"}
+
+
+@router.post("/admin/cache-config")
+def admin_update_cache_config(req: CacheConfigUpdate):
+    """Cập nhật ngưỡng tương đồng Cosine hoặc bật/tắt bộ đệm ngữ nghĩa."""
+    cache = get_semantic_cache()
+    if req.threshold is not None:
+        cache.set_threshold(req.threshold)
+    if req.enabled is not None:
+        settings.semantic_cache_enabled = req.enabled
+    return {
+        "status": "ok",
+        "message": "Đã cập nhật cấu hình Bộ đệm Ngữ nghĩa",
+        "stats": cache.get_stats(),
+    }
 
 
 # ==============================================================================

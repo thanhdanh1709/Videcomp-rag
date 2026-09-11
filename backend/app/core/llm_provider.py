@@ -114,12 +114,44 @@ class MockLLMProvider(LLMProvider):
         )
 
 
+def _extract_and_validate_json(raw_text: str, schema: type[T]) -> T:
+    """Lọc và làm sạch JSON từ đầu ra của các mô hình On-Premise / Local LLM.
+
+    Tự động xử lý:
+    - Thẻ suy nghĩ <think>...</think> (từ Qwen 2.5 / DeepSeek R1).
+    - Khối markdown ```json ... ``` hoặc ``` ... ```.
+    - Tìm kiếm cặp ngoặc {...} ngoài cùng nếu mô hình có kèm lời dẫn.
+    """
+    text = raw_text.strip()
+    # 1. Loại bỏ khối thẻ suy nghĩ <think>...</think>
+    text = re.sub(r"<think>[\s\S]*?</think>", "", text).strip()
+
+    # 2. Bóc tách markdown code fence nếu có
+    fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)
+    if fence_match:
+        text = fence_match.group(1).strip()
+
+    # 3. Tìm cặp ngoặc nhọn JSON ngoài cùng
+    first_brace = text.find("{")
+    last_brace = text.rfind("}")
+    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+        text = text[first_brace : last_brace + 1]
+
+    # 4. Xác thực qua Pydantic schema
+    try:
+        return schema.model_validate_json(text)
+    except Exception:
+        # Fallback: phân tích qua json.loads() rồi model_validate
+        data = json.loads(text)
+        return schema.model_validate(data)
+
+
 class OpenAICompatibleProvider(LLMProvider):
     """Provider that ai gan real LLM (OpenAI-compatible /chat/completions, vd Ollama/vLLM).
     Yeu cau model tra ve JSON hop le theo schema; se validate bang Pydantic."""
 
     def __init__(self, base_url: str | None = None, api_key: str | None = None, model: str | None = None):
-        self.base_url = base_url or settings.llm_base_url
+        self.base_url = (base_url or settings.llm_base_url).rstrip("/")
         self.api_key = api_key or settings.llm_api_key
         self.model = model or settings.llm_model
 
@@ -130,7 +162,7 @@ class OpenAICompatibleProvider(LLMProvider):
             "Ban la mot API tra ve DUY NHAT mot JSON object hop le theo JSON schema sau, "
             "khong giai thich, khong markdown fence:\n" + json.dumps(schema_json, ensure_ascii=False)
         )
-        with httpx.Client(base_url=self.base_url, timeout=60) as client:
+        with httpx.Client(base_url=self.base_url, timeout=90) as client:
             resp = client.post(
                 "/chat/completions",
                 headers={"Authorization": f"Bearer {self.api_key}"},
@@ -145,7 +177,141 @@ class OpenAICompatibleProvider(LLMProvider):
             )
             resp.raise_for_status()
             content = resp.json()["choices"][0]["message"]["content"]
-        return schema.model_validate_json(content)
+        return _extract_and_validate_json(content, schema)
+
+
+class OllamaProvider(LLMProvider):
+    """Provider chuyên dụng kết nối trực tiếp với Ollama On-Premise.
+    
+    Phục vụ cho các cơ quan nhà nước, ngân hàng và bệnh viện triển khai 100% Private Cloud,
+    hỗ trợ các mô hình: Qwen 2.5 (14B/32B), Vistral, PhoGPT, Llama 3.1.
+    """
+
+    def __init__(self, base_url: str | None = None, model: str | None = None):
+        url = (base_url or settings.ollama_base_url).strip().rstrip("/")
+        # Nếu người dùng nhập kèm /v1, ta lấy root base cho native API
+        self.base_url = url[:-3] if url.endswith("/v1") else url
+        self.model = model or settings.ollama_model
+
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=1, max=4))
+    def structured_output(self, prompt: str, schema: type[T], *, context: dict | None = None) -> T:
+        schema_json = schema.model_json_schema()
+        system = (
+            "Ban la mot API he thong. Nhiem vu: tra ve DUY NHAT mot JSON object hop le theo schema JSON sau, "
+            "tuyet doi khong dung markdown code block, khong kem loi giai thich ngoai JSON:\n"
+            + json.dumps(schema_json, ensure_ascii=False)
+        )
+
+        # 1. Thử gọi qua API native của Ollama (/api/chat) với format: "json"
+        try:
+            with httpx.Client(base_url=self.base_url, timeout=120) as client:
+                resp = client.post(
+                    "/api/chat",
+                    json={
+                        "model": self.model,
+                        "messages": [
+                            {"role": "system", "content": system},
+                            {"role": "user", "content": prompt},
+                        ],
+                        "format": "json",
+                        "stream": False,
+                        "options": {"temperature": 0},
+                    },
+                )
+                if resp.status_code == 200:
+                    raw_content = resp.json()["message"]["content"]
+                    return _extract_and_validate_json(raw_content, schema)
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("Ollama /api/chat loi (%s), thu fallback sang /v1/chat/completions", exc)
+
+        # 2. Thử gọi qua endpoint tương thích OpenAI của Ollama (/v1/chat/completions)
+        with httpx.Client(base_url=f"{self.base_url}/v1", timeout=120) as client:
+            resp = client.post(
+                "/chat/completions",
+                json={
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0,
+                    "response_format": {"type": "json_object"},
+                },
+            )
+            resp.raise_for_status()
+            content = resp.json()["choices"][0]["message"]["content"]
+            return _extract_and_validate_json(content, schema)
+
+
+class VLLMProvider(LLMProvider):
+    """Provider kết nối cụm máy chủ vLLM Private Cluster hiệu năng cao.
+    
+    Tối ưu cho On-Premise GPU servers (A100/H100/L40S) phục vụ số lượng lớn request đồng thời.
+    """
+
+    def __init__(self, base_url: str | None = None, model: str | None = None, api_key: str | None = None):
+        url = (base_url or settings.vllm_base_url).strip().rstrip("/")
+        self.base_url = url if url.endswith("/v1") else f"{url}/v1"
+        self.model = model or settings.vllm_model
+        self.api_key = api_key or settings.vllm_api_key or "local-vllm"
+
+    @retry(stop=stop_after_attempt(2), wait=wait_exponential(multiplier=1, min=1, max=4))
+    def structured_output(self, prompt: str, schema: type[T], *, context: dict | None = None) -> T:
+        schema_json = schema.model_json_schema()
+        system = (
+            "Ban la mot he thong AI tra ve DUY NHAT mot JSON object hop le theo schema JSON sau, "
+            "khong them markdown code fence:\n" + json.dumps(schema_json, ensure_ascii=False)
+        )
+        headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+        with httpx.Client(base_url=self.base_url, timeout=120) as client:
+            resp = client.post(
+                "/chat/completions",
+                headers=headers,
+                json={
+                    "model": self.model,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": prompt},
+                    ],
+                    "temperature": 0,
+                    "response_format": {"type": "json_object"},
+                },
+            )
+            resp.raise_for_status()
+            content = resp.json()["choices"][0]["message"]["content"]
+            return _extract_and_validate_json(content, schema)
+
+
+def fetch_ollama_models(base_url: str | None = None) -> list[str]:
+    """Truy vấn danh sách mô hình đã tải về trên máy chủ Ollama cục bộ."""
+    url = (base_url or settings.ollama_base_url).strip().rstrip("/")
+    root_url = url[:-3] if url.endswith("/v1") else url
+    try:
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"{root_url}/api/tags")
+            if resp.status_code == 200:
+                data = resp.json()
+                return [m.get("name") for m in data.get("models", []) if m.get("name")]
+    except Exception:
+        pass
+    return []
+
+
+def fetch_vllm_models(base_url: str | None = None, api_key: str | None = None) -> list[str]:
+    """Truy vấn danh sách mô hình đang được phục vụ trên vLLM cluster."""
+    url = (base_url or settings.vllm_base_url).strip().rstrip("/")
+    v1_url = url if url.endswith("/v1") else f"{url}/v1"
+    headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+    try:
+        with httpx.Client(timeout=5) as client:
+            resp = client.get(f"{v1_url}/models", headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                return [m.get("id") for m in data.get("data", []) if m.get("id")]
+    except Exception:
+        pass
+    return []
 
 
 _ANTHROPIC_SYSTEM_PROMPTS: dict[str, str] = {
@@ -259,10 +425,15 @@ class AnthropicProvider(LLMProvider):
 
 
 def get_llm_provider() -> LLMProvider:
-    if settings.llm_provider == "mock":
+    provider = (settings.llm_provider or "mock").lower()
+    if provider == "mock":
         return MockLLMProvider()
-    if settings.llm_provider == "anthropic":
+    if provider == "anthropic":
         return AnthropicProvider()
+    if provider == "ollama":
+        return OllamaProvider()
+    if provider == "vllm":
+        return VLLMProvider()
     return OpenAICompatibleProvider()
 
 

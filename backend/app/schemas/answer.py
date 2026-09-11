@@ -70,3 +70,6 @@ class AnswerResult(BaseModel):
     verification: VerificationReport | None = None
     latency_ms: float
     config_version: str
+    is_cached: bool = False
+    cache_similarity: float | None = None
+    cached_question: str | None = None

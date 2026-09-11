@@ -64,6 +64,16 @@ export interface UploadedFile {
   chunk_count: number;
 }
 
+export interface UploadTaskProgress {
+  taskId: string;
+  progress: number;
+  stage: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  filename?: string;
+  chunkCount?: number;
+  error?: string;
+}
+
 export type ClaimSupport = "supported" | "unsupported" | "insufficient";
 
 export interface Citation {
@@ -123,6 +133,9 @@ export interface AnswerResult {
   verification: VerificationReport | null;
   latency_ms: number;
   config_version: string;
+  is_cached?: boolean;
+  cache_similarity?: number;
+  cached_question?: string;
 }
 
 export interface TraceRecord {
@@ -138,6 +151,74 @@ export interface TraceRecord {
   latency_ms: number;
   config_version: string;
   created_at: string;
+  is_cached?: boolean;
+  cache_similarity?: number;
+}
+
+export interface HopDoc {
+  chunk_id: string;
+  doc_id: string;
+  law_name: string;
+  citation_label: string;
+  article_title: string;
+  score: number;
+}
+
+export interface PlanHop {
+  id: string;
+  question: string;
+  depends_on?: string[];
+  reasoning_type?: string;
+}
+
+export interface LiveHopState {
+  id: string;
+  question: string;
+  bound_question?: string;
+  status: "pending" | "running" | "done";
+  docs: HopDoc[];
+  intermediate_answer?: string;
+}
+
+export type StreamEventType =
+  | "step"
+  | "plan"
+  | "hop_start"
+  | "hop_retrieval"
+  | "hop_done"
+  | "token"
+  | "verification"
+  | "done"
+  | "cache_hit"
+  | "error";
+
+export interface StreamEvent {
+  type: StreamEventType;
+  step?: string;
+  message?: string;
+  hops?: PlanHop[];
+  plan?: any;
+  hop_id?: string;
+  question?: string;
+  bound_question?: string;
+  docs?: HopDoc[];
+  intermediate_answer?: string;
+  token?: string;
+  verification?: VerificationReport;
+  result?: AnswerResult;
+  similarity?: number;
+  cached_question?: string;
+  latency_ms?: number;
+}
+
+export interface SemanticCacheStats {
+  enabled: boolean;
+  threshold: number;
+  total_entries: number;
+  total_hits: number;
+  hit_rate_pct: number;
+  saved_cost_usd: number;
+  db_path: string;
 }
 
 export interface ExperimentRecord {

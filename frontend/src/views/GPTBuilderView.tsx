@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import type { CustomAgent } from "../types/agent";
-import type { Domain } from "../api/types";
+import type { Domain, UploadTaskProgress } from "../api/types";
 import {
   askQuestion,
   uploadDocument,
+  uploadDocumentAsync,
   deleteSessionFile,
   fetchSessionFiles,
   loadIndex,
@@ -76,6 +77,7 @@ export function GPTBuilderView({
     { filename: string; size: number; chunk_count: number }[]
   >(() => initialAgent?.knowledgeFiles || []);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<UploadTaskProgress | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Playground state
@@ -206,8 +208,17 @@ export function GPTBuilderView({
     if (!file) return;
 
     setIsUploading(true);
+    setUploadProgress({
+      taskId: "init",
+      progress: 5,
+      stage: `Đang nạp tệp ${file.name}...`,
+      status: "pending",
+      filename: file.name,
+    });
     try {
-      const res = await uploadDocument(file, knowledgeSessionId);
+      const res = await uploadDocumentAsync(file, knowledgeSessionId, (p) => {
+        setUploadProgress(p);
+      });
       setKnowledgeFiles((prev) => [
         ...prev.filter((f) => f.filename !== file.name),
         { filename: file.name, size: file.size, chunk_count: res.chunk_count },
@@ -217,6 +228,7 @@ export function GPTBuilderView({
       onShowToast?.("Lỗi tải tệp: " + (err.message || "Không thể tải"));
     } finally {
       setIsUploading(false);
+      setUploadProgress(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
@@ -647,6 +659,39 @@ export function GPTBuilderView({
                   </div>
                 ))}
               </div>
+
+              {/* Progress bar khi tải kiến thức vào hàng đợi nền */}
+              {(isUploading || uploadProgress) && (
+                <div className="w-full flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface-container-high/90 border border-primary/30 mb-2 shadow-sm animate-in fade-in">
+                  <div className="flex items-center justify-between text-[12px]">
+                    <div className="flex items-center gap-2 min-w-0 font-medium text-on-surface">
+                      <span className="material-symbols-outlined text-[16px] text-primary animate-spin">
+                        progress_activity
+                      </span>
+                      <span className="truncate max-w-[200px] sm:max-w-[280px]">
+                        {uploadProgress?.filename || "Đang xử lý tệp tri thức..."}
+                      </span>
+                      <span className="text-[11px] text-on-surface-variant font-normal hidden sm:inline">
+                        • {uploadProgress?.stage || "Đang xử lý trong hàng đợi nền..."}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold text-primary text-[12px]">
+                      {Math.round(uploadProgress?.progress ?? 5)}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-primary via-emerald-400 to-primary h-full rounded-full transition-all duration-300 ease-out animate-pulse"
+                      style={{ width: `${Math.min(100, Math.max(5, uploadProgress?.progress ?? 5))}%` }}
+                    />
+                  </div>
+                  {uploadProgress?.stage && (
+                    <span className="text-[11px] text-on-surface-variant sm:hidden truncate">
+                      {uploadProgress.stage}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Nút Upload tệp mới */}
               <input
