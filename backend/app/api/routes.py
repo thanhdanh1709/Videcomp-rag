@@ -13,7 +13,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..core.config import settings
 from ..core.llm_provider import get_llm_provider
@@ -506,6 +506,561 @@ def auth_me(authorization: str | None = Header(None)):
             "name": user.full_name,
             "role": user.role,
         }
+
+
+# ==============================================================================
+# HỆ THỐNG LƯU TRỮ BỀN VỮNG POSTGRESQL: SESSIONS, PROJECTS & CUSTOM GPTS
+# ==============================================================================
+
+def _get_current_username(authorization: str | None = Header(None)) -> str:
+    """Xác định username từ Bearer JWT Token. Nếu không đăng nhập trả về 'guest'."""
+    from ..services import auth_service
+
+    if not authorization or not authorization.startswith("Bearer "):
+        return "guest"
+    token = authorization.split(" ", 1)[1]
+    payload = auth_service.decode_access_token(token)
+    if not payload or "sub" not in payload:
+        return "guest"
+    return payload["sub"]
+
+
+# --- 1. CHAT SESSIONS (Lịch sử đoạn chat đa bước) ---
+
+class SaveSessionRequest(BaseModel):
+    session_id: str
+    title: str = ""
+    domain: str = "legal"
+    mode: str = "videcomp_full"
+    folder_id: str | None = None
+    turns: list[dict] = Field(default_factory=list)
+
+
+class AssignFolderRequest(BaseModel):
+    folder_id: str | None = None
+
+
+class SessionFeedbackRequest(BaseModel):
+    request_id: str
+    feedback: str  # "up" | "down"
+
+
+@router.get("/sessions")
+def list_user_sessions(authorization: str | None = Header(None)):
+    """Lấy danh sách tất cả các phiên chat của người dùng từ PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    from sqlalchemy import select
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        stmt = (
+            select(ChatSessionRecord)
+            .where(ChatSessionRecord.username == username)
+            .order_by(ChatSessionRecord.updated_at.desc())
+        )
+        records = db.execute(stmt).scalars().all()
+        return [
+            {
+                "sessionId": r.id,
+                "title": r.title,
+                "domain": r.domain,
+                "mode": r.mode,
+                "folderId": r.folder_id,
+                "turns": r.turns,
+                "lastCreatedAt": (r.updated_at or r.created_at).isoformat(),
+            }
+            for r in records
+        ]
+
+
+@router.post("/sessions")
+def save_user_session(req: SaveSessionRequest, authorization: str | None = Header(None)):
+    """Lưu hoặc cập nhật một phiên chat cùng các lượt hỏi đáp vào PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    import datetime as dt
+
+    username = _get_current_username(authorization)
+    title = req.title
+    if not title and req.turns:
+        first_q = req.turns[0].get("question", "")
+        title = first_q[:120] if first_q else "Phiên hỏi đáp mới"
+
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, req.session_id)
+        if record:
+            # Kiểm tra quyền sở hữu
+            if record.username != username and record.username != "guest":
+                raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa phiên chat này.")
+            record.turns = req.turns
+            if title:
+                record.title = title
+            if req.domain:
+                record.domain = req.domain
+            if req.mode:
+                record.mode = req.mode
+            if req.folder_id is not None:
+                record.folder_id = req.folder_id
+            record.updated_at = dt.datetime.now(dt.timezone.utc)
+        else:
+            record = ChatSessionRecord(
+                id=req.session_id,
+                username=username,
+                title=title or "Phiên hỏi đáp",
+                domain=req.domain,
+                mode=req.mode,
+                folder_id=req.folder_id,
+                turns=req.turns,
+            )
+            db.add(record)
+        db.commit()
+        db.refresh(record)
+        return {
+            "status": "success",
+            "sessionId": record.id,
+            "title": record.title,
+            "turnsCount": len(record.turns),
+        }
+
+
+@router.delete("/sessions/{session_id}")
+def delete_user_session(session_id: str, authorization: str | None = Header(None)):
+    """Xóa một phiên chat khỏi PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, session_id)
+        if not record:
+            return {"status": "success", "message": "Phiên chat không tồn tại hoặc đã xóa."}
+        if record.username != username and record.username != "guest":
+            raise HTTPException(status_code=403, detail="Không có quyền xóa phiên chat này.")
+        db.delete(record)
+        db.commit()
+        return {"status": "success", "message": "Đã xóa phiên chat thành công."}
+
+
+@router.put("/sessions/{session_id}/folder")
+def assign_session_folder(session_id: str, req: AssignFolderRequest, authorization: str | None = Header(None)):
+    """Gán hoặc gỡ phiên chat vào thư mục dự án."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    import datetime as dt
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, session_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Phiên chat không tồn tại.")
+        if record.username != username and record.username != "guest":
+            raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa phiên chat này.")
+        record.folder_id = req.folder_id
+        # Cập nhật cả trong các turns
+        updated_turns = []
+        for t in record.turns:
+            t_copy = dict(t)
+            t_copy["folderId"] = req.folder_id or None
+            updated_turns.append(t_copy)
+        record.turns = updated_turns
+        record.updated_at = dt.datetime.now(dt.timezone.utc)
+        db.commit()
+        return {"status": "success", "folderId": record.folder_id}
+
+
+@router.post("/sessions/{session_id}/feedback")
+def set_session_feedback(session_id: str, req: SessionFeedbackRequest, authorization: str | None = Header(None)):
+    """Cập nhật đánh giá hữu ích (up/down) cho một lượt hỏi đáp trong phiên."""
+    from ..db.session import get_session
+    from ..db.models import ChatSessionRecord
+    import datetime as dt
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        record = db.get(ChatSessionRecord, session_id)
+        if not record:
+            raise HTTPException(status_code=404, detail="Phiên chat không tồn tại.")
+        if record.username != username and record.username != "guest":
+            raise HTTPException(status_code=403, detail="Không có quyền cập nhật phiên chat này.")
+
+        updated = False
+        new_turns = []
+        for t in record.turns:
+            t_copy = dict(t)
+            if t_copy.get("requestId") == req.request_id:
+                # Đổi trạng thái hoặc toggle
+                t_copy["feedback"] = req.feedback if t_copy.get("feedback") != req.feedback else None
+                updated = True
+            new_turns.append(t_copy)
+
+        if updated:
+            record.turns = new_turns
+            record.updated_at = dt.datetime.now(dt.timezone.utc)
+            db.commit()
+        return {"status": "success", "updated": updated}
+
+
+# --- 2. PROJECTS (Thư mục dự án / Vụ việc pháp lý) ---
+
+class CreateProjectRequest(BaseModel):
+    id: str | None = None
+    title: str
+    desc: str = ""
+    icon: str = "folder"
+    color: str = "emerald"
+
+
+class UpdateProjectRequest(BaseModel):
+    title: str | None = None
+    desc: str | None = None
+    icon: str | None = None
+    color: str | None = None
+
+
+DEFAULT_PROJECTS = [
+    {
+        "id": "proj-labor",
+        "title": "Bộ luật Lao động & HĐLĐ",
+        "desc": "Rà soát điều khoản bồi thường, đơn phương chấm dứt và thỏa ước tập thể.",
+        "icon": "gavel",
+        "color": "emerald",
+    },
+    {
+        "id": "proj-land",
+        "title": "Nghiên cứu Luật Đất đai 2024",
+        "desc": "Quy định bồi thường giải tỏa, quyền sử dụng đất doanh nghiệp mới nhất.",
+        "icon": "apartment",
+        "color": "cyan",
+    },
+    {
+        "id": "proj-anaphylaxis",
+        "title": "Phác đồ Cấp cứu Sốc phản vệ",
+        "desc": "Thông tư 51/2017/TT-BYT, phân độ phản vệ và hướng dẫn hồi sức lâm sàng.",
+        "icon": "medical_services",
+        "color": "rose",
+    },
+    {
+        "id": "proj-benchmark",
+        "title": "Thực nghiệm Benchmark RAG",
+        "desc": "Đo lường Hit@k, MRR, Faithfulness và Answer Relevance trên tập dữ liệu Q3.",
+        "icon": "science",
+        "color": "amber",
+    },
+]
+
+
+@router.get("/projects")
+def list_user_projects(authorization: str | None = Header(None)):
+    """Lấy danh sách thư mục dự án của người dùng. Tự động nạp mẫu nếu chưa có."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord
+    from sqlalchemy import select
+    import uuid
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        stmt = select(ProjectFolderRecord).where(ProjectFolderRecord.username == username).order_by(ProjectFolderRecord.created_at.asc())
+        records = db.execute(stmt).scalars().all()
+
+        # Nếu chưa có thư mục nào, nạp 4 thư mục mẫu
+        if not records and username != "guest":
+            new_records = []
+            for item in DEFAULT_PROJECTS:
+                rec = ProjectFolderRecord(
+                    id=f"{item['id']}-{uuid.uuid4().hex[:4]}",
+                    username=username,
+                    title=item["title"],
+                    desc=item["desc"],
+                    icon=item["icon"],
+                    color=item["color"],
+                )
+                db.add(rec)
+                new_records.append(rec)
+            db.commit()
+            records = new_records
+
+        return [
+            {
+                "id": r.id,
+                "title": r.title,
+                "desc": r.desc,
+                "icon": r.icon,
+                "color": r.color,
+                "createdAt": r.created_at.isoformat(),
+            }
+            for r in (records or [ProjectFolderRecord(username="guest", **p) for p in DEFAULT_PROJECTS])
+        ]
+
+
+@router.post("/projects")
+def create_user_project(req: CreateProjectRequest, authorization: str | None = Header(None)):
+    """Tạo mới thư mục dự án trong PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord
+    import uuid
+
+    username = _get_current_username(authorization)
+    proj_id = req.id or f"proj-{uuid.uuid4().hex[:8]}"
+
+    with get_session() as db:
+        rec = ProjectFolderRecord(
+            id=proj_id,
+            username=username,
+            title=req.title.strip(),
+            desc=req.desc.strip(),
+            icon=req.icon or "folder",
+            color=req.color or "emerald",
+        )
+        db.add(rec)
+        db.commit()
+        db.refresh(rec)
+        return {
+            "id": rec.id,
+            "title": rec.title,
+            "desc": rec.desc,
+            "icon": rec.icon,
+            "color": rec.color,
+            "createdAt": rec.created_at.isoformat(),
+        }
+
+
+@router.put("/projects/{project_id}")
+def update_user_project(project_id: str, req: UpdateProjectRequest, authorization: str | None = Header(None)):
+    """Cập nhật thông tin thư mục dự án."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord
+    import datetime as dt
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        rec = db.get(ProjectFolderRecord, project_id)
+        if not rec:
+            raise HTTPException(status_code=404, detail="Dự án không tồn tại.")
+        if rec.username != username and rec.username != "guest":
+            raise HTTPException(status_code=403, detail="Không có quyền sửa dự án này.")
+
+        if req.title is not None:
+            rec.title = req.title.strip()
+        if req.desc is not None:
+            rec.desc = req.desc.strip()
+        if req.icon is not None:
+            rec.icon = req.icon
+        if req.color is not None:
+            rec.color = req.color
+        rec.updated_at = dt.datetime.now(dt.timezone.utc)
+        db.commit()
+        db.refresh(rec)
+        return {
+            "id": rec.id,
+            "title": rec.title,
+            "desc": rec.desc,
+            "icon": rec.icon,
+            "color": rec.color,
+            "createdAt": rec.created_at.isoformat(),
+        }
+
+
+@router.delete("/projects/{project_id}")
+def delete_user_project(project_id: str, authorization: str | None = Header(None)):
+    """Xóa thư mục dự án và tự động gỡ liên kết khỏi các phiên chat."""
+    from ..db.session import get_session
+    from ..db.models import ProjectFolderRecord, ChatSessionRecord
+    from sqlalchemy import select
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        rec = db.get(ProjectFolderRecord, project_id)
+        if not rec:
+            return {"status": "success", "message": "Dự án đã xóa hoặc không tồn tại."}
+        if rec.username != username and rec.username != "guest":
+            raise HTTPException(status_code=403, detail="Không có quyền xóa dự án này.")
+
+        # Gỡ folder_id khỏi các sessions liên kết
+        sessions = db.execute(
+            select(ChatSessionRecord).where(
+                ChatSessionRecord.username == username,
+                ChatSessionRecord.folder_id == project_id,
+            )
+        ).scalars().all()
+        for s in sessions:
+            s.folder_id = None
+
+        db.delete(rec)
+        db.commit()
+        return {"status": "success", "message": "Đã xóa thư mục dự án thành công."}
+
+
+# --- 3. CUSTOM AGENTS (Chuyên gia tùy chỉnh / Custom GPTs) ---
+
+class SaveAgentRequest(BaseModel):
+    id: str
+    name: str
+    desc: str = ""
+    author: str = "Bởi bạn"
+    domain: str = "legal"
+    category: str = "productivity"
+    instructions: str = ""
+    starters: list[str] = Field(default_factory=list)
+    icon: str = "school"
+    session_id: str | None = None
+    knowledge_files: list[dict] = Field(default_factory=list)
+
+
+DEFAULT_AGENTS = [
+    {
+        "id": "agent-academic-trans",
+        "name": "Trợ lý Nghiên cứu & Dịch thuật",
+        "desc": "Chuyên gia dịch thuật học thuật, tóm tắt tài liệu PDF và trích dẫn khoa học chuẩn APA/IEEE.",
+        "author": "Hệ thống",
+        "domain": "legal",
+        "category": "productivity",
+        "instructions": (
+            "Bạn là Trợ lý Nghiên cứu & Dịch thuật chuyên nghiệp của hệ thống Videcomp-rag. Nhiệm vụ trọng tâm:\n"
+            "1. Dịch thuật song ngữ Anh-Việt và Việt-Anh với tính chính xác học thuật cao nhất.\n"
+            "2. Phân rã câu hỏi đa bước và đối chiếu chuẩn xác với các tài liệu đính kèm.\n"
+            "3. Định dạng danh mục tham khảo theo chuẩn APA 7th."
+        ),
+        "starters": [
+            "Dịch tóm tắt đoạn văn này sang tiếng Anh học thuật...",
+            "Kiểm tra lỗi ngữ pháp học thuật và văn phong...",
+            "Trích dẫn tài liệu theo chuẩn APA 7th...",
+            "Tóm tắt các phát hiện cốt lõi từ văn bản...",
+        ],
+        "icon": "school",
+        "session_id": "agent-session-academic-default",
+        "knowledge_files": [],
+    }
+]
+
+
+@router.get("/agents")
+def list_user_agents(authorization: str | None = Header(None)):
+    """Lấy danh sách chuyên gia tùy chỉnh của người dùng từ PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import CustomAgentRecord
+    from sqlalchemy import select, or_
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        stmt = (
+            select(CustomAgentRecord)
+            .where(or_(CustomAgentRecord.username == username, CustomAgentRecord.username == "system"))
+            .order_by(CustomAgentRecord.updated_at.desc())
+        )
+        records = db.execute(stmt).scalars().all()
+
+        if not records:
+            # Tự động nạp mẫu ban đầu
+            for a in DEFAULT_AGENTS:
+                rec = CustomAgentRecord(
+                    id=a["id"],
+                    username=username if username != "guest" else "system",
+                    name=a["name"],
+                    desc=a["desc"],
+                    author=a["author"],
+                    domain=a["domain"],
+                    category=a["category"],
+                    instructions=a["instructions"],
+                    starters=a["starters"],
+                    icon=a["icon"],
+                    session_id=a["session_id"],
+                    knowledge_files=a["knowledge_files"],
+                )
+                db.add(rec)
+            db.commit()
+            stmt = select(CustomAgentRecord).where(
+                or_(CustomAgentRecord.username == username, CustomAgentRecord.username == "system")
+            )
+            records = db.execute(stmt).scalars().all()
+
+        return [
+            {
+                "id": r.id,
+                "name": r.name,
+                "desc": r.desc,
+                "author": r.author,
+                "domain": r.domain,
+                "category": r.category,
+                "instructions": r.instructions,
+                "starters": r.starters,
+                "icon": r.icon,
+                "sessionId": r.session_id,
+                "knowledgeFiles": r.knowledge_files,
+                "createdAt": r.created_at.isoformat(),
+                "updatedAt": (r.updated_at or r.created_at).isoformat(),
+            }
+            for r in records
+        ]
+
+
+@router.post("/agents")
+def save_user_agent(req: SaveAgentRequest, authorization: str | None = Header(None)):
+    """Lưu hoặc cập nhật Agent tùy chỉnh từ GPT Builder vào PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import CustomAgentRecord
+    import datetime as dt
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        rec = db.get(CustomAgentRecord, req.id)
+        if rec:
+            if rec.username != username and rec.username != "guest" and rec.username != "system":
+                raise HTTPException(status_code=403, detail="Không có quyền chỉnh sửa Agent này.")
+            rec.name = req.name.strip()
+            rec.desc = req.desc.strip()
+            rec.author = req.author or "Bởi bạn"
+            rec.domain = req.domain
+            rec.category = req.category
+            rec.instructions = req.instructions
+            rec.starters = req.starters
+            rec.icon = req.icon or "school"
+            rec.session_id = req.session_id
+            rec.knowledge_files = req.knowledge_files
+            rec.updated_at = dt.datetime.now(dt.timezone.utc)
+        else:
+            rec = CustomAgentRecord(
+                id=req.id,
+                username=username,
+                name=req.name.strip(),
+                desc=req.desc.strip(),
+                author=req.author or "Bởi bạn",
+                domain=req.domain,
+                category=req.category,
+                instructions=req.instructions,
+                starters=req.starters,
+                icon=req.icon or "school",
+                session_id=req.session_id,
+                knowledge_files=req.knowledge_files,
+            )
+            db.add(rec)
+        db.commit()
+        db.refresh(rec)
+        return {
+            "status": "success",
+            "id": rec.id,
+            "name": rec.name,
+            "updatedAt": rec.updated_at.isoformat(),
+        }
+
+
+@router.delete("/agents/{agent_id}")
+def delete_user_agent(agent_id: str, authorization: str | None = Header(None)):
+    """Xóa Agent tùy chỉnh khỏi PostgreSQL."""
+    from ..db.session import get_session
+    from ..db.models import CustomAgentRecord
+
+    username = _get_current_username(authorization)
+    with get_session() as db:
+        rec = db.get(CustomAgentRecord, agent_id)
+        if not rec:
+            return {"status": "success", "message": "Agent không tồn tại."}
+        if rec.username != username and rec.username != "guest":
+            raise HTTPException(status_code=403, detail="Không có quyền xóa Agent này.")
+        db.delete(rec)
+        db.commit()
+        return {"status": "success", "message": "Đã xóa Agent thành công."}
+
 
 
 

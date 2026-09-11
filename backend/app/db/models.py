@@ -114,3 +114,56 @@ class UserRecord(Base):
     role: Mapped[str] = mapped_column(String(32), default="user", index=True)  # "admin" | "user"
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
+
+class ChatSessionRecord(Base):
+    """Lưu trữ phiên hội thoại đa bước theo người dùng trong PostgreSQL."""
+
+    __tablename__ = "chat_sessions"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)  # session_id
+    username: Mapped[str] = mapped_column(String(64), index=True)
+    title: Mapped[str] = mapped_column(Text, default="")
+    domain: Mapped[str] = mapped_column(String(32), default="legal")
+    mode: Mapped[str] = mapped_column(String(32), default="videcomp_full")
+    folder_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    turns: Mapped[list] = mapped_column(JSON, default=list)  # Danh sách các lượt hỏi đáp đầy đủ
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
+    updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+
+class ProjectFolderRecord(Base):
+    """Thư mục dự án gom nhóm các phiên chat theo vụ việc."""
+
+    __tablename__ = "projects"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)  # proj-xxxx
+    username: Mapped[str] = mapped_column(String(64), index=True)
+    title: Mapped[str] = mapped_column(String(255))
+    desc: Mapped[str] = mapped_column(Text, default="")
+    icon: Mapped[str] = mapped_column(String(64), default="folder")
+    color: Mapped[str] = mapped_column(String(32), default="emerald")
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+
+class CustomAgentRecord(Base):
+    """Chuyên gia tùy chỉnh / Custom GPTs tạo từ GPT Builder."""
+
+    __tablename__ = "custom_agents"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)  # agent-xxxx
+    username: Mapped[str] = mapped_column(String(64), index=True)  # hoặc "system" cho agent mẫu
+    name: Mapped[str] = mapped_column(String(255))
+    desc: Mapped[str] = mapped_column(Text, default="")
+    author: Mapped[str] = mapped_column(String(255), default="Bởi bạn")
+    domain: Mapped[str] = mapped_column(String(32), default="legal")
+    category: Mapped[str] = mapped_column(String(64), default="productivity")
+    instructions: Mapped[str] = mapped_column(Text, default="")
+    starters: Mapped[list] = mapped_column(JSON, default=list)
+    icon: Mapped[str] = mapped_column(String(64), default="school")
+    session_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    knowledge_files: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+

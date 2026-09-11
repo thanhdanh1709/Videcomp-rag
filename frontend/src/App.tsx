@@ -71,8 +71,8 @@ export default function App() {
   const [pendingQuestion, setPendingQuestion] = useState<string>("");
 
   // Quản lý Chuyên gia (Item 3) và Thư mục dự án (Item 4)
-  const { agents, saveAgent, deleteAgent } = useCustomAgents();
-  const { projects, createProject, deleteProject } = useProjects();
+  const { agents, saveAgent, deleteAgent } = useCustomAgents(currentUser?.username);
+  const { projects, createProject, deleteProject } = useProjects(currentUser?.username);
   const [activeAgent, setActiveAgent] = useState<CustomAgent | null>(null);
   const [editingAgent, setEditingAgent] = useState<CustomAgent | null>(null);
 
@@ -84,7 +84,7 @@ export default function App() {
     assignSessionsFolder,
     setFeedback,
     clear,
-  } = useHistory();
+  } = useHistory(currentUser?.username);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);

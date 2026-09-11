@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { CustomAgent } from "../types/agent";
+import { apiGetAgents, apiSaveAgent, apiDeleteAgent } from "../api/client";
 
 const STORAGE_KEY = "videcomp.custom_agents";
 
@@ -8,7 +9,7 @@ const INITIAL_AGENTS: CustomAgent[] = [
     id: "agent-academic-trans",
     name: "Trợ lý Nghiên cứu & Dịch thuật",
     desc: "Chuyên gia dịch thuật học thuật, tóm tắt tài liệu PDF và trích dẫn khoa học chuẩn APA/IEEE.",
-    author: "Bởi bạn",
+    author: "Hệ thống",
     domain: "legal",
     category: "productivity",
     instructions: `Bạn là Trợ lý Nghiên cứu & Dịch thuật chuyên nghiệp của hệ thống Videcomp-rag. Nhiệm vụ trọng tâm:
@@ -48,27 +49,56 @@ function persist(agents: CustomAgent[]) {
   }
 }
 
-export function useCustomAgents() {
+export function useCustomAgents(userKey?: string | null) {
   const [agents, setAgents] = useState<CustomAgent[]>(() => load());
+
+  // Tải danh sách chuyên gia từ PostgreSQL khi khởi chạy hoặc chuyển người dùng
+  useEffect(() => {
+    let cancelled = false;
+    apiGetAgents()
+      .then((serverAgents) => {
+        if (!cancelled && Array.isArray(serverAgents) && serverAgents.length > 0) {
+          setAgents(serverAgents);
+          persist(serverAgents);
+        }
+      })
+      .catch(() => {
+        // Dự phòng ngoại tuyến nếu backend chưa kết nối
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userKey]);
 
   useEffect(() => {
     persist(agents);
   }, [agents]);
 
   const saveAgent = useCallback((agent: CustomAgent) => {
+    const updatedAgent = { ...agent, updatedAt: new Date().toISOString() };
     setAgents((prev) => {
       const idx = prev.findIndex((a) => a.id === agent.id);
       if (idx >= 0) {
         const next = [...prev];
-        next[idx] = { ...agent, updatedAt: new Date().toISOString() };
+        next[idx] = updatedAgent;
         return next;
       }
-      return [{ ...agent, updatedAt: new Date().toISOString() }, ...prev];
+      return [updatedAgent, ...prev];
+    });
+
+    // Đồng bộ lên PostgreSQL
+    apiSaveAgent(updatedAgent).catch((err) => {
+      console.warn("Không thể lưu chuyên gia vào PostgreSQL:", err);
     });
   }, []);
 
   const deleteAgent = useCallback((id: string) => {
     setAgents((prev) => prev.filter((a) => a.id !== id));
+
+    // Xóa khỏi PostgreSQL
+    apiDeleteAgent(id).catch((err) => {
+      console.warn("Không thể xóa chuyên gia khỏi PostgreSQL:", err);
+    });
   }, []);
 
   const getAgent = useCallback(
@@ -80,3 +110,4 @@ export function useCustomAgents() {
 
   return { agents, saveAgent, deleteAgent, getAgent };
 }
+

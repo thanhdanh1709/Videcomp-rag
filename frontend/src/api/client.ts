@@ -1,4 +1,6 @@
 import type { AnswerResult, Domain, ExperimentRecord, Mode, QARequest, TraceRecord } from "./types";
+import type { ProjectFolder } from "../types/project";
+import type { CustomAgent } from "../types/agent";
 
 const STORAGE_KEY = "videcomp.apiBaseUrl";
 
@@ -205,6 +207,137 @@ export async function apiRegister(data: {
 
 export async function apiGetMe(): Promise<{ username: string; email: string; name: string; role: "admin" | "user" }> {
   return request("/api/v1/auth/me");
+}
+
+// ==========================================
+// 1. SESSIONS API (Lưu trữ lịch sử chat PostgreSQL)
+// ==========================================
+
+export interface BackendSession {
+  sessionId: string;
+  title: string;
+  domain: Domain;
+  mode: Mode;
+  folderId?: string | null;
+  turns: any[];
+  lastCreatedAt: string;
+}
+
+export async function apiGetSessions(): Promise<BackendSession[]> {
+  return request<BackendSession[]>("/api/v1/sessions");
+}
+
+export async function apiSaveSession(payload: {
+  session_id: string;
+  title?: string;
+  domain?: Domain;
+  mode?: Mode;
+  folder_id?: string | null;
+  turns: any[];
+}): Promise<{ status: string; sessionId: string; title: string; turnsCount: number }> {
+  return request("/api/v1/sessions", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiDeleteSession(sessionId: string): Promise<{ status: string; message: string }> {
+  return request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`, {
+    method: "DELETE",
+  });
+}
+
+export async function apiAssignSessionFolder(
+  sessionId: string,
+  folderId: string | null
+): Promise<{ status: string; folderId: string | null }> {
+  return request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/folder`, {
+    method: "PUT",
+    body: JSON.stringify({ folder_id: folderId }),
+  });
+}
+
+export async function apiSetSessionFeedback(
+  sessionId: string,
+  requestId: string,
+  feedback: "up" | "down"
+): Promise<{ status: string; updated: boolean }> {
+  return request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/feedback`, {
+    method: "POST",
+    body: JSON.stringify({ request_id: requestId, feedback }),
+  });
+}
+
+// ==========================================
+// 2. PROJECTS API (Thư mục dự án PostgreSQL)
+// ==========================================
+
+export async function apiGetProjects(): Promise<ProjectFolder[]> {
+  return request<ProjectFolder[]>("/api/v1/projects");
+}
+
+export async function apiCreateProject(payload: {
+  id?: string;
+  title: string;
+  desc?: string;
+  icon?: string;
+  color?: string;
+}): Promise<ProjectFolder> {
+  return request<ProjectFolder>("/api/v1/projects", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiUpdateProject(
+  projectId: string,
+  updates: Partial<Omit<ProjectFolder, "id" | "createdAt">>
+): Promise<ProjectFolder> {
+  return request<ProjectFolder>(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+    method: "PUT",
+    body: JSON.stringify(updates),
+  });
+}
+
+export async function apiDeleteProject(projectId: string): Promise<{ status: string; message: string }> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+    method: "DELETE",
+  });
+}
+
+// ==========================================
+// 3. CUSTOM AGENTS API (Chuyên gia tùy chỉnh PostgreSQL)
+// ==========================================
+
+export async function apiGetAgents(): Promise<CustomAgent[]> {
+  return request<CustomAgent[]>("/api/v1/agents");
+}
+
+export async function apiSaveAgent(
+  agent: CustomAgent
+): Promise<{ status: string; id: string; name: string; updatedAt: string }> {
+  return request("/api/v1/agents", {
+    method: "POST",
+    body: JSON.stringify({
+      id: agent.id,
+      name: agent.name,
+      desc: agent.desc,
+      author: agent.author,
+      domain: agent.domain,
+      category: agent.category,
+      instructions: agent.instructions,
+      starters: agent.starters,
+      icon: agent.icon,
+      session_id: agent.sessionId,
+      knowledge_files: agent.knowledgeFiles,
+    }),
+  });
+}
+
+export async function apiDeleteAgent(agentId: string): Promise<{ status: string; message: string }> {
+  return request(`/api/v1/agents/${encodeURIComponent(agentId)}`, {
+    method: "DELETE",
+  });
 }
 
 export { ApiError };

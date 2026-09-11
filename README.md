@@ -45,7 +45,18 @@ Hệ thống đã hoàn thiện **end-to-end** ở cấp độ ứng dụng th�
 - **Phân quyền vai trò (Role-Based Access Control - RBAC)**:
   - Tài khoản **Admin**: Quyền quản trị toàn diện, truy cập Admin Console, đổi khóa API, LLM Provider, System Prompt.
   - Tài khoản **User thường**: Sử dụng phòng Chat, tra cứu kiến thức, bị chặn tuyệt đối khỏi trang Quản trị.
-- **Persistence**: Lưu trữ bền vững tài khoản người dùng, vết trace `qa_traces`, phiên hỏi đáp, dữ liệu benchmark qua SQLAlchemy (hỗ trợ cả SQLite `data/videcomp.db` và PostgreSQL).
+- **Persistence & Đồng bộ Cơ sở dữ liệu Bền vững (PostgreSQL / SQLite)**:
+  - Hệ thống hỗ trợ song song SQLite (`data/videcomp.db`) cho môi trường cá nhân cục bộ và **PostgreSQL** cho môi trường triển khai doanh nghiệp đa thiết bị.
+  - **Lưu trữ tập trung trên PostgreSQL**:
+    - `chat_sessions`: Toàn bộ lịch sử các phiên chat, lượt hỏi đáp, câu trả lời, trích dẫn pháp lý và đánh giá feedback hữu ích (up/down).
+    - `projects`: Cây thư mục dự án / vụ việc pháp lý.
+    - `custom_agents`: Các chuyên gia tùy chỉnh do người dùng tạo từ GPT Builder.
+    - `users`: Tài khoản và phân quyền người dùng (PBKDF2 HMAC-SHA256).
+    - `qa_traces`, `experiments`, `benchmark_annotations`: Dữ liệu phân tích và thực nghiệm.
+  - **Đồng bộ đa thiết bị & Cách ly dữ liệu (Data Isolation)**:
+    - Mọi dữ liệu phiên làm việc, dự án và chuyên gia đều được phân quyền và cách ly nghiêm ngặt theo người dùng thông qua Token chuẩn JWT (`_get_current_username`).
+    - Hỗ trợ lưu đệm ngoại tuyến (Offline cache) tại trình duyệt và tự động đồng bộ 2 chiều lên PostgreSQL khi đăng nhập.
+  - Kèm theo script chuyển dịch tự động toàn bộ dữ liệu từ SQLite sang PostgreSQL: `python -m scripts.migrate_sqlite_to_postgres`.
 
 ### 1.6. Giao diện Người dùng Cao cấp (Frontend Platform)
 Được phát triển bằng **React 18 + TypeScript + Vite**, tích hợp thiết kế điện ảnh hiện đại (Conversational Clarity, Dark Obsidian, Emerald Glow, Glassmorphism):

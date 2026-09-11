@@ -86,6 +86,13 @@ def migrate():
                 pg_db.rollback()
                 print(f"  - Bảng {table_name}: Bỏ qua hoặc gặp lỗi ({e})")
 
+        # Cập nhật sequence cho bảng có primary key serial
+        try:
+            pg_db.execute(text("SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 0) + 1, false);"))
+            pg_db.commit()
+        except Exception:
+            pg_db.rollback()
+
     print(f"[4/4] Hoàn tất! Đã đồng bộ thành công {total_rows} bản ghi sang PostgreSQL.")
 
 
