@@ -12,12 +12,15 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
+import numpy as np
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..core.config import settings
+from ..core.config import AVAILABLE_EMBEDDING_MODELS, AVAILABLE_RERANKER_MODELS, settings
+from ..core.embedding_provider import get_embedding_provider, reload_embedding_provider
 from ..core.llm_provider import fetch_ollama_models, fetch_vllm_models, get_llm_provider
+from ..core.reranker_provider import get_reranker_provider, reload_reranker_provider
 from ..core.task_queue import task_manager
 from ..db import repository
 from ..schemas.api import (
@@ -637,6 +640,137 @@ def admin_update_cache_config(req: CacheConfigUpdate):
         "message": "Đã cập nhật cấu hình Bộ đệm Ngữ nghĩa",
         "stats": cache.get_stats(),
     }
+
+
+# ==============================================================================
+# QUẢN TRỊ MÔ HÌNH EMBEDDING & RERANKER TIẾNG VIỆT & OCR ĐA PHƯƠNG THÁI
+# ==============================================================================
+
+class ModelsConfigUpdate(BaseModel):
+    embedding_model: str | None = None
+    reranker_model: str | None = None
+    enable_pdf_table_extraction: bool | None = None
+    enable_vision_ocr: bool | None = None
+    vision_model: str | None = None
+
+
+class ModelsTestRequest(BaseModel):
+    sample_text: str | None = None
+    candidate_texts: list[str] | None = None
+
+
+@router.get("/admin/models-config")
+def admin_get_models_config():
+    """Lấy danh mục và cấu hình hiện tại của mô hình Embedding, Reranker tiếng Việt và OCR đa phương thái."""
+    embedder = get_embedding_provider()
+    reranker = get_reranker_provider()
+    return {
+        "status": "ok",
+        "active_embedding_model": settings.embedding_model,
+        "active_embedding_dim": embedder.dim,
+        "active_reranker_model": settings.reranker_model,
+        "enable_pdf_table_extraction": settings.enable_pdf_table_extraction,
+        "enable_vision_ocr": settings.enable_vision_ocr,
+        "vision_model": settings.vision_model,
+        "available_embedding_models": list(AVAILABLE_EMBEDDING_MODELS.values()),
+        "available_reranker_models": list(AVAILABLE_RERANKER_MODELS.values()),
+    }
+
+
+@router.post("/admin/models-config")
+def admin_update_models_config(req: ModelsConfigUpdate):
+    """Cập nhật nóng mô hình Embedding / Reranker tiếng Việt và tùy chọn OCR đa phương thái."""
+    messages = []
+    if req.embedding_model is not None and req.embedding_model.strip():
+        try:
+            new_emb = reload_embedding_provider(req.embedding_model)
+            _update_env_file("EMBEDDING_MODEL", settings.embedding_model)
+            get_semantic_cache().reload_cache()
+            messages.append(f"Mô hình embedding: {settings.embedding_model} ({new_emb.dim}-dim)")
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Không thể nạp mô hình embedding '{req.embedding_model}': {exc}")
+
+    if req.reranker_model is not None and req.reranker_model.strip():
+        try:
+            reload_reranker_provider(req.reranker_model)
+            _update_env_file("RERANKER_MODEL", settings.reranker_model)
+            messages.append(f"Mô hình reranker: {settings.reranker_model}")
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Không thể nạp mô hình reranker '{req.reranker_model}': {exc}")
+
+    if req.enable_pdf_table_extraction is not None:
+        settings.enable_pdf_table_extraction = req.enable_pdf_table_extraction
+    if req.enable_vision_ocr is not None:
+        settings.enable_vision_ocr = req.enable_vision_ocr
+    if req.vision_model is not None:
+        settings.vision_model = req.vision_model
+
+    return {
+        "status": "ok",
+        "message": "Cập nhật thành công: " + (", ".join(messages) if messages else "Đã lưu cấu hình đa phương thái"),
+        "active_embedding_model": settings.embedding_model,
+        "active_embedding_dim": get_embedding_provider().dim,
+        "active_reranker_model": settings.reranker_model,
+        "enable_pdf_table_extraction": settings.enable_pdf_table_extraction,
+        "enable_vision_ocr": settings.enable_vision_ocr,
+        "vision_model": settings.vision_model,
+    }
+
+
+@router.post("/admin/models-test")
+def admin_test_models(req: ModelsTestRequest):
+    """Kiểm tra khả năng mã hóa vector tiếng Việt (Hán - Việt) và tái xếp hạng Reranker."""
+    import time
+
+    sample_text = (req.sample_text or "").strip() or (
+        "Trách nhiệm liên đới bồi thường thiệt hại ngoài hợp đồng theo nguyên tắc suy đoán lỗi "
+        "quy định tại Bộ luật Dân sự đối với hành vi xâm phạm quyền tác giả."
+    )
+    candidates = req.candidate_texts or [
+        "Điều 584 Bộ luật Dân sự: Người nào có hành vi xâm phạm tính mạng, sức khỏe, danh dự, nhân phẩm, tài sản, quyền, lợi ích hợp pháp khác của người khác mà gây thiệt hại thì phải bồi thường.",
+        "Quy định về thời hiệu khởi kiện yêu cầu bồi thường thiệt hại là 03 năm kể từ ngày người có quyền yêu cầu biết hoặc phải biết quyền, lợi ích hợp pháp của mình bị xâm phạm.",
+        "Thủ tục đăng ký thành lập doanh nghiệp tư nhân và hồ sơ nộp tại Phòng Đăng ký kinh doanh thuộc Sở Kế hoạch và Đầu tư.",
+    ]
+
+    # 1. Test Embedding
+    t0 = time.perf_counter()
+    embedder = get_embedding_provider()
+    vectors = embedder.embed([sample_text])
+    emb_latency_ms = round((time.perf_counter() - t0) * 1000, 2)
+    vec = vectors[0]
+    norm = float(np.linalg.norm(vec))
+
+    # 2. Test Reranker
+    t1 = time.perf_counter()
+    reranker = get_reranker_provider()
+    scores = reranker.rank(sample_text, candidates)
+    rerank_latency_ms = round((time.perf_counter() - t1) * 1000, 2)
+
+    ranked_results = []
+    for idx, (cand, score) in enumerate(sorted(zip(candidates, scores), key=lambda x: x[1], reverse=True), start=1):
+        ranked_results.append({
+            "rank": idx,
+            "score": round(score, 4),
+            "text": cand,
+        })
+
+    return {
+        "status": "ok",
+        "sample_text": sample_text,
+        "embedding": {
+            "model": getattr(embedder, "model_name", settings.embedding_model),
+            "dim": embedder.dim,
+            "norm": round(norm, 4),
+            "preview": [round(float(v), 4) for v in vec[:6].tolist()],
+            "latency_ms": emb_latency_ms,
+        },
+        "reranker": {
+            "model": getattr(reranker, "model_name", settings.reranker_model),
+            "latency_ms": rerank_latency_ms,
+            "ranked_candidates": ranked_results,
+        },
+    }
+
 
 
 # ==============================================================================

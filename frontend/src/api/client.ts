@@ -8,6 +8,10 @@ import type {
   StreamEvent,
   TraceRecord,
   UploadTaskProgress,
+  ModelCatalogItem,
+  ModelsConfigResponse,
+  ModelsConfigUpdate,
+  ModelsTestResponse,
 } from "./types";
 import type { ProjectFolder } from "../types/project";
 import type { CustomAgent } from "../types/agent";
@@ -607,5 +611,28 @@ export async function apiDeleteAgent(agentId: string): Promise<{ status: string;
   });
 }
 
+// ==========================================
+// 4. VIETNAMESE EMBEDDING, RERANKER & OCR API
+// ==========================================
+
+export async function apiGetModelsConfig(): Promise<ModelsConfigResponse> {
+  return request<ModelsConfigResponse>("/api/v1/admin/models-config");
+}
+
+export async function apiUpdateModelsConfig(payload: ModelsConfigUpdate): Promise<ModelsConfigResponse> {
+  return request<ModelsConfigResponse>("/api/v1/admin/models-config", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function apiTestModels(sampleText?: string, candidateTexts?: string[]): Promise<ModelsTestResponse> {
+  return request<ModelsTestResponse>("/api/v1/admin/models-test", {
+    method: "POST",
+    body: JSON.stringify({ sample_text: sampleText, candidate_texts: candidateTexts }),
+  });
+}
+
 export { ApiError };
+
 

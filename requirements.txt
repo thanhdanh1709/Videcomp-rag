@@ -22,6 +22,7 @@ scipy
 datasets
 
 pypdf
+pdfplumber
 beautifulsoup4
 lxml
 python-docx

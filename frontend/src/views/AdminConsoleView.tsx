@@ -7,9 +7,13 @@ import {
   getCacheStats,
   clearSemanticCache,
   updateCacheConfig,
+  apiGetModelsConfig,
+  apiUpdateModelsConfig,
+  apiTestModels,
   type AdminConfig,
 } from "../api/client";
-import type { SemanticCacheStats } from "../api/types";
+import type { ModelsConfigResponse, ModelsTestResponse, SemanticCacheStats } from "../api/types";
+
 
 interface Member {
   id: string;
@@ -128,7 +132,19 @@ export function AdminConsoleView({
   const [isSavingCacheConfig, setIsSavingCacheConfig] = useState(false);
   const [isClearingCache, setIsClearingCache] = useState(false);
 
-  // Đọc cấu hình API Key, Local LLM và Semantic Cache từ backend khi nạp view
+  // Cấu hình Mô hình Embedding & Reranker Tiếng Việt & OCR Đa phương thái
+  const [modelsConfig, setModelsConfig] = useState<ModelsConfigResponse | null>(null);
+  const [selectedEmbeddingModel, setSelectedEmbeddingModel] = useState("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2");
+  const [selectedRerankerModel, setSelectedRerankerModel] = useState("cross-encoder/mmarco-mMiniLMv2-L12-H384-v1");
+  const [enablePdfTableExtraction, setEnablePdfTableExtraction] = useState(true);
+  const [enableVisionOcr, setEnableVisionOcr] = useState(true);
+  const [visionModel, setVisionModel] = useState("claude-3-5-sonnet-20241022");
+  const [isSavingModelsConfig, setIsSavingModelsConfig] = useState(false);
+  const [isTestingModels, setIsTestingModels] = useState(false);
+  const [modelsTestResult, setModelsTestResult] = useState<ModelsTestResponse | null>(null);
+  const [customSampleText, setCustomSampleText] = useState("");
+
+  // Đọc cấu hình API Key, Local LLM, Semantic Cache và Models từ backend khi nạp view
   useEffect(() => {
     getAdminConfig()
       .then((res) => {
@@ -148,7 +164,52 @@ export function AdminConsoleView({
         setIsCacheEnabled(s.enabled);
       })
       .catch(() => {});
+
+    apiGetModelsConfig()
+      .then((m) => {
+        setModelsConfig(m);
+        setSelectedEmbeddingModel(m.active_embedding_model);
+        setSelectedRerankerModel(m.active_reranker_model);
+        setEnablePdfTableExtraction(m.enable_pdf_table_extraction);
+        setEnableVisionOcr(m.enable_vision_ocr);
+        setVisionModel(m.vision_model || "claude-3-5-sonnet-20241022");
+      })
+      .catch(() => {});
   }, []);
+
+  const handleSaveModelsConfig = async () => {
+    setIsSavingModelsConfig(true);
+    try {
+      const res = await apiUpdateModelsConfig({
+        embedding_model: selectedEmbeddingModel,
+        reranker_model: selectedRerankerModel,
+        enable_pdf_table_extraction: enablePdfTableExtraction,
+        enable_vision_ocr: enableVisionOcr,
+        vision_model: visionModel,
+      });
+      setModelsConfig(res);
+      onShowToast?.("Cập nhật Mô hình Tiếng Việt & OCR thành công!");
+    } catch (err: any) {
+      onShowToast?.("Lỗi cập nhật mô hình: " + (err.message || ""));
+    } finally {
+      setIsSavingModelsConfig(false);
+    }
+  };
+
+  const handleTestModels = async () => {
+    setIsTestingModels(true);
+    setModelsTestResult(null);
+    try {
+      const res = await apiTestModels(customSampleText.trim() || undefined);
+      setModelsTestResult(res);
+      onShowToast?.("Kiểm tra mô hình tiếng Việt thành công!");
+    } catch (err: any) {
+      onShowToast?.("Lỗi kiểm thử mô hình: " + (err.message || ""));
+    } finally {
+      setIsTestingModels(false);
+    }
+  };
+
 
   const handleSaveCacheConfig = async () => {
     setIsSavingCacheConfig(true);
@@ -978,6 +1039,365 @@ export function AdminConsoleView({
                 </button>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* PHÂN HỆ MÔ HÌNH EMBEDDING & RERANKER TIẾNG VIỆT & OCR ĐA PHƯƠNG THÁI */}
+        <section
+          id="vietnamese-models-section"
+          className="p-unit-lg md:p-unit-xl rounded-DEFAULT bg-surface-container-low border-2 border-primary/40 shadow-xl space-y-unit-md relative overflow-hidden"
+        >
+          <div className="pointer-events-none absolute -top-24 -left-24 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-outline-variant/20 gap-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[26px]">psychology</span>
+                <h2 className="font-headline-sm text-headline-sm text-on-surface font-bold">
+                  Mô hình Embedding &amp; Reranker Tiếng Việt Chuyên sâu &amp; OCR Đa phương thái
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-primary/20 text-primary text-[11px] font-bold">
+                  bge-m3: 8192 tokens · BKAI Bi-Encoder · pdfplumber
+                </span>
+              </div>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                Tối ưu hóa khả năng truy hồi ngữ nghĩa (Recall) cho các từ vựng cổ, thuật ngữ Hán - Việt trong văn bản pháp luật và hồ sơ bệnh án; đồng thời bóc tách bảng biểu cấu trúc cao qua <code>pdfplumber</code> và nhận diện tài liệu scan qua Vision LLM.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleSaveModelsConfig}
+                disabled={isSavingModelsConfig}
+                className="flex items-center gap-2 px-unit-lg py-2 rounded-full bg-primary text-on-primary font-label-md font-bold hover:opacity-90 transition-all shadow-md active:scale-95 disabled:opacity-40"
+              >
+                {isSavingModelsConfig ? (
+                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                )}
+                <span>Lưu cấu hình Mô hình &amp; OCR</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-unit-md">
+            {/* Cột 1: Mô hình Dense Embedding */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[12px] font-bold text-primary flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className="material-symbols-outlined text-[18px]">hub</span>
+                    Mô hình Embedding Tiếng Việt
+                  </span>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-surface-container-high text-on-surface border border-outline-variant/30">
+                    {modelsConfig?.active_embedding_dim ?? 384}-dim
+                  </span>
+                </div>
+                <p className="text-[12px] text-on-surface-variant mb-3">
+                  Chọn mô hình mã hóa vector dense. Khuyên dùng <strong>BGE-M3</strong> cho văn bản pháp lý dài hoặc <strong>BKAI</strong> cho ngữ pháp tiếng Việt.
+                </p>
+
+                <div className="space-y-2">
+                  {[
+                    {
+                      id: "bge-m3",
+                      name: "BAAI/bge-m3",
+                      label: "BAAI/bge-m3",
+                      badge: "8192 tokens · 1024-dim · SOTA Hán - Việt",
+                      desc: "Hỗ trợ ngữ cảnh siêu dài, tối ưu thuật ngữ luật và trích dẫn điều khoản nhiều cấp.",
+                    },
+                    {
+                      id: "vietnamese-bi-encoder",
+                      name: "bkai-foundation-models/vietnamese-bi-encoder",
+                      label: "BKAI Vietnamese Bi-Encoder",
+                      badge: "768-dim · Viện CNTT Bách Khoa HN",
+                      desc: "Mô hình chuyên sâu cho tiếng Việt, biểu diễn ngữ nghĩa tự nhiên tiếng Việt chuẩn xác.",
+                    },
+                    {
+                      id: "multilingual-minilm",
+                      name: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+                      label: "Multilingual MiniLM L12",
+                      badge: "384-dim · Siêu nhẹ & Nhanh",
+                      desc: "Tốc độ mã hóa nhanh, tiêu tốn ít RAM máy chủ.",
+                    },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setSelectedEmbeddingModel(m.name)}
+                      className={`w-full p-2.5 rounded-DEFAULT border text-left transition-all relative ${
+                        selectedEmbeddingModel === m.name
+                          ? "bg-primary/20 border-primary shadow-sm"
+                          : "bg-surface-container-high border-outline-variant/20 hover:border-outline-variant/60"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-label-md text-on-surface font-semibold">{m.label}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-primary font-bold">
+                          {m.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-on-surface-variant mt-1">{m.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="block text-[11px] text-outline font-semibold mb-1">
+                  Hoặc nhập HuggingFace Model ID tùy chỉnh:
+                </label>
+                <input
+                  type="text"
+                  value={selectedEmbeddingModel}
+                  onChange={(e) => setSelectedEmbeddingModel(e.target.value)}
+                  placeholder="BAAI/bge-m3 hoặc tên mô hình"
+                  className="w-full bg-surface-container-high px-3 py-1.5 rounded text-on-surface text-label-sm font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                />
+              </div>
+            </div>
+
+            {/* Cột 2: Mô hình Reranker */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex flex-col justify-between space-y-3">
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[12px] font-bold text-primary flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className="material-symbols-outlined text-[18px]">swap_vert</span>
+                    Mô hình Reranker (Cross-Encoder)
+                  </span>
+                  <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-surface-container-high text-emerald-400 border border-outline-variant/30">
+                    Cross-Attention
+                  </span>
+                </div>
+                <p className="text-[12px] text-on-surface-variant mb-3">
+                  Tái xếp hạng chéo giữa truy vấn và bằng chứng. Phân biệt chính xác các trường hợp loại trừ và điều kiện phủ định.
+                </p>
+
+                <div className="space-y-2">
+                  {[
+                    {
+                      id: "bge-reranker-v2-m3",
+                      name: "BAAI/bge-reranker-v2-m3",
+                      label: "BAAI/bge-reranker-v2-m3",
+                      badge: "Khuyên dùng Chính xác cao",
+                      desc: "Tái xếp hạng đa ngôn ngữ và tiếng Việt tối tân, phân biệt sắc thái pháp lý tinh tế.",
+                    },
+                    {
+                      id: "mmarco-minilm",
+                      name: "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+                      label: "mMARCO MiniLM Cross-Encoder",
+                      badge: "384-dim · Tối ưu độ trễ",
+                      desc: "Cross-encoder gọn nhẹ, phản hồi cực nhanh cho ứng dụng thời gian thực.",
+                    },
+                  ].map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setSelectedRerankerModel(r.name)}
+                      className={`w-full p-2.5 rounded-DEFAULT border text-left transition-all relative ${
+                        selectedRerankerModel === r.name
+                          ? "bg-primary/20 border-primary shadow-sm"
+                          : "bg-surface-container-high border-outline-variant/20 hover:border-outline-variant/60"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-label-md text-on-surface font-semibold">{r.label}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-container text-primary font-bold">
+                          {r.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-on-surface-variant mt-1">{r.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="block text-[11px] text-outline font-semibold mb-1">
+                  Hoặc nhập HuggingFace Reranker ID tùy chỉnh:
+                </label>
+                <input
+                  type="text"
+                  value={selectedRerankerModel}
+                  onChange={(e) => setSelectedRerankerModel(e.target.value)}
+                  placeholder="BAAI/bge-reranker-v2-m3"
+                  className="w-full bg-surface-container-high px-3 py-1.5 rounded text-on-surface text-label-sm font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                />
+              </div>
+            </div>
+
+            {/* Cột 3: Xử lý Đa phương thái (OCR & Table Extraction) */}
+            <div className="p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 flex flex-col justify-between space-y-3">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[12px] font-bold text-primary flex items-center gap-1.5 uppercase tracking-wider">
+                    <span className="material-symbols-outlined text-[18px]">document_scanner</span>
+                    Xử lý Đa phương thái (OCR &amp; Table)
+                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold">
+                    pdfplumber + Vision
+                  </span>
+                </div>
+                <p className="text-[12px] text-on-surface-variant">
+                  Giải quyết triệt để hạn chế của pypdf: bóc tách trọn vẹn bảng biểu, sơ đồ phác đồ điều trị và tài liệu scan dạng ảnh.
+                </p>
+
+                {/* Switch 1: Table Extraction */}
+                <div className="p-3 rounded-DEFAULT bg-surface-container-high border border-outline-variant/25 flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-label-md text-on-surface font-semibold block">
+                      Trích xuất Bảng biểu có cấu trúc (pdfplumber)
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant">
+                      Chuyển đổi ma trận hàng/cột thành bảng Markdown chuẩn (<code>| 行 | 列 |</code>) giúp LLM trích dẫn chính xác số liệu và mức phạt.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEnablePdfTableExtraction(!enablePdfTableExtraction)}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors shrink-0 ${
+                      enablePdfTableExtraction ? "bg-primary justify-end" : "bg-surface-container-highest justify-start"
+                    }`}
+                  >
+                    <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
+                  </button>
+                </div>
+
+                {/* Switch 2: Vision OCR */}
+                <div className="p-3 rounded-DEFAULT bg-surface-container-high border border-outline-variant/25 flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-label-md text-on-surface font-semibold block">
+                      Hybrid Vision OCR cho Trang Scan / Sơ đồ
+                    </span>
+                    <span className="text-[11px] text-on-surface-variant">
+                      Tự động phát hiện trang không có text layer (scan dạng ảnh, chữ ký, con dấu, biểu đồ) và dùng Vision LLM đọc trọn vẹn.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEnableVisionOcr(!enableVisionOcr)}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors shrink-0 ${
+                      enableVisionOcr ? "bg-primary justify-end" : "bg-surface-container-highest justify-start"
+                    }`}
+                  >
+                    <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-outline font-semibold mb-1">
+                  Mô hình Vision OCR:
+                </label>
+                <input
+                  type="text"
+                  value={visionModel}
+                  onChange={(e) => setVisionModel(e.target.value)}
+                  placeholder="claude-3-5-sonnet-20241022"
+                  className="w-full bg-surface-container-high px-3 py-1.5 rounded text-on-surface text-label-sm font-mono outline-none border border-outline-variant/40 focus:border-primary"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Phân hệ Thử nghiệm Live: Kiểm tra Recall và Phân tích Vector Hán - Việt */}
+          <div className="mt-unit-md p-unit-md rounded-DEFAULT bg-surface-container border border-outline-variant/30 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[20px]">biotech</span>
+                <span className="font-label-md text-on-surface font-bold">
+                  Bảng Điều khiển Kiểm thử Thực nghiệm Mô hình &amp; Recall Tiếng Việt
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleTestModels}
+                disabled={isTestingModels}
+                className="px-4 py-1.5 rounded-full bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 font-label-sm font-semibold flex items-center gap-1.5 transition-all disabled:opacity-40"
+              >
+                {isTestingModels ? (
+                  <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                )}
+                <span>{isTestingModels ? "Đang chạy đánh giá..." : "Chạy kiểm thử Recall &amp; Rerank"}</span>
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customSampleText}
+                onChange={(e) => setCustomSampleText(e.target.value)}
+                placeholder="Nhập câu hỏi tiếng Việt mẫu (mặc định: Trách nhiệm liên đới bồi thường thiệt hại ngoài hợp đồng theo nguyên tắc suy đoán lỗi...)"
+                className="flex-1 bg-surface-container-high px-3 py-2 rounded text-on-surface text-label-sm outline-none border border-outline-variant/40 focus:border-primary"
+              />
+            </div>
+
+            {/* Hiển thị kết quả kiểm thử */}
+            {modelsTestResult && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-unit-md pt-2">
+                {/* Kết quả Embedding */}
+                <div className="p-3 rounded-DEFAULT bg-surface-container-high border border-primary/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-bold text-primary flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                      Mã hóa Dense Vector ({modelsTestResult.embedding.dim}-dim)
+                    </span>
+                    <span className="text-[11px] font-mono text-outline">
+                      {modelsTestResult.embedding.latency_ms} ms
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-on-surface-variant font-mono space-y-1">
+                    <div>Mô hình: <span className="text-on-surface">{modelsTestResult.embedding.model}</span></div>
+                    <div>Chuẩn L2 Norm: <span className="text-emerald-400 font-bold">{modelsTestResult.embedding.norm}</span></div>
+                    <div>Vector Preview (6 chiều đầu):</div>
+                    <div className="p-1.5 rounded bg-surface-container-highest text-[10px] text-primary break-all">
+                      [{modelsTestResult.embedding.preview.join(", ")}...]
+                    </div>
+                  </div>
+                </div>
+
+                {/* Kết quả Reranker */}
+                <div className="p-3 rounded-DEFAULT bg-surface-container-high border border-emerald-500/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] font-bold text-emerald-400 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[16px]">analytics</span>
+                      Tái xếp hạng Reranker ({modelsTestResult.reranker.latency_ms} ms)
+                    </span>
+                    <span className="text-[11px] text-outline font-mono">
+                      {modelsTestResult.reranker.ranked_candidates.length} ứng viên
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    {modelsTestResult.reranker.ranked_candidates.map((cand) => (
+                      <div
+                        key={cand.rank}
+                        className={`p-2 rounded border flex items-start justify-between gap-2 ${
+                          cand.rank === 1
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-on-surface font-medium"
+                            : "bg-surface-container border-outline-variant/20 text-on-surface-variant"
+                        }`}
+                      >
+                        <div className="flex items-start gap-1.5">
+                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                            cand.rank === 1 ? "bg-emerald-500 text-black" : "bg-surface-container-highest text-outline"
+                          }`}>
+                            #{cand.rank}
+                          </span>
+                          <span className="line-clamp-2">{cand.text}</span>
+                        </div>
+                        <span className="font-mono text-[11px] text-emerald-400 font-bold shrink-0">
+                          {cand.score > 0 ? `+${cand.score}` : cand.score}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 

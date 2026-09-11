@@ -108,7 +108,26 @@ Hệ thống đã hoàn thiện **end-to-end** ở cấp độ ứng dụng th�
 
 ### 1.10. Hỗ trợ Mô hình Cục bộ Hoàn toàn (Local LLM On-Premise via Ollama / vLLM)
 - **Bảo mật 100% On-Premise / Private Cloud**: Hỗ trợ kết nối trực tiếp với các mô hình mã nguồn mở On-Premise qua **Ollama** (Qwen 2.5 14B/32B, Vistral, PhoGPT) hoặc **vLLM Cluster** phục vụ cho các cơ quan nhà nước, ngân hàng và bệnh viện có yêu cầu bảo mật dữ liệu tuyệt đối.
-- **Hỗ trợ Song song Đám mây (Hybrid Cloud)**: Duy trì đầy đủ kết nối Claude 3.5 Sonnet qua `ANTHROPIC_API_KEY`, cho phép Quản trị viên chuyển đổi linh hoạt chỉ bằng một thao tác trên giao diện.
+### 1.11. Nâng cấp Xử lý Tài liệu Đa phương thái (OCR & Table Extraction)
+- **Bóc tách Bảng biểu có cấu trúc (`pdfplumber`)**:
+  - Khắc phục triệt để hạn chế của `pypdf` (vốn làm mất cấu trúc cột/hàng của các bảng mức phạt, khung hình phạt, bảng chỉ số xét nghiệm và kết quả lâm sàng).
+  - Tự động nhận diện lưới ma trận 2D và chuyển đổi thành bảng **Markdown chuẩn** (`| Cột 1 | Cột 2 |`) cho cả tệp PDF và văn bản Word DOCX.
+  - Cho phép Answer Synthesizer viện dẫn chính xác từng hàng dữ liệu, đối chiếu số liệu và khung phạt trong câu trả lời.
+- **Cơ chế Hybrid Vision OCR (Claude 3.5 Sonnet Vision / Multimodal)**:
+  - Tự động nhận diện trang scan dạng ảnh (ảnh chụp hồ sơ bệnh án, con dấu công chứng, chữ ký, văn bản scan không có text layer hoặc text < 40 ký tự).
+  - Xuất ảnh trang PDF với độ phân giải cao và truyền trực tiếp sang Vision LLM để OCR trọn vẹn văn bản tiếng Việt có dấu, thuật ngữ y học, các sơ đồ phác đồ điều trị và biểu đồ nhánh.
+  - Tự động fallback an toàn về `pypdf` nếu gặp tệp PDF bị lỗi định dạng, đảm bảo 100% không bao giờ làm gián đoạn tiến trình ingest.
+
+### 1.12. Tối ưu Embedding & Reranker Chuyên dụng cho Tiếng Việt
+- **Tích hợp các Mô hình Embedding SOTA**:
+  - **`BAAI/bge-m3`**: Mô hình đa ngôn ngữ hàng đầu với cửa sổ ngữ cảnh lên tới **8192 tokens**, biểu diễn vector dense 1024 chiều. Tối ưu hóa vượt bậc khả năng truy hồi ngữ nghĩa (Recall) cho các từ vựng cổ, thuật ngữ Hán - Việt (*"suy đoán lỗi"*, *"liên đới bồi thường"*, *"trách nhiệm ngoài hợp đồng"*, *"thời hiệu khởi kiện"*...) và viện dẫn luật dài xuyên nhiều điều khoản.
+  - **`bkai-foundation-models/vietnamese-bi-encoder`**: Mô hình 768 chiều được huấn luyện chuyên sâu cho tiếng Việt bởi Viện CNTT Bách Khoa Hà Nội (BKAI), tăng cường độ chuẩn xác cho văn phong và ngữ pháp Việt Nam.
+  - **`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`**: Mô hình 384 chiều siêu nhẹ, tối ưu hóa tốc độ cho máy chủ có tài nguyên hạn chế.
+- **Reranker Cross-Encoder Tiếng Việt Tối tân**:
+  - Tích hợp **`BAAI/bge-reranker-v2-m3`** tái xếp hạng chéo giữa truy vấn và chứng cứ, phân biệt sắc thái pháp lý tinh tế (điều kiện loại trừ, ngoại lệ, phủ định kép).
+- **Phân hệ Quản trị Mô hình & Đánh giá Live trên Admin Console**:
+  - Cho phép chuyển đổi nóng mô hình Embedding và Reranker trong thời gian chạy mà không cần khởi động lại dịch vụ.
+  - Tích hợp Bảng điều khiển thử nghiệm trực tiếp: Nhập câu hỏi tiếng Việt mẫu, đo lường độ trễ (latency ms), hiển thị trực quan các chiều vector và điểm xếp hạng Rerank.
 
 ---
 

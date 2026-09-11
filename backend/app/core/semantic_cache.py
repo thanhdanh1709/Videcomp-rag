@@ -77,7 +77,10 @@ class SemanticCache:
             conn.commit()
 
     def _load_cache(self) -> None:
-        """Nạp toàn bộ vector và metadata từ SQLite vào RAM khi khởi động."""
+        """Nạp toàn bộ vector và metadata từ SQLite vào RAM khi khởi động.
+        
+        Tự động lọc các bản ghi có số chiều vector khớp với mô hình Embedding hiện tại.
+        """
         with self._lock, self._get_connection() as conn:
             cur = conn.execute(
                 """
@@ -88,11 +91,16 @@ class SemanticCache:
             )
             rows = cur.fetchall()
 
+        current_dim = self.embedder.dim
         self._entries = []
         vecs: list[np.ndarray] = []
 
         for r in rows:
             vec = np.frombuffer(r["embedding"], dtype=np.float32)
+            if len(vec) != current_dim:
+                # Bỏ qua bản ghi cũ thuộc về mô hình embedding có chiều vector khác
+                continue
+
             # Chuẩn hóa L2 vector
             norm = np.linalg.norm(vec)
             if norm > 1e-9:
@@ -114,9 +122,16 @@ class SemanticCache:
         if vecs:
             self._embeddings = np.vstack(vecs).astype(np.float32)
         else:
-            self._embeddings = np.empty((0, 0), dtype=np.float32)
+            self._embeddings = np.empty((0, current_dim), dtype=np.float32)
 
-        logger.info("SemanticCache loaded %d entries from %s", len(self._entries), self.db_path)
+        logger.info("SemanticCache loaded %d active entries (dim=%d) from %s", len(self._entries), current_dim, self.db_path)
+
+    def reload_cache(self) -> None:
+        """Tải lại bộ nhớ đệm khi chuyển đổi mô hình embedding."""
+        with self._lock:
+            self._embedder = None  # reset để lấy embedder mới nhất
+            self._load_cache()
+
 
     def lookup(
         self,
@@ -143,6 +158,12 @@ class SemanticCache:
 
             # Tính vector embedding cho câu hỏi đến
             q_vec = self.embedder.embed([question])[0].astype(np.float32)
+            if self._embeddings.shape[1] != len(q_vec):
+                logger.warning("Vector dimension mismatch: cache has %d, embedder has %d. Reloading cache.", self._embeddings.shape[1], len(q_vec))
+                self._load_cache()
+                if self._embeddings.size == 0 or self._embeddings.shape[1] != len(q_vec):
+                    return None, 0.0, (time.perf_counter() - start_time) * 1000
+
             norm = np.linalg.norm(q_vec)
             if norm > 1e-9:
                 q_vec = q_vec / norm
@@ -282,7 +303,7 @@ class SemanticCache:
                 }
             )
 
-            if self._embeddings.size == 0:
+            if self._embeddings.size == 0 or self._embeddings.shape[1] != len(vec):
                 self._embeddings = np.array([vec], dtype=np.float32)
             else:
                 self._embeddings = np.vstack([self._embeddings, vec]).astype(np.float32)

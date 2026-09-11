@@ -230,3 +230,55 @@ export interface ExperimentRecord {
   config_version: string;
   created_at: string;
 }
+
+export interface ModelCatalogItem {
+  id: string;
+  name: string;
+  label: string;
+  dim?: number;
+  max_length?: number;
+  badge?: string;
+  description: string;
+}
+
+export interface ModelsConfigResponse {
+  status: string;
+  active_embedding_model: string;
+  active_embedding_dim: number;
+  active_reranker_model: string;
+  enable_pdf_table_extraction: boolean;
+  enable_vision_ocr: boolean;
+  vision_model: string;
+  available_embedding_models: ModelCatalogItem[];
+  available_reranker_models: ModelCatalogItem[];
+}
+
+export interface ModelsConfigUpdate {
+  embedding_model?: string;
+  reranker_model?: string;
+  enable_pdf_table_extraction?: boolean;
+  enable_vision_ocr?: boolean;
+  vision_model?: string;
+}
+
+export interface ModelsTestResponse {
+  status: string;
+  sample_text: string;
+  embedding: {
+    model: string;
+    dim: number;
+    norm: number;
+    preview: number[];
+    latency_ms: number;
+  };
+  reranker: {
+    model: string;
+    latency_ms: number;
+    ranked_candidates: {
+      rank: number;
+      score: number;
+      text: string;
+    }[];
+  };
+}
+

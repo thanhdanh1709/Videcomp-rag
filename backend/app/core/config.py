@@ -26,6 +26,13 @@ class Settings(BaseSettings):
     embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     reranker_model: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
 
+    # Nâng cấp Xử lý Tài liệu Đa phương thái (OCR & Table Extraction)
+    enable_pdf_table_extraction: bool = True
+    enable_vision_ocr: bool = True
+    vision_model: str = "claude-3-5-sonnet-20241022"
+    vision_max_pages: int = 15  # Giới hạn số trang ảnh scan để tối ưu chi phí API
+
+
     vector_backend: str = "faiss"  # faiss | qdrant
     qdrant_url: str = "http://localhost:6333"
     postgres_dsn: str = "postgresql://videcomp:videcomp@localhost:5432/videcomp"
@@ -60,4 +67,54 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+# Danh mục các mô hình Embedding chuyên dụng cho Tiếng Việt & Đa ngôn ngữ
+AVAILABLE_EMBEDDING_MODELS: dict[str, dict[str, str | int]] = {
+    "bge-m3": {
+        "id": "bge-m3",
+        "name": "BAAI/bge-m3",
+        "label": "BGE-M3 (8192 tokens, 1024-dim, Tối tân)",
+        "dim": 1024,
+        "max_length": 8192,
+        "badge": "Khuyên dùng Pháp luật / Bệnh án dài",
+        "description": "Hỗ trợ ngữ cảnh siêu dài 8192 tokens, biểu diễn đa ngôn ngữ vượt trội, tối ưu hóa mạnh mẽ cho từ vựng cổ và thuật ngữ Hán - Việt.",
+    },
+    "vietnamese-bi-encoder": {
+        "id": "vietnamese-bi-encoder",
+        "name": "bkai-foundation-models/vietnamese-bi-encoder",
+        "label": "BKAI Bi-Encoder (768-dim, Chuyên sâu Tiếng Việt)",
+        "dim": 768,
+        "max_length": 512,
+        "badge": "BKAI Hà Nội",
+        "description": "Mô hình được đào tạo chuyên sâu trên ngữ liệu tiếng Việt bởi Viện CNTT Bách Khoa Hà Nội, độ chính xác cao trên văn phong Việt Nam.",
+    },
+    "multilingual-minilm": {
+        "id": "multilingual-minilm",
+        "name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        "label": "Multilingual MiniLM (384-dim, Siêu nhẹ & Nhanh)",
+        "dim": 384,
+        "max_length": 512,
+        "badge": "Mặc định / Nhẹ",
+        "description": "Mô hình cơ sở đa ngôn ngữ 384 chiều, tốc độ mã hóa cực nhanh, phù hợp cho môi trường kiểm thử và máy chủ ít RAM.",
+    },
+}
+
+# Danh mục các mô hình Reranker (Cross-Encoder) chuyên dụng
+AVAILABLE_RERANKER_MODELS: dict[str, dict[str, str]] = {
+    "bge-reranker-v2-m3": {
+        "id": "bge-reranker-v2-m3",
+        "name": "BAAI/bge-reranker-v2-m3",
+        "label": "BGE Reranker v2 M3 (Cross-Encoder Tiếng Việt & Đa ngữ Tối tân)",
+        "badge": "Khuyên dùng Chính xác cao",
+        "description": "Tái xếp hạng chéo giữa truy vấn và ngữ cảnh, phân biệt tinh tế các sắc thái phủ định, điều kiện loại trừ trong luật.",
+    },
+    "mmarco-minilm": {
+        "id": "mmarco-minilm",
+        "name": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+        "label": "mMARCO MiniLM (384-dim, Tốc độ cao)",
+        "badge": "Mặc định / Tối ưu độ trễ",
+        "description": "Mô hình cross-encoder gọn nhẹ, thời gian phản hồi nhanh cho các ứng dụng thời gian thực.",
+    },
+}
+
 
