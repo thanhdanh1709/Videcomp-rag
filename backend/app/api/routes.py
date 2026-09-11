@@ -362,12 +362,21 @@ def qa_trace(request_id: str):
 
 
 @router.post("/evaluation/run")
-def evaluation_run(dataset_path: str, mode: str, domain: str = "legal"):
+def evaluation_run(
+    dataset_path: str,
+    mode: str,
+    domain: str = "legal",
+    include_ragas: bool = True,
+    sample_limit: int | None = None,
+):
+    """Chạy đánh giá Benchmark kèm đo lường tự động chuẩn Ragas / TruLens (RAG Triad)."""
     if not Path(dataset_path).exists():
         raise HTTPException(status_code=404, detail="dataset_path khong ton tai")
     retriever = state.retrievers.get(domain)
     if retriever is None:
         raise HTTPException(status_code=400, detail="chua build index cho domain nay")
+
+    from ..services.ragas_evaluator import evaluate_rag_triad
 
     items = []
     with open(dataset_path, encoding="utf-8") as f:
@@ -375,12 +384,79 @@ def evaluation_run(dataset_path: str, mode: str, domain: str = "legal"):
             if line.strip():
                 items.append(BenchmarkItem.model_validate_json(line))
 
+    if sample_limit and sample_limit > 0:
+        items = items[:sample_limit]
+
+    chunk_map = {}
+    if retriever and hasattr(retriever, "bm25_index") and retriever.bm25_index and hasattr(retriever.bm25_index, "chunks"):
+        chunk_map = {ch.chunk_id: ch.text for ch in retriever.bm25_index.chunks}
+
     retrieved_by_item = {}
+    sample_evaluations = []
+    faithfulness_scores = []
+    answer_relevance_scores = []
+    context_precision_scores = []
+
     for item in items:
         result = run_qa(item.question, item.domain, mode=mode, retriever=retriever)
         retrieved_by_item[item.id] = [c.chunk_id for c in result.citations]
 
+        if include_ragas:
+            gold_chunk_ids = [e.chunk_id for e in item.supporting_evidence]
+            contexts = []
+            if result.citations:
+                contexts = [
+                    {
+                        "chunk_id": c.chunk_id,
+                        "text": chunk_map.get(c.chunk_id) or c.citation_label or c.article_title or c.law_name or "",
+                        "clause": c.citation_label or "",
+                    }
+                    for c in result.citations
+                ]
+            else:
+                # Fallback to retrieved chunks if citations empty
+                for h in result.hop_trace:
+                    for ev_id in h.evidence_ids:
+                        contexts.append({
+                            "chunk_id": ev_id,
+                            "text": chunk_map.get(ev_id, ""),
+                            "clause": ev_id,
+                        })
+            triad = evaluate_rag_triad(
+                question=item.question,
+                answer=result.final_answer,
+                contexts=contexts,
+                gold_chunk_ids=gold_chunk_ids,
+            )
+            faithfulness_scores.append(triad.faithfulness.score)
+            answer_relevance_scores.append(triad.answer_relevance.score)
+            context_precision_scores.append(triad.context_precision.score)
+
+            sample_evaluations.append({
+                "id": item.id,
+                "question": item.question,
+                "gold_answer": item.answer,
+                "generated_answer": result.final_answer,
+                "faithfulness": triad.faithfulness.score,
+                "answer_relevance": triad.answer_relevance.score,
+                "context_precision": triad.context_precision.score,
+                "rag_triad_index": triad.rag_triad_index,
+                "grade": triad.grade,
+                "claims": [c.model_dump() for c in triad.faithfulness.claims],
+                "contexts": [cx.model_dump() for cx in triad.context_precision.contexts],
+                "relevance_reasoning": triad.answer_relevance.reasoning,
+            })
+
     metrics = evaluator.aggregate_retrieval_metrics(items, retrieved_by_item)
+    if include_ragas and items:
+        n_items = len(items)
+        metrics["faithfulness"] = round(sum(faithfulness_scores) / n_items, 3)
+        metrics["answer_relevance"] = round(sum(answer_relevance_scores) / n_items, 3)
+        metrics["context_precision"] = round(sum(context_precision_scores) / n_items, 3)
+        metrics["rag_triad_index"] = round(
+            (metrics["faithfulness"] + metrics["answer_relevance"] + metrics["context_precision"]) / 3.0, 3
+        )
+
     experiment_id = f"{mode}-{uuid.uuid4().hex[:8]}"
     repository.save_experiment(
         experiment_id=experiment_id,
@@ -390,7 +466,15 @@ def evaluation_run(dataset_path: str, mode: str, domain: str = "legal"):
         metrics=metrics,
         config_version=settings.config_version,
     )
-    return {"experiment_id": experiment_id, "mode": mode, "metrics": metrics, "n_items": len(items)}
+    state.experiment_samples[experiment_id] = sample_evaluations
+
+    return {
+        "experiment_id": experiment_id,
+        "mode": mode,
+        "metrics": metrics,
+        "n_items": len(items),
+        "sample_evaluations": sample_evaluations,
+    }
 
 
 @router.get("/evaluation/{experiment_id}")
@@ -406,7 +490,36 @@ def evaluation_get(experiment_id: str):
         "metrics": record.metrics,
         "config_version": record.config_version,
         "created_at": record.created_at.isoformat(),
+        "sample_evaluations": state.experiment_samples.get(experiment_id, []),
     }
+
+
+@router.get("/evaluation/{experiment_id}/samples")
+def evaluation_get_samples(experiment_id: str):
+    """Lấy danh sách đánh giá chi tiết từng câu hỏi (per-sample RAG Triad diagnostics)."""
+    return state.experiment_samples.get(experiment_id, [])
+
+
+class SingleRagasEvalRequest(BaseModel):
+    question: str
+    answer: str
+    contexts: list[Any] = Field(default_factory=list)
+    gold_chunk_ids: list[str] = Field(default_factory=list)
+    domain: str = "legal"
+
+
+@router.post("/evaluation/ragas/single")
+def evaluate_single_ragas_item(req: SingleRagasEvalRequest):
+    """Đo lường trực tiếp bộ ba chất lượng Ragas (Faithfulness, Answer Relevance, Context Precision) cho 1 mẫu."""
+    from ..services.ragas_evaluator import evaluate_rag_triad
+
+    triad = evaluate_rag_triad(
+        question=req.question,
+        answer=req.answer,
+        contexts=req.contexts,
+        gold_chunk_ids=req.gold_chunk_ids,
+    )
+    return triad.model_dump()
 
 
 def _update_env_file(key: str, value: str):

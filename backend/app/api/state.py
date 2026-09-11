@@ -15,3 +15,4 @@ class AppState:
     retrievers: dict[str, HybridRetriever] = field(default_factory=dict)
     session_candidates: dict[str, list] = field(default_factory=dict)
     session_files: dict[str, list] = field(default_factory=dict)
+    experiment_samples: dict[str, list] = field(default_factory=dict)

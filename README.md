@@ -129,6 +129,41 @@ Hệ thống đã hoàn thiện **end-to-end** ở cấp độ ứng dụng th�
   - Cho phép chuyển đổi nóng mô hình Embedding và Reranker trong thời gian chạy mà không cần khởi động lại dịch vụ.
   - Tích hợp Bảng điều khiển thử nghiệm trực tiếp: Nhập câu hỏi tiếng Việt mẫu, đo lường độ trễ (latency ms), hiển thị trực quan các chiều vector và điểm xếp hạng Rerank.
 
+### 1.13. Xuất Báo cáo Chuyên nghiệp (Legal / Medical Dossier Exporter) & Cộng tác Nhóm
+- **Tạo Hồ sơ Pháp lý & Bệnh án Chuẩn mực**: Cho phép xuất toàn bộ phiên hỏi đáp hoặc một lượt tra cứu cụ thể thành tệp **PDF** hoặc **Word (.docx)** được định dạng chuyên nghiệp:
+  - Tiêu đề văn bản trang trọng, ngày giờ và thông tin người lập.
+  - Tóm tắt kết luận tư vấn trực diện.
+  - Cây suy luận phân rã đa bước (Multi-Hop DAG Execution Trace) kèm câu hỏi con và câu trả lời từng chặng.
+  - Bảng trích dẫn điều luật / y khoa đối chiếu chi tiết (tên đạo luật, số hiệu Điều/Khoản, trích đoạn căn cứ).
+  - Bảng đối soát kiểm chứng luận điểm (Grounding Verification & Contradiction Detection).
+- **Cộng tác Nhóm & Chia sẻ Phiên làm việc (Shared Workspace & Multi-user Sharing)**:
+  - Cho phép người dùng chia sẻ đường liên kết phiên tra cứu hoặc toàn bộ thư mục dự án cho các thành viên trong phòng ban.
+  - Phân quyền cộng tác rõ ràng: **Chỉ xem (Viewer)** hoặc **Cùng thảo luận (Editor)**.
+  - Tự động đồng bộ quyền hạn theo JWT Token và cơ sở dữ liệu PostgreSQL / SQLite.
+
+### 1.14. Hệ thống Đo lường Chất lượng RAG Tự động (RAG Evaluation / Ragas / TruLens)
+- **Chuẩn mực Đánh giá Bộ ba RAG Triad**:
+  1. **🎯 Độ trung thực (Faithfulness)**: *Câu trả lời có đúng với tài liệu không?*
+     - Phân rã câu trả lời thành từng mệnh đề thực thể (claims) độc lập.
+     - Đo tỷ lệ các luận điểm có bằng chứng trích dẫn chứng thực từ ngữ cảnh, phạt nặng các luận điểm mâu thuẫn hoặc bịa đặt ngoài tài liệu.
+     - Công thức: $\text{Faithfulness} = \frac{|\text{Luận điểm Hợp lệ}| - 1.5 \times |\text{Mâu thuẫn}|}{|\text{Tổng số luận điểm}|}$.
+  2. **💡 Độ liên quan (Answer Relevance)**: *Có trả lời đúng trọng tâm câu hỏi không?*
+     - Đánh giá mức độ trực diện, bao quát và bám sát câu hỏi người dùng; trừ điểm nếu câu trả lời né tránh, lan man hoặc chứa thông tin lạc đề.
+     - Kết hợp LLM Rubric Evaluation thang điểm chuẩn và Lexical/Semantic Similarity giữa câu hỏi và câu trả lời.
+  3. **🔍 Mức độ trích dẫn (Context Precision)**: *Bằng chứng tìm được có chuẩn xác không?*
+     - Đo lường tỷ lệ tín hiệu trên nhiễu (Signal-to-Noise Ratio) của các đoạn văn bản truy xuất.
+     - Công thức chuẩn Ragas theo thứ hạng: $\text{Context Precision@K} = \frac{\sum_{r=1}^K (\text{Precision@r} \times v_r)}{\text{Tổng số đoạn hữu ích trong top K}}$.
+  4. **🏆 Chỉ số RAG Triad Tổng hợp (Combined Triad Index)**:
+     - Tính trung bình bộ ba chất lượng kèm xếp hạng học lực: *Xuất sắc (A+)*, *Tốt (A)*, *Khá (B)*, *Cần cải thiện (C)*.
+- **Trình Thẩm định Ragas Trực tiếp (Live Interactive Inspector)**:
+  - Phân hệ thử nghiệm nhanh dành cho chuyên gia pháp lý / y tế, kiểm thử ngay độ tin cậy của bất kỳ câu hỏi, câu trả lời và văn bản ngữ cảnh nào với phản hồi theo thời gian thực.
+- **Bảng Phân tích Chi tiết Từng Mẫu (Per-Sample Diagnostics)**:
+  - Hiển thị danh sách kiểm thử với khả năng mở rộng xem chi tiết: đối chiếu Generated Answer vs Gold Answer, danh sách từng Claim (Supported / Contradiction / Hallucination), và bảng xếp hạng bằng chứng truy xuất (Signal vs Noise).
+- **Hệ thống API RESTful**:
+  - `POST /api/v1/evaluation/run`: Chạy đánh giá batch benchmark kèm tham số `include_ragas` và `sample_limit`.
+  - `GET /api/v1/evaluation/{experiment_id}/samples`: Truy vấn dữ liệu chẩn đoán chi tiết từng câu hỏi.
+  - `POST /api/v1/evaluation/ragas/single`: Đánh giá nhanh Ragas cho 1 cặp hỏi-đáp tùy ý.
+
 ---
 
 ## 2. Kết quả Thực nghiệm Ablation (B0 → Q3)

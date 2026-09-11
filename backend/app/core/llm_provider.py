@@ -113,6 +113,25 @@ class MockLLMProvider(LLMProvider):
             citations=context.get("citations", []),
         )
 
+    # -- FaithfulnessJudgement ---------------------------------------------
+    def _handle_faithfulness_judgement(self, prompt: str, context: dict):
+        from ..services.ragas_evaluator import _heuristic_faithfulness_judgement
+
+        return _heuristic_faithfulness_judgement(
+            context.get("question", ""),
+            context.get("answer", prompt),
+            context.get("contexts", []),
+        )
+
+    # -- AnswerRelevanceJudgement ------------------------------------------
+    def _handle_answer_relevance_judgement(self, prompt: str, context: dict):
+        from ..services.ragas_evaluator import _heuristic_answer_relevance_judgement
+
+        return _heuristic_answer_relevance_judgement(
+            context.get("question", prompt),
+            context.get("answer", ""),
+        )
+
 
 def _extract_and_validate_json(raw_text: str, schema: type[T]) -> T:
     """Lọc và làm sạch JSON từ đầu ra của các mô hình On-Premise / Local LLM.
@@ -374,6 +393,15 @@ _ANTHROPIC_SYSTEM_PROMPTS: dict[str, str] = {
         "ngan, chinh xac, suy ra duoc tu chinh cac chunk da cho, khong dung kien thuc ngoai; "
         "(5) reasoning_type la mot trong: bridge, intersection, comparison, temporal_version, "
         "rule_exception, other."
+    ),
+    "FaithfulnessJudgement": (
+        "Ban la Chuyen gia Tham dinh Chat luong RAG (Ragas Faithfulness Judge). "
+        "Kiem tra xem cac menh de trong cau tra loi co duoc ho tro boi tai lieu ngu canh khong. "
+        "Gan status: 'supported' neu duoc chung minh, 'unsupported' neu mau thuan, 'insufficient' neu bia dat/khong co trong tai lieu."
+    ),
+    "AnswerRelevanceJudgement": (
+        "Ban la Chuyen gia Danh gia Trong tam Cau hoi (Ragas Answer Relevance Judge). "
+        "Cham diem tu 0.0 den 1.0 xem cau tra loi co truc dien, dung trong tam va giai quyet cau hoi khong."
     ),
 }
 

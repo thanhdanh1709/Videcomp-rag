@@ -16,6 +16,9 @@ import type {
   SharedMember,
   SharedSessionDetail,
   SharedProjectDetail,
+  RAGTriadResult,
+  SampleEvaluationItem,
+  SingleRagasRequest,
 } from "./types";
 import type { ProjectFolder } from "../types/project";
 import type { CustomAgent } from "../types/agent";
@@ -210,14 +213,41 @@ export function fetchExperiment(experimentId: string): Promise<ExperimentRecord>
   return request<ExperimentRecord>(`/api/v1/evaluation/${encodeURIComponent(experimentId)}`);
 }
 
-export function runEvaluation(datasetPath: string, mode: Mode, domain: Domain): Promise<{
+export function fetchExperimentSamples(experimentId: string): Promise<SampleEvaluationItem[]> {
+  return request<SampleEvaluationItem[]>(`/api/v1/evaluation/${encodeURIComponent(experimentId)}/samples`);
+}
+
+export function runEvaluation(
+  datasetPath: string,
+  mode: Mode,
+  domain: Domain,
+  includeRagas: boolean = true,
+  sampleLimit?: number
+): Promise<{
   experiment_id: string;
   mode: Mode;
   metrics: Record<string, number>;
   n_items: number;
+  sample_evaluations?: SampleEvaluationItem[];
 }> {
-  const params = new URLSearchParams({ dataset_path: datasetPath, mode, domain });
+  const params = new URLSearchParams({
+    dataset_path: datasetPath,
+    mode,
+    domain,
+    include_ragas: String(includeRagas),
+  });
+  if (sampleLimit && sampleLimit > 0) {
+    params.set("sample_limit", String(sampleLimit));
+  }
   return request(`/api/v1/evaluation/run?${params.toString()}`, { method: "POST" });
+}
+
+export function evaluateSingleRagas(req: SingleRagasRequest): Promise<RAGTriadResult> {
+  return request<RAGTriadResult>("/api/v1/evaluation/ragas/single", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(req),
+  });
 }
 
 export async function uploadDocument(

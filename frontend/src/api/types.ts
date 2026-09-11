@@ -229,6 +229,80 @@ export interface ExperimentRecord {
   metrics: Record<string, number>;
   config_version: string;
   created_at: string;
+  sample_evaluations?: SampleEvaluationItem[];
+}
+
+export interface ClaimItem {
+  claim: string;
+  status: "supported" | "unsupported" | "insufficient";
+  evidence_snippet?: string;
+  reasoning?: string;
+}
+
+export interface FaithfulnessResult {
+  score: number;
+  total_claims: number;
+  supported_claims: number;
+  unsupported_claims: number;
+  insufficient_claims: number;
+  claims: ClaimItem[];
+  verdict: string;
+}
+
+export interface AnswerRelevanceResult {
+  score: number;
+  rubric_score: number;
+  semantic_similarity: number;
+  reasoning: string;
+  verdict: string;
+}
+
+export interface ContextItem {
+  rank: number;
+  chunk_id: string;
+  snippet: string;
+  is_relevant: boolean;
+  reason: string;
+}
+
+export interface ContextPrecisionResult {
+  score: number;
+  k: number;
+  relevant_contexts_count: number;
+  total_contexts_count: number;
+  contexts: ContextItem[];
+  verdict: string;
+}
+
+export interface RAGTriadResult {
+  faithfulness: FaithfulnessResult;
+  answer_relevance: AnswerRelevanceResult;
+  context_precision: ContextPrecisionResult;
+  rag_triad_index: number;
+  grade: string;
+}
+
+export interface SampleEvaluationItem {
+  id: string;
+  question: string;
+  gold_answer?: string;
+  generated_answer: string;
+  faithfulness: number;
+  answer_relevance: number;
+  context_precision: number;
+  rag_triad_index: number;
+  grade: string;
+  claims: ClaimItem[];
+  contexts: ContextItem[];
+  relevance_reasoning?: string;
+}
+
+export interface SingleRagasRequest {
+  question: string;
+  answer: string;
+  contexts?: any[];
+  gold_chunk_ids?: string[];
+  domain?: Domain;
 }
 
 export interface ModelCatalogItem {
